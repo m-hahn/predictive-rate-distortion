@@ -19,11 +19,14 @@
 \newcommand{\E}[0]{\mathbb{E}}
 \newcommand{\Ff}[0]{\mathcal{F}}
 
+\newif \ifcomment
+\commentfalse
 
 \newcommand{\soft}[1]{}
 \newcommand{\nopreview}[1]{}
-\newcommand\comment[1]{{\color{red}#1}}
-\newcommand\mhahn[1]{{\color{red}(#1)}}
+\newcommand\comment[1]{\ifcomment{{\color{red}#1}}\else{}\fi}
+\newcommand\mhahn[1]{\ifcomment{{\color{red}(#1)}}\else{}\fi}
+\newcommand\rljf[1]{\ifcomment{{\color{blue}(#1)}}\else{}\fi}
 
 \usepackage{amsthm}
 
@@ -35,6 +38,7 @@
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{question}[theorem]{Question}
 \newtheorem{example}[theorem]{Example}
+\newtheorem{defin}[theorem]{Definition}
 
 \usepackage{tikz}
 \usetikzlibrary{automata,positioning}
@@ -43,13 +47,24 @@
 \frenchspacing
 %\def\baselinestretch{0.975}
 
+\author{Michael Hahn, Richard Futrell}
 
 \title{Estimating Predictive Rate-Distortion via Neural Variational Inference}
 \date{2018}
 
 \begin{document}
 
+
+
 \maketitle
+
+% Some other stuff to cite/consider in framing
+% - the Tim Genewein papers on bounded rationality -- predictive rate distortion is like the action of an boundedly rational predictor 
+% - Rubin, Shamir & Tishby (2010). Trading value and information in MDPs. Is predictive rate distortion the same as their model but with KL divergence as the value function?
+
+% Possible venues
+% - Entropy, of course. 
+% - Also the journals that the previous PRD papers showed up in: Chaos, Journal of Statistical Physics, Physical Review Letters
 
 
 \begin{abstract}
@@ -283,15 +298,15 @@ The idea will be to construct a bound on predictive rate-distortion and optimize
 %We will write the objective in (\ref{eq:ib}) in a way amenable to gradient-based optimization within a parametric family of function approximators.
 
 Let us assume that an \emph{encoder} $\phi$ is given, expressed in a family of function approximators. % and \emph{decoder} $\psi$ 
-The encoder transforms observation sequences $x_{-M\dots -1}$ into a distribution over $Z \in \mathbb{R}^N$: 
+The encoder transforms observation sequences $x_{-M\dots -1}$ into a distribution over $Z \in \mathbb{R}^N$: \rljf{Slight mismatch of the math and the prose here: the prose makes it sound like $\phi$ is going to be a function from $x_{-M\dots -1}$ to $Z$ but in the math it returns a probability mass/density function. Maybe write as Z = \phi($x_{-M\dots -1}$), P_\phi(Z|$x_{-M\dots -1}$) = ...}
 \begin{equation}
 	P(Z|X_{-M\dots M}) := \phi(Z|X_{-M\dots-1}) := \phi(X_{-M\dots-1})(Z)
 \end{equation}
-From this, one can obtain the conditional distribution over future observations via Bayes' rule, using the Markov condition:
+From this, one can obtain the conditional distribution over future observations via Bayes' rule, using the Markov condition: \rljf{Show some intermediate steps here}
 \begin{equation}\label{eq:cond-fut}
 	P(X_{0\dots M-1}|Z) = \frac{\E_{X_{-M \dots M-1}} \phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})}
 \end{equation}
-However, if $\phi$ is given by a powerful function approximating family such as recurrent neural networks, neither of the two expectations is tractable,  as they require summation over exponentialy many sequences.
+However, if $\phi$ is given by a powerful function approximating family such as recurrent neural networks, neither of the two expectations is tractable,  as they require summation over exponentially many sequences. \rljf{Why does this only happen for powerful function approximators? Isn't it the same number of sequences no matter the approximator? Ie doensn't it depend on $M$, not $\phi$?}
 
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
 First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$.
@@ -305,47 +320,51 @@ Second, to approximate $P(X_{0\dots M-1}|Z)$, we introduce a parameterized decod
 %Here, there need $\psi$ need not be the `correct' decoder for $\phi$.
 %Finally, let $q$ be any distribution over $\mathbb{R}^N$.
 
-If we fix a stochastic process $(X_t)_t$ and an encoder $\phi$, then -- for \emph{any} choice of these functions $\psi$ and $q$ -- the following two bounds hold.
-First, the loss incurred when predicting the future from $Z$ via $\psi$ upper-bounds the true conditional entropy of the future given $Z$, when predicting using the exact conditional (\ref{eq:cond-fut}):
+If we fix a stochastic process $(X_t)_t$ and an encoder $\phi$, then---for \emph{any} choice of these functions $\psi$ and $q$---the following two bounds hold.
+
+\begin{proposition}
+The loss incurred when predicting the future from $Z$ via $\psi$ upper-bounds the true conditional entropy of the future given $Z$, when predicting using the exact conditional (\ref{eq:cond-fut}):
 \begin{equation}\label{ineq1}
 	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | z)\right] \geq \operatorname{H}[X_{1\dots M-1}|Z]
 \end{equation}
 Furthermore, equality is attained if and only if $\psi(X_{0\dots M-1}|Z) = P(X_{0\dots M-1}|Z)$.
 %It is in this sense that $\psi$ `approximates' the conditional $P(X_{0\dots M-1}|Z)$.
+\end{proposition}
 
 \begin{proof}
 %\begin{equation}\label{ineq1}
 \begin{align*}
 	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | z)\right] & \geq -	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P(X_{0\dots M-1} | z)\right]\\
-	&= \operatorname{H}[X_{1\dots M-1}|Z]
+	&= \operatorname{H}[X_{1\dots M-1}|Z].
 \end{align*}
 %\end{equation}
 \end{proof}
 
-Second, the KL Divergence between $P(Z|X)$ and $q(Z)$, averaged over $X$, upper-bounds the mutual information between $Z$ and the past observations:
+\begin{proposition} 
+The KL Divergence between $P(Z|X)$ and $q(Z)$, averaged over $X$, upper-bounds the mutual information between $Z$ and the past observations:
 \begin{equation}\label{ineq2}
 \begin{aligned}
 	\mathbb{E}_{X}\left[ D_{KL}(P(Z|X) || q(Z))\right] &=   \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P_\phi(Z|X_{-M\dots -1})}{q(Z)}  \\
 	& \geq  \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P(Z|X_{-M\dots -1})}{P(Z)}  \\
-	& = I[X_{-M\dots 0},Z] 
+	& = I[X_{-M\dots 0},Z].
 \end{aligned}
 \end{equation}
 Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$.
-
+\end{proposition}
 
 %These inequalities are tight if $\psi$ is the Bayes optimal decoder ($\psi_z(y) = \sum_{x} \phi(z|x) P(x, y)$), and $q$ is the marginal of $Z$.
 % N(\mu(x), \sigma^2(x))
 %Note that, for finite $M$, the predictive rate-distortion objective is equivalent to
 Therefore, the predictive rate-distortion objective is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P(X_{0\dots M} | z)\right] + \beta \cdot D_{KL}(\phi(X_{-M\dots-1}) || q)\right]
+	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P(X_{0\dots M} | z)\right] + \beta \cdot D_{KL}(\phi(X_{-M\dots-1}) || q)\right],
 \end{equation}
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
 %As this optimization ranges over all distributions $\phi, \psi, q$ of the appropriate domains, t
 To carry out this optimization, we will restrict to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
-The values obtained for the resulting $\phi, \psi, q$ satisfy the bounds in (\ref{ineq1}-\ref{ineq2}), and -- if the family of approximators is sufficiently rich -- can come close to turning these into equalities.
+The values obtained for the resulting $\phi, \psi, q$ satisfy the bounds in (\ref{ineq1}-\ref{ineq2}), and---if the family of approximators is sufficiently rich---can come close to turning these into equalities.
 %Optimizing them for the objective (\ref{eq:bound}) will result in functions that approximate the optimal decoder and the marginal.
-That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal.
+That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal. \rljf{Expand last sentence into a paragraph}
 
 
 %\paragraph{Why introduce $\psi, q$?} Ideally, $\psi, q$ are the Bayes optimal decoder and the marginal. Why not directly set them to these values?
@@ -370,7 +389,7 @@ We use a recurrent LSTM network to compute a vector $h \in \mathbb{R}^k$ from th
 where $W_\mu, W_\sigma \in \mathbb{R}^{k\times k}$ are parameters.
 While we found Gaussians sufficiently flexible for $\phi$, more powerful encoders could be constructed using using more flexible parametric families, such as normalizing flows \citep{rezende-variational-2015, kingma-improving-2016}.
 
-For the deocder $\psi$, we use a recurrent LSTM network to compute a sequence of vector representations $g_t$ from the code $z$ and the prefix $X_{1\dots t-1}$ for $t = 1, \dots T$, and set
+For the decoder $\psi$, we use a recurrent LSTM network to compute a sequence of vector representations $g_t$ from the code $z$ and the prefix $X_{1\dots t-1}$ for $t = 1, \dots T$, and set
 \begin{equation}
 	\psi(x_t = s_i|x_{1...t-1}, z) \propto \exp((W_o g_t)_i)
 \end{equation}
@@ -441,7 +460,7 @@ This method widely generalizes a family of prior methods \citep{rezende-variatio
 %
 %\end{proof}
 
-\paragraph{Optimisation}
+\paragraph{Optimization}
 We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for (\ref{eq:bound}) using Backpropagation and Adam \citep{kingma-adam:-2014}, a standard and widely used method for optimizing neural networks.
 During optimization, we approximate the gradient by taking a single sample from $z$ per sample trajectory and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 %\begin{equation}\label{eq:bound-mc}
@@ -450,8 +469,8 @@ During optimization, we approximate the gradient by taking a single sample from 
 %for a given training example $x_{-M...M}$.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
 
-We follow standard practice in Machine Learning by splitting the data into a training and a held-out set, using the training set for optimising the parameters.
-After every go through the training set, the objective is evaluated on the held-out set; optimisation terminates once the value on the held-out set does not improve any more.
+Following standard practice in machine learning, we split the data into a training and a held-out set, using the training set for optimizing the parameters.
+After every pass through the training set, the objective is evaluated on the held-out set; optimization terminates once the value on the held-out set does not improve any more.
 
 
 \paragraph{Evaluating}
@@ -463,7 +482,7 @@ Given parameters for $\phi, \psi, q$, we evaluate the objective~(\ref{eq:bound})
 When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
 (\ref{eq:bound-mc}) is an \emph{unbiased} estimator of an upper bound.
-The estimation error can be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$ -- unlike overfitting affecting OCE, which \emph{biases} the values obtained.
+The magnitude of the estimation error can be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$---unlike overfitting affecting OCE, which \emph{biases} the values obtained.
 %The use of a held-out set is motivated by the fact that -- as for OCE -- the codebook may have overfitted to the set used for optimization.
 
 
@@ -551,7 +570,7 @@ In the neural networks literature, the most commonly used method using variation
 
 NPRD provably provides \emph{upper bounds} on the predictive rate-distortion curve.
 This makes it possible to objectively compare the quality of different estimation methods:
-Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
+Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve. \rljf{Does the sampling error issue arise here?}
 
 \section{Experiments}
 
@@ -572,12 +591,14 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 \paragraph{OCE}
 As discussed above, OCE overestimates structure in the process due to overfitting.
 To address this, and to enable fair comparison between OCE and our neural method, we follow the evaluation method used in our neural method:
-We use held-out data to compute
+We use held-out data to compute \rljf{Describe these in prose too and what they mean}
 $$\frac{1}{N} \sum_{i=1}^N D_{KL}(q(\cdot|x_i) || s(\cdot))$$ %\E_{z \sim q(\cdot|x_i)} \log \frac{q(z|x_i)}{s(z)} $$
 and
-$$\frac{1}{N} \sum_{i=1}^N \E_{z \sim q(\cdot|x_i)} \log r(y_i|z)$$
+$$\frac{1}{N} \sum_{i=1}^N \E_{z \sim q(\cdot|x_i)} \log r(y_i|z).$$
 Thanks to (\ref{ineq1}-\ref{ineq2}), this provides upper bounds, up to sampling error introduced by finiteness of the held-out data.
 Again, this kind of error does not bias the results in either direction, unlike overfitting, which introduces a systematic bias.
+
+
 In order to be able to apply OCE on held-out data, which will contain sequences that did not occur during estimation, we add a pseudo-sequence $\omega$ and add pseudo-observations $(\omega, x), (x, \omega), (\omega, \omega)$ for all observed sequences $x_{-M...0}, x_{1...M}$ to the matrix of observed counts that serves as the input to the Blahut-Arimoto algorithm.
 These pseudo-observations were assigned pseudo-counts $\gamma$ in this matrix of observed counts; we found that a wide range of values ranging from $0.0001$ to $1.0$ yielded essentially the same results.
 When evaluating the codebook on held-out data, novel sequences were mapped to $\omega$.
@@ -594,7 +615,7 @@ For all experiments, we used $M=15$.
 
 TODO describe
 
-Neural networks have hyperparameters, such as the number of units and the step size used in optimization, that affect the quality of approximation depending on properties of the dataset and the function beig approximated.
+Neural networks have hyperparameters, such as the number of units and the step size used in optimization, that affect the quality of approximation depending on properties of the dataset and the function being approximated.
 Given that NPRD provably provides upper bounds, one can identify the best hyperparameters for a given problem by choosing the combination that leads to the lowest estimated upper bounds.
 
 As a computationally more efficient method, we defined a range of plausible hyperparameters based both on experience reported in the literature, and considerations of computational efficiency.
@@ -603,7 +624,7 @@ We then randomly sampled, for each of the processes that we experimented on, com
 This method allowed us to both efficiently find good bounds and to estimate the amount of variation in results between the parameter settings.
 
 \begin{tabular}{llll}
-	            & Tractable \\
+	            & Tractable\rljf{??} \\
 	Dropout rate & 0.0, 0.1, 0.2 \\
 	Embedding Dimension & 50, 100 \\
 	LSTM Dimension & 32 \\
@@ -622,7 +643,7 @@ This method allowed us to both efficiently find good bounds and to estimate the 
 \subsection{Analytically Tractable Problems}
 
 We first test NPRD on two processes where the predictive rate-distortion tradeoff is analytically tractable. % by computing the epsilon machine \citep{marzen-predictive-2016}. %, and where prior work has found the epsilon machine.
-The \emph{Even Process} \citep{marzen-predictive-2016} is the process of 0/1 IID coin flips, conditioned on all blocks of subsequent ones having even length.
+The \emph{Even Process} \citep{marzen-predictive-2016} is the process of 0/1 IID coin flips, conditioned on all blocks of consecutive ones having even length.
 Its complexity and excess entropy are both $\approx 0.63$ nats. % (stationary distribution: 1/3 for odd, 2/3 for even)
 It has infinite Markov order, and \cite{marzen-predictive-2016} find that OCE (at $M=5$) performs poorly. %, overestimating  even at $M=5$.
 %Their method using the (already known) epsilon machine  works well.
@@ -640,10 +661,10 @@ Individual runs of NPRD show variation (red dots), but most runs lead to results
 Bounding the tradeoff curve using the sets of runs of NPRD results in a close fit (red line) to the analytical tradeoff curves.
 
 \begin{figure*}
-\includegraphics[width=0.45\textwidth]{cryptfig/even-info.pdf}
-\includegraphics[width=0.45\textwidth]{cryptfig/rip-info.pdf}
+\includegraphics[width=0.45\textwidth]{code/figures/even-info.pdf}
+\includegraphics[width=0.45\textwidth]{code/figures/rip-info.pdf}
 
-%\includegraphics[width=0.45\textwidth]{cryptfig/even-beta-mem.pdf}
+%\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
 	\caption{Rate-Distortion for the Even Process and the Random Insertion Process. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Blue: OCE for $M\leq 5$. }\label{fig:even}
 \end{figure*}
 
@@ -652,6 +673,8 @@ Does NPRD lead to inpretable codes $Z$?
 To investigate this, we considered the Random Insertion Process. The analytical solution to the predictive rate-distortion problem was computed by \cite{marzen-predictive-2016}.
 The process has three causal states.
 At $\beta > 0.5$, the optimal solution collapses two of these states in $Z$, while they are separated for $\beta \leq 0.5$.
+
+\rljf{Describe the RIP}
 
 Does NPRD recover this picture?
 We applied PCA to samples from $Z$ computed at two different values of $\beta$, $\beta = 0.25$ and $\beta = 0.6$, corresponding to the two points marked in the rate-distortion figure.
@@ -663,17 +686,17 @@ Note that, at finite $M$, a fraction of pasts is ambiguous between the green and
 
 In Figure~\ref{fig:rip-machine}, we record, for each of the three modes where the distribution of the code $Z$ shifts when a symbol is appended.
 For comparison, we show the $\epsilon$-machine computed by \cite{marzen-predictive-2016}.
-Comparing the two diagrams shows that NPRD effectively recovers the $\epsilon$-machine. % even though $Z$ is a multivariate Gaussian variable.
+Comparing the two diagrams shows that NPRD effectively recovers the $\epsilon$-machine. \rljf{More detail on this part: it's a bit telegraphic}% even though $Z$ is a multivariate Gaussian variable. 
 
 \begin{figure*}
-\includegraphics[width=0.45\textwidth]{cryptfig/foo_pca_2.png}
-\includegraphics[width=0.45\textwidth]{cryptfig/foo_pca_3.png}
+\includegraphics[width=0.45\textwidth]{code/figures/foo_pca_2.png}
+\includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3.png}
 	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\beta = 0.25$ and $\beta = 0.6$. Samples are colored according to the states in the $\epsilon$ machine. Black samples belong to sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C).}\label{fig:latent}
 \end{figure*}
 % colors = [{"A" : "red", "B" : "green", "C" : "blue", "U" : "black"}[x] for x in states]
 
 \begin{figure*}
-\includegraphics[width=0.45\textwidth]{cryptfig/foo_pca_3_machine.png}
+\includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3_machine.png}
 \begin{tikzpicture}[shorten >=1pt,node distance=4cm,on grid,auto] 
    \node[state, fill=green] (B)   {$B$}; 
    \node[state, fill=red] (A) [below left=of B] {$A$}; 
@@ -768,7 +791,7 @@ In particular, is it capable of extrapolating to causal states that were never s
 
 We consider the following process, which we'll call \textsc{Copy3}: $X_{-15}, ..., X_{-1}$ are independent uniform draws from $\{1,2,3\}$, and $X_1 = X_{-1}, ..., X_{15} = X_{-15}$.
 This process deviates a bit from our usual setup since we defined it only for $t \in \{-15, ..., 15\}$, but it is well-suited to investigating this question:
-The number of causal states is $3^{15} \approx 14$ Million.
+The number of causal states is $3^{15} \approx 14$ million.
 With exactly the same setup as for the \textsc{Even} and \textsc{RIP} processes, NPRD achieved essentially zero distortion on unseen data, even though the number of training samples (3 Million) was far lower than the number of distinct causal states.
 However, we found that, at this setup, NPRD overestimated the rate.
 Increasing the number of training samples from 3M to 6M, NPRD recovered codebooks that achieved both almost zero distortion and almost optimal rate, on fresh samples (Figure~\ref{fig:repeat}).
@@ -778,7 +801,7 @@ These results demonstrate that, by using function approximation, NPRD is capable
 
 Note that one could easily design an optimal decoder and encoder for \textsc{Copy3} by hand -- the point of this experiment is to demonstrate that NPRD is capable of inducing such a codebook purely from data, in a general-purpose, off-the-shelf manner.
 This contrasts with OCE:
-Without optimizations specific to the task at hand, a direct application of OCE would require brute-force storing of all 14 Million distinct pasts and futures.
+Without optimizations specific to the task at hand, a direct application of OCE would require brute-force storing of all 14 million distinct pasts and futures.
 
 %NPRD, in contrasts, encodes the codebook in learned weight matrices that take less than 500MB
 
@@ -797,16 +820,16 @@ Without optimizations specific to the task at hand, a direct application of OCE 
 
 
 \begin{figure*}
-%\includegraphics[width=0.45\textwidth]{cryptfig/repeat2-ee-mem.pdf}
-\includegraphics[width=0.45\textwidth]{cryptfig/repeat3-ee-mem-frontier.pdf}
-	\caption{Left: Rate-Distortion for the \textsc{Copy3} process. Green: Curve found by NPRD. Gray: Anaytical curve.}\label{fig:repeat}
+%\includegraphics[width=0.45\textwidth]{code/figures/repeat2-ee-mem.pdf}
+\includegraphics[width=0.45\textwidth]{code/figures/repeat3-ee-mem-frontier.pdf}
+	\caption{Left: Rate-Distortion for the \textsc{Copy3} process. Green: Curve found by NPRD. Gray: Anaytical curve. \rljf{Red not green? Also y axis should be Memory, not Memories. Also let's label as Memory (nats) throughout (or bits), and Excess Entropy on the x axis throughout.}.}\label{fig:repeat}
 \end{figure*}
 
 
 
 \section{Natural Language}
 
-We consider the problem of estimating rate-distortion for Natural Language.
+We consider the problem of estimating rate-distortion for Natural Language. \rljf{Some motivation for why this is cool and interesting, maybe in parallel with the Bentz et al entropy paper, and other information theoretic linguistic complexity papers like Koplenig et al, and Dembowski's work}
 %
 %As (CITE) have noted, evaluating (X) on finite data will overestimate MI with the future.
 %To address this, we estimate (X) on held-out data.
@@ -819,11 +842,11 @@ We consider the problem of estimating rate-distortion for Natural Language.
 %We add an out-of-vocabulary pseudo-sequence to the table of observed sequences.
 %
 
-\subsection{POS-level language modeling}
+\subsection{Part-of-speech-level language modeling}
 
-We first consider the problem of predicting English on the level of Part-of-Speech tags, using the Universal Part-of-Speech tagset \citep{petrov-universal-2012}. 
+We first consider the problem of predicting English on the level of Part-of-Speech (POS) tags, using the Universal POS tagset \citep{petrov-universal-2012}. 
 This is a simplified setting where the vocabulary is small (20), and one can hope that OCE will produce reasonable results.
-We use the English portions of the Universal Dependencies Project~\citep{nivre-universal-2017} tagged with Universal Part of Speech Tags \citep{petrov-universal-2012}, consisting of approximately 586K words.
+We use the English portions of the Universal Dependencies Project~\citep{nivre-universal-2017} tagged with Universal POS Tags \citep{petrov-universal-2012}, consisting of approximately 586K words.
 We used the training portions to estimate NPRD and OCE, and the validation portions to estimate rate-distortion.
 We used NPRD to generate 350 codebooks for values of $\beta$ sampled from [0,0.4].
 We were only able to run OCE for $M \leq 3$, as the number of sequences exceeds $10^4$ already at $M=4$.
@@ -836,11 +859,11 @@ NPRD continues to provide estimates at greater rates.
 
 Figure~\ref{fig:eng-pos} (right) shows rate as a function of $\beta$.
 In Figure~\ref{fig:eng-logbeta}, we show rate and the mutual information with the future, as a function of $\log \beta$.
-As $\beta \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.
+As $\beta \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity. \rljf{Remind us what $\beta$ is}
 
 Note that NPRD reports rates of 15 nats and more when modeling with very low distortion.
-A discrete codebook would need over 3 Million distinct codewords for a code of such a rate, exceeding the size of the training corpus (about 500K words), replicating what we found for the \textsc{Copy3} process:
-Neural encoders and decoders can use the cotinuous geometric structure of the code space to encode generalizations across different dimensions, supporting a very large effective number of distinct possible codes.
+A discrete codebook would need over 3 million distinct codewords for a code of such a rate, exceeding the size of the training corpus (about 500K words), replicating what we found for the \textsc{Copy3} process:
+Neural encoders and decoders can use the continuous geometric structure of the code space to encode generalizations across different dimensions, supporting a very large effective number of distinct possible codes.
 Unlike discrete codebooks, the geometric structure makes it possible for neural encoders to construct appropriate codes `on the fly' on new input.
 
 
@@ -853,24 +876,24 @@ Unlike discrete codebooks, the geometric structure makes it possible for neural 
 %Given the internal structure in code space, it can be expected that, on unseen data, they will construct codes `on the fly' even
 
 \begin{figure*}
-\includegraphics[width=0.3\textwidth]{cryptfig/english-info.pdf}
-%\includegraphics[width=0.45\textwidth]{cryptfig/english-beta-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/english-nlogbeta-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/english-nlogbeta-ee.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/english-info.pdf}
+%\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee.pdf}
 	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \beta$. As $\beta \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.}\label{fig:eng-pos}
 \end{figure*}
 
 
 
 \subsection{Discussion}
-Let us now interpret the curves in Figure~\ref{fig:eng-pos}.
+Let us now interpret the curves in Figure~\ref{fig:eng-pos}. \rljf{What is predictiveness? Excess entropy?}
 The rate-predictiveness curve (left) shows that, at low rates, predictiveness is approximately proportional to the rate.
 At greater degrees of predictiveness, rate grows faster and faster, whereas predictiveness seems to asymptote to $\approx 1.1$ nats.
 %(In the case of our experiment, since $T = 15$, rate would be bounded by the aggregate block-entropy of 15 words, about 28 nats.)
 The asymptote of predictiveness can be identified with the excess entropy, whereas the rate should asymptote to the statistical complexity.
-Judging by the curve, natural language -- at the level we are measuring in this experiment -- has a statistical complexity much higher than the excess entropy:
-At the highest rate measured by NPRD in our experiment, rate is about 20 nats, whereis predictiveness is about 1.1 nats.
-If these values are correct, then -- due to the convexity of the rate-predictivity curve -- statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$.
+Judging by the curve, natural language---at the level we are measuring in this experiment---has a statistical complexity much higher than its excess entropy:
+At the highest rate measured by NPRD in our experiment, rate is about 20 nats, whereas predictiveness is about 1.1 nats.
+If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. \rljf{Wow, is this true for any other natural processes?}
 Note that this picture agrees qualitatively with the OCE results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
 
 Now turning to the other plots in Figure~\ref{fig:eng-pos}, we observe that rate increases at least linearly with $\log\lambda$, whereas predictiveness again asymptotes.
@@ -879,6 +902,7 @@ This is in qualitative agreement with the picture gained from the rate-predictiv
 
 Let us consider this more quantitatively.
 Based on Figure~\ref{fig:eng-pos} (center), we make the guess that the map from $\log\lambda$ to the rate $R$ is superlinear:
+\rljf{Was there a change of variables between $\beta$ and $\lambda$ here?}
 \begin{equation}
 	R = \alpha (\log\lambda)^\beta
 \end{equation}
@@ -892,21 +916,21 @@ Equivalently
 From this, we can derive expressions for rate $R$ and predictiveness $P$ as follows.
 For the solution of Predictive Rate Distortion, we have
 \begin{equation}
-	\frac{\partial P}{\partial \theta} - \lambda \frac{\partial R}{\partial \theta} = 0
+	\frac{\partial P}{\partial \theta} - \lambda \frac{\partial R}{\partial \theta} = 0,
 \end{equation}
 where $\theta$ is the codebook defining the code $Z$, and thus
 \begin{equation}
-\lambda =	\frac{\partial P}{\partial R}
+\lambda =	\frac{\partial P}{\partial R}.
 \end{equation}
 %if the rate-predictiveness curve is sufficiently regular at $(P,R)$.
 
 Thus
 \begin{equation}\label{eq:derivatives}
 %\begin{split}
-	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right) %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
+	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
 %\end{split}
 \end{equation}
-Qualitatively, this says that $P$ asymptotes to a finite value, whereas $R$ is unbounded.
+Qualitatively, this says that $P$ asymptotes to a finite value, whereas $R$ is unbounded. \rljf{Exactly the opposite of Dembowski's finding}
 
 %
 %\begin{equation}
@@ -987,11 +1011,11 @@ Qualitatively, this says that $P$ asymptotes to a finite value, whereas $R$ is u
 %\end{equation}
 
 \begin{figure*}
-\includegraphics[width=0.3\textwidth]{cryptfig/english-info-fitted.pdf}
-%\includegraphics[width=0.45\textwidth]{cryptfig/english-beta-mem-fitted.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/english-logbeta-mem-fitted.pdf}
-	\includegraphics[width=0.3\textwidth]{cryptfig/english-nlogbeta-ee-fitted.pdf}
-	\caption{Fitted values.}\label{fig:eng-pos-fitted}
+\includegraphics[width=0.3\textwidth]{code/figures/english-info-fitted.pdf}
+%\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem-fitted.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/english-logbeta-mem-fitted.pdf}
+	\includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee-fitted.pdf}
+	\caption{Fitted values. \rljf{Definitely need a better label, also axis labels are too small to read}}\label{fig:eng-pos-fitted}
 \end{figure*}
 
 This yields
@@ -1015,18 +1039,18 @@ Note that there are many possible ways of fitting these curves; we have describe
 In any case, the results show that natural language shows an approximately linear growth of predictiveness with rate at small rates, and exploding rates at diminishing returns in predictiveness later.
 Why might language show such behavior?
 We will describe a proposal:
-Let us assume that the causal states of natural language are the singletons $\overleftarrow{X}$, that is, no two past trajectories induce a fuly equivalent distribution over future trajectories.
-Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ achieves predictiveness
+Let us assume that the causal states of natural language are the singletons $\overleftarrow{X}$, that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
+Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ achieves predictiveness \rljf{Write out what the min is doing logically: when $t$ exceeds $T$ we multiply only by $T$ (I'm not sure why). Also maybe subscript $P_T$}
 \begin{equation}
 	P =	I[X_{-T...-1}, \overrightarrow{X}] = \sum_{t=1}^\infty \min(t,T) I_t = E_0 - \sum_{t > T} (t-T) I_t
 \end{equation}
 where $I_t := I[X_0, X_t | X_1 ... X_{t-1}]$, and $E_0$ is again the excess entropy.
-Again, this asymptotes to the excess entropy, but -- as long as $I_t > 0$ for arbitarrily large $t$ -- never achieves predictiveness $E_0$ at finite $T$.
+Again, this asymptotes to the excess entropy, but---as long as $I_t > 0$ for arbitarily large $t$---never achieves predictiveness $E_0$ at finite $T$.
 The code has rate
 \begin{equation}
 	R =	H[X_{-T...-1}]
 \end{equation}
-which is lower bounded by $T$ times the entropy rate: $R \approx T \cdot \operatorname{H}[X_0|\overleftarrow{X}]$, and thus is unbounded (if the entropy rate is nonzero).
+which is lower bounded by $T$ times the entropy rate: $R \approx T \cdot \operatorname{H}[X_0|\overleftarrow{X}]$, and thus is unbounded (if the entropy rate is nonzero). \rljf{A few cites on previous work arguing about whether natural language has nonzero entropy rate. A conference paper by Ryosuke Takahira has a lit review}
 
 Pretending that $t$ is continuous, we could write
 \begin{equation}
@@ -1090,12 +1114,12 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 
 
 \begin{figure*}
-%\includegraphics[width=0.3\textwidth]{cryptfig/en-words-surp-mem.pdf}
-%\includegraphics[width=0.3\textwidth]{cryptfig/en-words-16-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/en-words-ee-mem.pdf}
-%\includegraphics[width=0.3\textwidth]{cryptfig/en-words-beta-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/en-words-logbeta-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/en-words-logbeta-ee.pdf}
+%\includegraphics[width=0.3\textwidth]{code/figures/en-words-surp-mem.pdf}
+%\includegraphics[width=0.3\textwidth]{code/figures/en-words-16-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/en-words-ee-mem.pdf}
+%\includegraphics[width=0.3\textwidth]{code/figures/en-words-beta-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/en-words-logbeta-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/en-words-logbeta-ee.pdf}
 	\caption{Word-level modeling of English.}\label{fig:eng-logbeta}
 \end{figure*}
 
@@ -1103,12 +1127,12 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 
 
 \begin{figure*}
-%\includegraphics[width=0.3\textwidth]{cryptfig/ru-words-surp-mem.pdf}
-%\includegraphics[width=0.3\textwidth]{cryptfig/ru-words-16-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/ru-words-ee-mem.pdf}
-%\includegraphics[width=0.3\textwidth]{cryptfig/ru-words-beta-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/ru-words-logbeta-mem.pdf}
-\includegraphics[width=0.3\textwidth]{cryptfig/ru-words-logbeta-ee.pdf}
+%\includegraphics[width=0.3\textwidth]{code/figures/ru-words-surp-mem.pdf}
+%\includegraphics[width=0.3\textwidth]{code/figures/ru-words-16-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/ru-words-ee-mem.pdf}
+%\includegraphics[width=0.3\textwidth]{code/figures/ru-words-beta-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/ru-words-logbeta-mem.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/ru-words-logbeta-ee.pdf}
 	\caption{Word-level modeling of Russian.}\label{fig:rug-logbeta}
 \end{figure*}
 
@@ -1159,6 +1183,142 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 %
 %%
 %%
+
+
+
+\section{Theoretical Discussion}
+
+
+\subsection{A Family of Examples}
+We present a family of processes that have finite excess entropy and infinite statistical complexity, and which may provide a simple mathematical model of some aspects of language structure.
+
+
+\begin{defin}
+Let $\mu$ be any distribution on the nonnegative integers such that $\mu(0) > 0$.
+Then consider the process $(X_t)_t$ where the marginal of $X_t$ is uniform on $\{0,1\}$, and where $X_t$ is generated by (i) taking an independent sample $k \sim \mu$, and (ii) setting $X_t := X_{t-k}$ if $k > 0$, and $X_t$ a fresh uniform draw from $\{0,1\}$ if $k=0$.
+\end{defin}
+
+\textbf{TODO} is it clear that this process actually exists? Can we invoke Kolmogorov extension thm? Or is this trivial? In any case, we can approximate it by n-th order Markov processes whose excess entropies stay bounded whereas their statistical complexities go to infinity (and which converge to the intended process in average KL distance). In this sense, it may not be a disaster if the process turned out not to exist.
+
+
+Let us first consider how such a process may relate to natural language.
+
+TODO
+
+
+We can bound the predictive rate-distortion curve of this process as follows:
+Using an $n$-word context incurs rate at least $n \log \frac{\mu(0)}{2}$, and distortion at most $\sum_{k > n} (k-n) \mu(k > n)$. That is, the faster $\mu(t)$ goes to zero as $t \rightarrow \infty$, the more favorable the prediction-rate tradeoff is (as far as quantified by this upper bound).
+%Matching with our results for natural language would suggest $\mu(k>n) \sim n^{1/\beta-1} \exp(-\Theta(n^{1/\beta}))$ -- that is, we expect the probability of long dependencies (within sentences) to decay very fast.
+
+However, beyond this bound, I don't know how to exactly calculate the curve. In any case, we can prove that it has finite excess entropy and infinite complexity under very general conditions:
+
+%Now examine its statistical complexity and excess entropy:
+
+\begin{proposition}
+The following two statements hold:
+
+If $\mu$ has infinite support (i.e., $\#\{k : \mu(\{k\}) > 0\} = \infty$), then $(X_t)_t$ has infinite statistical complexity.
+
+If $\E_{k\sim \mu}[k^2] < \infty$, then $(X_t)_t$ has finite excess entropy.
+\end{proposition}
+There are many measures $\mu$ that satisfy both constraints, e.g. $\mu(x) \propto 2^{-x}$ or $\mu(x) \propto x^{-4}$.
+
+\begin{proof}
+We first show that the process has finite excess entropy:
+\begin{align*}
+I[X_{<0}, X_{>0}] &= \sum_{t=1}^\infty t I[X_t, X_0|X_1\dots X_{t-1}] \\
+& \leq \sum_{t=1}^\infty t \operatorname{\mu}(\{k : k \geq t\}) \\
+&= \sum_{t=1}^\infty \frac{t(t-1)}{2} \operatorname{\mu}(\{t\}) \\
+&= \frac{1}{2} \E_{k \sim \mu} \left[k^2-k\right]
+\end{align*}
+which is finite by assumption.
+
+We now show that the process has infinite statistical complexity.
+
+%In the special case where $\mu(n) = 2^{-n}$, it is clear that the causal states are the semi-infinite pasts.
+%In general, I don't know whether that's true, but we can still prove infinite complexity.
+
+%and no loss-less compression of pasts is possible. To see this, consider the probabilities $$P\left(X_T=1|X_1=0,...,X_{T-1}=0; x_{<0}\right) = 1/2 \mu(0) + \sum_{t=T}^\infty 1_{x_{T-t} = 1} \mu(t)$$TODO and then?
+
+Since $\mu$ has infinite support and integrates to a finite value, we can find an infinite ascending sequence $0 < t_1 < t_2 < ...$ of integers such that
+$$\mu\left(t_i < K \leq t_{i+1}\right) > \mu(K > t_{i+1})$$
+for all integers $i$.
+Now consider the set $\mathcal{X} \subset \{0,1\}^{\mathbb{N}}$ of semi-infinite sequences that are constant (either 0 or 1) on each interval $t_i, ..., t_{(i+1)}-1$.
+
+We will show that the elements of $\mathcal{X}$ represent distinct causal states.
+Recall that the statistical complexity is defined as the entropy of the causal states.
+Note that, as $\mathcal{X}$ is uncountable and each of its elements has measure zero, its entropy is not strictly well-defined, and some care has to be taken here.
+%We will show that all the prefixes $x_{1\dots t_i}$ ($i \in \mathbb{N}$), for $x_{1,2,...} \in \mathcal{X}$, 
+
+
+%$$P\left(X_{t_j}=1|x_{1...t_j-1}; x_{<0}\right) = 1/2 \mu(0) + \sum_{t=t_j}^{t_{j+1}-1} 1_{x_{t} = 1} \mu(t)$$
+
+We show that one can uniquely identify elements of $\mathcal{X}$ from the induced distributions over futures.
+Take a semi-infinite sequence $x_{1...} \in \mathcal{X}$.
+Assume the distribution $P\left(X_{-1}=1|x_{1}...\right)$ is known, and $x_{1}...x_{t_i-1}$ have already been identified from it.
+Then 
+$$P\left(X_{-1}=1|x_{1}...\right) = 1/2 \mu(0) + \sum_{t=1}^{t_{i}-1} 1_{x_{t} = 1} \mu(t) + \sum_{t=t_i}^\infty 1_{x_{t} = 1} \mu(t)$$
+where $1/2 \mu(0) + \sum_{t=1}^{t_{i}-1} 1_{x_{t} = 1} \mu(t)$ is already a known quantity.
+For the remaining part $C_i := \sum_{t=t_i}^\infty 1_{x_{t} = 1} \mu(t)$, we have
+$$C = \sum_{t=t_i}^\infty 1_{x_{t} = 1} \mu(t) = \sum_{t=t_i}^{t_{i+1}-1} 1_{x_{t} = 1} \mu(t) + \sum_{t=t_{i+1}}^\infty 1_{x_{t} = 1} \mu(t)$$
+which is equal to 
+$$\mu(\{t_i...t{i+1}-1\}) + \sum_{t=t_{i+1}}^\infty 1_{x_{t} = 1} \mu(t)$$
+or
+$$\sum_{t=t_{i+1}}^\infty 1_{x_{t} = 1} \mu(t)$$
+depending on whether $X$ is $1$ or $0$ on the set $\{t_i...t_{i+1}-1\}$. Given that 
+$$\sum_{t=t_{i+1}}^\infty 1_{x_{t} = 1} \mu(t) \leq \mu(K \geq t_{i+1}) < \mu(\{t_i...t{i+1}-1\})$$
+by assumption, the block $x_{t_i...t{i+1}-1}$ can be identified from $C_i$.
+%TODO rewrite this
+%- first identify the first block
+%- then shift, can compute remainder
+%Now for any $t_j$ consider the probability
+%$$P\left(X_{t_j}=1|X_1=0,...,X_{t_j-1}=0; x_{-1}...x_{t_i-t_j}\right) = 1/2 \mu(0) + \sum_{t=t_j}^{t_{j+1}-1} 1_{x_{t} = 1} \mu(t) + \sum_{t=t_{j+1}}^{\infty} 1_{x_{t} = 1} \mu(t)$$
+%where $x_{<0} \in \mathcal{X}$.
+%By the previous inequality, this probability is sufficient to identify whether $X_{t_{j-1}}...X_{t_j-1}$ is identically 0 or 1.
+Thus, the elements of $\mathcal{X}$ yield different distributions over future observations, and thus represent distinct causal states of the process (modulo the complication that each of them has measure zero).
+
+Indeed, we have shown that the prefixes $x_{1\dots t_i}$ ($i \in \mathbb{N}$), for $x_{1,2,...} \in \mathcal{X}$, represent disjoint sets of causal sets.
+For all integers $i$ and any sequence $X_1^\infty \in \mathcal{X}$, the block $x_{1...t_i}$ has log-probability at least $t_i \log \frac{\mu(0)}{2}$.
+Thus
+$$H[X_1...X_{t_i} | X \in \mathcal{X}] \geq  t_i \log \frac{\mu(0)}{2}$$
+In conclusion, the statistical complexity is infinite.
+
+
+%For any positive integer $T$ and any string $x_1...x_T \in \{0,1\}^T$, we have $\log P(X_1...X_T=x_1...x_T) \geq T \log\frac{\mu(\{0\})}{2}$, showing that $$H[X_1...X_T] \geq T \log\frac{\mu(\{0\})}{2} \rightarrow_{T \rightarrow\infty}\infty$$
+
+\end{proof}
+
+
+\subsection{Predictive Rate-Distortion for Processes with Infinite Complexity}
+Here we want to show that, even for processes with infinite statistical complexity, the PRD curve provides fine-grained quantification of the difficulty of prediction.
+
+If the entropy $H[X_t]$ is finite (e.g., if the state space is finite)
+
+The PRD curve, as a function of Predictiveness, is finite on the interval from 0 to (possibly excluding) the excess entropy.
+
+\begin{proof}
+A bound on the curve is given by the (convex hull) of the pairs of $$\{(H[X_1...X_t], I[(X_1...X_t), X_{>t}]) : t \in \mathbb{N}\}$$
+all which are finite under the assumption.
+
+Also, $$EE = \sup_{t \in \mathbb{N}} I[(X_1...X_t), X_{>t}]$$
+So for all values of predictiveness that are strictly below the EE, the corresponding rate has a finite bound.
+\end{proof}
+
+
+%Unlike statistical complexity, the tradeoff will not differ much between processes that have similar distribution:
+
+%\begin{proposition}
+%	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
+%	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ in KL Divergence in the following sense:
+%	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1|X_{-\infty}...X_0)}{Q(X_1|X_{-\infty}...X_0)}\right] < \epsilon$$
+%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon H[S_0]$.
+%	Then the predictive rate-distortion curve of $(X_t)_t$ is, up to $\epsilon$, a (pessimistic) bound on the curve of $(Y_t)_t$.
+%\end{proposition}
+
+%\begin{proof}
+%Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
+%\end{proof}
+
 
 
 \section{Conclusion}
