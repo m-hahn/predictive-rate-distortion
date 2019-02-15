@@ -1410,23 +1410,12 @@ Unlike statistical complexity, the PRD curve will not differ much between proces
 %\end{proposition}
 
 
+%$$\sup_{f : \|f\|_\infty = 1}  \sum_(f(\overrightarrow{X}, X_1))   $$
 
-\begin{proposition}
-Fix $\epsilon$ and $M \in \mathbb{N}$.
 
-	Let $(X_t)_t \sim P$, $(Y_t)_t \sim Q$ be two $M$-th order Markov processes. Assume that
-	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1|X_{-\infty}...X_0)}{Q(X_1|X_{-\infty}...X_0)}\right] < \epsilon$$
+The total variation distance between two probability measures $P, Q$ on a discrete space is defined as
+		$$D_{TV}(P,Q) := \sum_{x} \left|P(x) - Q(x)\right|$$
 	
-	For each point $(R,P$) on the PRD of $(Y_t)_t$, the point $(R+M\epsilon, P - M \epsilon)$ is an upper bound on the PRD of $(X_t)_t$.
-
-\end{proposition}
-
-
-
-\begin{proof}
-TODO write
-%Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
-\end{proof}
 
 As a corollary, we can conclude that the PRD curve is a continuous function of the process $(X_t)_t$, in the following sense.
 We view the PRD curve as a function defined on all of $\mathbb{R}_+$ by viewing it as a function of the rate.
@@ -1435,18 +1424,83 @@ Then we have:
 %, as a set in $\mathbb{R}^2$. %The Hausdorff distance between two curves $c_1, c_2$ is ... %let's say a sequence of curves $c_n$ converges uniformly to a curve $c$ if 
 %$$\lim_{n\rightarrow\infty} \sup_{x \in c_n} \inf_{y \in c} \|x-y\| = 0$$
 
+
+%We say that a process $P_n$ weakly converges to a process $P$ if for all bounded functions $f$
+
+
+
 \begin{corollary}
-If $P, P_n$ are the distributions of $M$-th order Markov processes ($M$ fixed), and if
-$$D_{KL}(P_n(\cdot|X_{<0}) || P(\cdot|X_{<0})) \rightarrow 0$$
-$$D_{KL}(P(\cdot|X_{<0}) || P_n(\cdot|X_{<0})) \rightarrow 0$$
+Assume $P, P_n$ are the distributions of $M$-th order Markov processes ($M$ fixed). If $P_n \rightarrow P$ in the following sense
+%$$D_{KL}(P_n(\cdot|X_{<0}) || P(\cdot|X_{<0})) \rightarrow 0$$
+%$$D_{KL}(P(\cdot|X_{<0}) || P_n(\cdot|X_{<0})) \rightarrow 0$$
+%$$D_{TV}(P, P_n) \rightarrow 0$$
+		$$D_{TV}(P_n(X_{1\dots M}), P(X_{1\dots M})) \rightarrow 0$$
+and if $P_n(x_{1\dots M}) = 0$ whenever $P(x_{1\dots M}) = 0$,
 then the PRD curve of $P_n$ converges to the PRD curve of $P$ uniformly on all of $\mathbb{R}_+$.
 
 %TODO verify this!
 \end{corollary}
 
+
+
+
+\begin{lemma}
+Fix $\epsilon$ and $M \in \mathbb{N}$.
+Let $(X_t)_t \sim P$, $(Y_t)_t \sim Q$ be two $M$-th order Markov processes. Assume that the two distributions are close in the following sense:
+Further, choose $0 < K < +\infty$ such that
+	$$- \log P_Y(X_1=x|X_{-\infty}...X_0) \leq K < +\infty$$
+	for all $x$ such that $P_X(X_1=x|X_{-\infty}...X_0) > 0$.
+For each point $(R,P$) on the PRD of $(Y_t)_t$, the point $(R+\epsilon \cdot \log |S| \cdot M \cdot \exp(K), P - \epsilon \cdot \log |S| \cdot M \cdot \exp(K))$ is an upper bound on the PRD of $(X_t)_t$.
+\end{lemma}
+
+
+
+
 \begin{proof}
-TODO
+Let $Z(x_{<0})$ be a code achieving $(P,R)$ on the PRD of $(Y_t)_t$.
+When applied to pasts sampled from $(X_t)_t$, it results in rate
+\begin{align*}
+\sum_{x_{-M...-1}} P_X(x_{-M...-1}) \sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_X(z)} \leq \sum_{x_{-M...-1}} P_X(x_{-M...-1}) \sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}
+\end{align*}
+We always know that $- \left(\sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}\right) \leq \frac{I[Z,X]}{\exp(-K)} \leq \log |S| \cdot M \cdot \exp(K)$.
+Therefore
+\begin{align*}
+\left|\sum_{x_{-M...-1}} (P_X(x_{-M...-1}) - P_Y(x_{-M...-1})) \sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}\right| \leq \epsilon \cdot \log |S| \cdot M \cdot \exp(K)
+\end{align*}
+
+
+A similar argument holds for predictiveness.
+
+
+
+%Also, the predictiveness is
+%$$D_{KL}(P_Y(
+
+%$$\leq \E_X \log Q_Y(Z) - \E_Y \log Q_Y(Z) $$
+
+%Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
 \end{proof}
+
+
+\begin{proof}
+
+
+
+
+\end{proof}
+
+
+
+
+
+More generally, if $Z$ for a bounded rate amounts to a Markov approximation for bounded length $M$, will still get locally uniform convergence.
+
+Convergence of Markov approximations:
+
+-- code can be computed from context M with high probability
+
+-- 
+
 
 %	Then the predictive rate-distortion curve of $(Y_t)_t$ is, up to $...\epsilon$, a (pessimistic) upper bound on the curve of $(X_t)_t$:
 %	For a given level of rate, the achieved predictivity of $(X_t)_t$ at this rate is at least the predictivity of $(Y_t)_t$ at this rate minus $...\epsilon$.
@@ -1472,6 +1526,10 @@ I don't know how to prove anything like this when the processes do not have unif
 In Lohr CITE it was shown that statistical complexity is lower weak-$^*$ semicontinuous, for general stochastic processes.
 I don't know whether the same holds for the PRD curve.
 
+
+Limitation in the case of unbounded Markov order: Process that copies symbol from $M$ words in past. Does this converge to iid Bernoulli weakly, since the finite products of single-variable indicators converge?
+\url{https://mathoverflow.net/questions/106234/simple-functions-on-a-product-measure-space}
+The PRD curves don't converge.
 
 
 %\begin{proposition}
