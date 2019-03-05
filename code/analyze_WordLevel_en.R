@@ -55,12 +55,12 @@ y = 60*(1:500)/500
 alpha=2.0
 beta=1.9
 E0=3.5
-plot = ggplot(dataU, aes(x=EE, y=Memories)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + theme(legend.position="none") + xlim(0, NA) + ylim(0, NA) + geom_point(data=data.frame(y=y), aes(x=E0-3.5*alpha/beta * gammainc(beta, (y/alpha)^(1/beta)), y=y), color="red")
+plot = ggplot(dataU, aes(x=EE, y=Memories)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + theme(legend.position="none") + xlim(0, NA) + ylim(0, NA) + geom_point(data=data.frame(y=y), aes(x=E0-alpha*beta * gammainc(beta, (y/alpha)^(1/beta)), y=y), color="red")
 ggsave("figures/en-words-info-fitted.pdf", plot=plot) 
 
 x = 6*(1:500)/500 # this is for log(lambda)
 a=1.65
-plot = ggplot(dataU, aes(x=-log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(-log(.4), -log(0.001)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, rate=alpha*x^beta), aes(x=x, y=E0-3.5*alpha/beta * gammainc(beta, (rate/alpha)^(1/beta))), color="red") + ylim(0, NA)
+plot = ggplot(dataU, aes(x=-log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(-log(.4), -log(0.001)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, rate=alpha*x^beta), aes(x=x, y=E0-alpha*beta * gammainc(beta, (rate/alpha)^(1/beta))), color="red") + ylim(0, NA)
 ggsave("figures/en-words-nlogbeta-ee-fitted.pdf", plot=plot) 
 
 
