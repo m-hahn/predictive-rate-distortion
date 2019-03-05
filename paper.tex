@@ -303,32 +303,17 @@ This is of paramount importance in settings where the state space is large, such
 Second, the cost of storing and evaluating the function approximators will scale \emph{linearly} with the length of observed sequences both in space and in time, as opposed to the exponential memory demand of OCE.
 This is crucial for modeling long dependencies.
 
-%We present our approach to estimating the memory-surprisal tradeoff with general-purpose function approximators.
-%As in OCE, we fix a horizon $T$.
-%Unlike OCE, computational costs scale linearly with M, which will enable application to longer-range dependencies.
-%We are given a past $X_{-T\dots -1}$ and a future $X_{0\dots T-1}$.
-
-
 \subsection{Bound on Predictive Rate-Distortion}
-%Our method will be based on a bound.
-%Our estimator uses a diagonal Gaussian $Z \sim N(\mu, \sigma^2)$
-%iOur estimator is centered around three objects: % parameterized by parameters $\theta$:
 We will first describe the general method, without comitting to a specific framework for function approximation yet.
 The idea will be to construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
-%We will write the objective in (\ref{eq:ib}) in a way amenable to gradient-based optimization within a parametric family of function approximators.
 
-Let us assume that an \emph{encoder} $\phi$ is given, expressed in a family of function approximators. % and \emph{decoder} $\psi$ 
-The encoder stochastically transforms observation sequences $x_{-M\dots -1}$ into a random code $Z \in \mathbb{R}^N$: \rljf{Slight mismatch of the math and the prose here: the prose makes it sound like $\phi$ is going to be a function from $x_{-M\dots -1}$ to $Z$ but in the math it returns a probability mass/density function. Maybe write as Z = \phi($x_{-M\dots -1}$), P_\phi(Z|$x_{-M\dots -1}$) = ...}
+Let us assume that an \emph{encoder} $\phi$ is given, expressed in a family of function approximators. 
+The encoder stochastically transforms observation sequences $x_{-M\dots -1}$ into a random code $Z \in \mathbb{R}^N$: 
 \begin{equation}
-%	P(Z|X_{-M\dots M}) := \phi(Z|X_{-M\dots-1}) := \phi(X_{-M\dots-1})(Z)
 Z = \phi(x_{-M\dots -1})
 \end{equation}
 distributed according to $Z \sim P_\phi(Z|x_{-M\dots -1})$.
 From this, one can obtain the conditional distribution over future observations via Bayes' rule: %, using the Markov condition: \rljf{Show some intermediate steps here}
-%\begin{equation}\label{eq:cond-fut}
-%	P(X_{0\dots M-1}|Z) = \frac{\E_{X_{-M \dots M-1}} P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})}
-%\end{equation}
-%
 \begin{equation}
 	\label{eq:cond-fut}
 	\begin{split}
@@ -339,21 +324,12 @@ From this, one can obtain the conditional distribution over future observations 
 	\end{split}
 \end{equation}
 where $(*)$ uses the Markov condition.
-% if $\phi$ is given by a powerful function approximating family such as recurrent neural networks, 
 However, neither of the two expectations is tractable,  as they require summation over exponentially many sequences.
 If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, algorithms (e.g., dynamic programming) to compute this sum efficiently are not available.
 
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
 First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$.
 Second, to approximate $P(X_{0\dots M-1}|Z)$, we introduce a parameterized decoder $\psi$ that maps points in $\mathbb{R}^N$  into probability distributions over sequences $x_{0\dots M-1}$.
-%%We will be in a setting where neither of the two mutual information terms can be computed exactly.
-%Instead, we will find a way to bound both of them using approximations to the Bayes-optimal decoder and to the marginal of $Z$:
-%The \emph{decoder} $\psi$ transforms each vector $z \in \mathbb{R}^N$ into a probability distribution over sequences $x_{0\dots T-1}$.
-%$\phi$ and $\psi$ act as encoders and decoders to and from the latent code space $\mathbb{R}^N$.
-%The third component is a probability distribution $q$ over $\mathbb{R}^N$.
-%Further, let $\psi$ be a \emph{decoder}, which is any map from the points in $\mathbb{R}^N$ into probability distributions over sequences $x_{0\dots T-1}$.
-%Here, there need $\psi$ need not be the `correct' decoder for $\phi$.
-%Finally, let $q$ be any distribution over $\mathbb{R}^N$.
 
 If we fix a stochastic process $(X_t)_t$ and an encoder $\phi$, then---for \emph{any} choice of these functions $\psi$ and $q$---the following two bounds hold.
 
@@ -363,16 +339,13 @@ The loss incurred when predicting the future from $Z$ via $\psi$ upper-bounds th
 	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | z)\right] \geq \operatorname{H}[X_{1\dots M-1}|Z]
 \end{equation}
 Furthermore, equality is attained if and only if $\psi(X_{0\dots M-1}|Z) = P(X_{0\dots M-1}|Z)$.
-%It is in this sense that $\psi$ `approximates' the conditional $P(X_{0\dots M-1}|Z)$.
 \end{proposition}
 
 \begin{proof}
-%\begin{equation}\label{ineq1}
 \begin{align*}
 	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | z)\right] & \geq -	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P(X_{0\dots M-1} | z)\right]\\
 	&= \operatorname{H}[X_{1\dots M-1}|Z].
 \end{align*}
-%\end{equation}
 \end{proof}
 
 \begin{proposition} 
@@ -398,16 +371,6 @@ The values obtained for the resulting $\phi, \psi, q$ satisfy the bounds in (\re
 That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal. \rljf{Expand last sentence into a paragraph}
 
 
-%\paragraph{Why introduce $\psi, q$?} Ideally, $\psi, q$ are the Bayes optimal decoder and the marginal. Why not directly set them to these values?
-%The reason is that neither of these are computationally tractable if $\phi$ comes from a powerful family of function approximators such as recurrent neural networks.
-%Instead, we introduce these as separate functions that are parameterized within the family of approximators.
-%Optimizing them for the objective (\ref{eq:bound}) will result in functions that approximate the optimal decoder and the marginal.
-%That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal.
-%By choosing sufficiently powerful families, the bound in \ref{eq:bound}
-
-%Ideally, $\psi$ would be equal to the optimal decoder appropriate to $\phi$ ($\psi_z(y) = \sum_{x} \phi(z|x) P(x, y)$), but we will be in a situation where calculting this optimal decoder is not tractable and we will instead create a variational approximation within the family of function approximators.
-
-
 \subsection{Implementation}
 We will choose the approximating families for the encoder $\phi$, the decoder $\psi$, and the distribution $q$ to be certain types of neural networks.
 \paragraph{Encoder and Decoder}
@@ -427,77 +390,15 @@ For the decoder $\psi$, we use a recurrent LSTM network to compute a sequence of
 where $s_i$ is an element of the state space $S$, indexed by $i=1, ..., |S|$, and $W_o \in \mathbb{R}^{k \times |S|}$ is a parameter.
 
 
-%where $softmax(x)_i := \frac{\exp(x_i)}{\sum_{j \in S} \exp(x_j)}$
-%where $S$ is the state space in which the process $(X_t)_t$ takes its values.
-
-
-%The implementation follows the standard \emph{sequence-to-sequence} methodology, which we define here for self-containedness.
-%$\phi$ was computed as follows:
-%$h_{-T} = 0 \in \mathbb{R}^k$,
-%$h_t = f(x_t, h_{t-1})$
-%for $t=-T+1, ..., 0$, where $f$ is the LSTM cell, define below, and then 
-%
-%$\psi$ was computed as follows:
-%$g_0 := $ a single sample from $Z$,
-%$g_t := f(x_t, g_{t-1})$ for $t=0, ..., T-1$,
-%and $\psi(x_t|x_{1...t-1}) = softmax(W_o g_t)$, where $softmax(x)_i := \frac{\exp(x_i)}{...}$.
-
 \paragraph{Marginal $q$}
 For $q$, we choose the family of \emph{Neural Autoregressive Flows} \citep{huang-neural-2018}. 
 This is a parametric family of distributions that allows efficient estimation of the probability density and its gradients.
 This method widely generalizes a family of prior methods \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
 
 
-%The literature on Variational Autoencoders has suggested a couple of choices for $q$: (1) $N(0,1)$, (2) various kinds of normalizing flows \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017} that transform $N(0,1)$ to obtain a more complex $q$, (3) learnable mixtures of Gaussians, (4) combinations of 3. and 4. -- that is, flows that act on a mixture of Gaussians \citep{papamakarios-masked-2017}.
-%So far I implemented (1-3) using affine inverse autoregressive flows grounding in a learnable mixture of Gaussians with autoregressive weights, both computed using MADE \citep{germain-made:-2015}, as in \cite{papamakarios-masked-2017}.
-%
-%The most general method to date seems to be \citep{huang-neural-2018}, which provides a universal approximator to distributions.
-%
-
-
-%TODO define
-%We require a parametric family of distributions that allow fast computation and differentiation of the probability density.
-
-
-%With these choices of function approximators, the bound is tight in the limit of sufficiently large neural networks:
-%\begin{proposition}
-%	Let $(X_t)_t$ be a finite-order Markov process with finite state space. Choose $\beta \in [0,1]$.
-%	
-%%	Assume that the PRD objective is solved y 
-%	
-%	
-%Then, for any $\epsilon > 0$, there are horizons $T$, dimensionalities $k$, layer sizes $l$, and flow lengths $m$ such that 
-%	the optimum is no more than $\epsilon$ worse than the nonparametric optimum.
-%
-%%In the limit of sufficiently large neural networks, the optimum of ... is equal to ...
-%\end{proposition}
-%
-%\begin{proof}
-%Let $Z$ be a solution for
-%\begin{equation}\label{eq:ib}
-%	\max_{Z : Z \rightarrow X_{< 0} \rightarrow \overrightarrow{X}} \left( I[\overrightarrow{X}, Z] - \beta \cdot I[Z, (\overleftarrow{X})] \right)
-%\end{equation}
-%By assumptions, $Z$ takes values in a finite set.
-%	Using some arbitrary injective mapping, we will think of $Z$ as taking values in $\mathbb{R}^n$.
-%	We then smooth $Z$ by adding $N(0,\epsilon/100)$.
-%
-%
-%	Let $\psi'$ be a recurrent network that approximates the map from $Z$ to $P(\overrightarrow{X}|Z)$ with loss $\epsilon/4$.
-%	Let $p'$ be a Neural Autoregressive Flow approximating the marginal $P(Z)$ up to $\epsilon/4$: $|p(Z \in A) - p'(Z \in A)| < \epsilon/4$ for all $A$.
-%
-%
-%
-%	converges in distribution
-%
-%\end{proof}
-
 \paragraph{Optimization}
 We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for (\ref{eq:bound}) using Backpropagation and Adam \citep{kingma-adam:-2014}, a standard and widely used method for optimizing neural networks.
 During optimization, we approximate the gradient by taking a single sample from $z$ per sample trajectory and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
-%\begin{equation}\label{eq:bound-mc}
-%	\partial_{\phi, \psi, q}	\log P(X_{0\dots T} | z_{-M...0}) + \beta \cdot \log \frac{N(\mu, \sigma^2)(z)}{q(z_{-M...0})}
-%\end{equation}
-%for a given training example $x_{-M...M}$.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
 
 Following standard practice in machine learning, we split the data into a training and a held-out set, using the training set for optimizing the parameters.
@@ -514,33 +415,8 @@ When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is
 It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
 (\ref{eq:bound-mc}) is an \emph{unbiased} estimator of an upper bound.
 The magnitude of the estimation error can be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$---unlike overfitting affecting OCE, which \emph{biases} the values obtained.
-%The use of a held-out set is motivated by the fact that -- as for OCE -- the codebook may have overfitted to the set used for optimization.
 
 
-%
-%\paragraph{Other Choices of $q$}
-%The literature on Variational Autoencoders has suggested a couple of choices for $q$: (1) $N(0,1)$, (2) various kinds of normalizing flows \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017} that transform $N(0,1)$ to obtain a more complex $q$, (3) learnable mixtures of Gaussians, (4) combinations of 3. and 4. -- that is, flows that act on a mixture of Gaussians \citep{papamakarios-masked-2017}.
-%So far I implemented (1-3) using affine inverse autoregressive flows grounding in a learnable mixture of Gaussians with autoregressive weights, both computed using MADE \citep{germain-made:-2015}, as in \cite{papamakarios-masked-2017}.
-%
-%The most general method to date seems to be \citep{huang-neural-2018}, which provides a universal approximator to distributions.
-%
-%%https://arxiv.org/pdf/1810.03256.pdf
-%
-%
-%%%If the LSTM is capable of doing compression well (it should be able to do so if it has enough capacity), the main limitation to using this formulation is the choice of $q$: The bound is tight if $q$ is actually the marginal distribution of $Z$, and gets worse (overestimating memory demand) if $q$ cannot approximate the marginal distribution well.
-%%For instance, a unimodal $q$ may give a bad fit if the process has a set of discrete states that should not be `confused' by $Z$. %giving $q$ the capability of accomodating several modes may be 
-%
-%
-%
-
-
-
-%\paragraph{Why would it work?}
-%Neural networks as universal function approximators.
-%any discrete codebook can be emulated to arbitrary precision with sufficiently large neural networks.
-%similarly continuous codebooks (e.g. Gaussian codes) can be emulated.
-%neural autoregressive flows proven to be universal approximators of distributions, so can emulate the `real' $q$ closely.
-%learnability question is more difficult and subject of ongoing research, but recent results provide some learnability guarantees.
 
 
 \subsection{Related Work}
@@ -548,53 +424,9 @@ In (\ref{eq:bound}), we derived a variational formulation of predictive rate-dis
 This is equivalent to a variational formulation of the Information Bottleneck introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
 Unlike our approach, they used a fixed diagonal Gaussian instead of a parameterized distribution for $q$.
 As far as we are aware, no previous work has used this formulation in the modeling of sequences.
-%This formulation is the same as the Deep Variational Information Bottleneck \cite{alemi-deep-2016} (but it seems this RNN setting hasn't appeared before).
 
 In the neural networks literature, the most commonly used method using variational bounds similar to ours is the Variational Autoencoder \citep{kingma-auto-encoding-2014}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
-%This objective function
-%(\ref{eq:bound}) is also related to the objective function of the Variational Lossy Autoencoder of \cite{chen-variational-2016}, which 
 
-
-%If the family is sufficiently powerful, the bound 
-%For $\phi$, we consider recurrent neural networks that 
-
-%
-%
-%\begin{enumerate}
-%\item an neural network computes $\mu, \sigma^2 \in \mathbb{R}^N$ from the past $X_{-T\dots -1}$
-%\item sample $z \sim N(\mu, \sigma^2)$
-%\item feed $z$ as the initial state of a neural network that predicts the future $X_{0\dots T}$
-%\end{enumerate}
-%
-%The components are trained to optimize the following loss funtion: % (\ref{eq:ib}):
-%%We define, with a tradeoff parameter $\beta$, the loss function
-%\begin{equation}\label{eq:bound}
-%	-	\mathbb{E}_{z \sim N(\mu, \sigma^2)}\left[\log P(X_{0\dots T} | z)\right] + \beta \cdot D_{KL}(N(\mu, \sigma^2) || q)
-%\end{equation}
-%where $\mu, \sigma^2$ are computed from $X_{-T\dots -1}$ in (1), and $P$ is computed in (3), and $q$ is a (potentially parameterized) probability distribution. 
-%The LSTMs (and $q$, if it is parameterized) are together optimized for this loss function.
-%
-%
-%\paragraph{Relation between (\ref{eq:bound}) and (\ref{eq:ib})}
-%The first term in (\ref{eq:bound}) is an upper bound on $H[X_{0\dots T}|Z]$ (future surprisal), the second term is an upper bound on $I[Z, (X_{< 0})]$ (memory cost).
-%In total, (\ref{eq:bound}) is an upper bound on the loss function
-%\begin{equation}\label{eq:obj}
-%H[X_{0\dots T}|Z] + \beta \cdot I[Z, (X_{-T\dots -1})]
-%\end{equation}
-%which is (up to finiteness of the horizon) equivalent to the objective in (\ref{eq:ib}).
-%%(I think one would say that \ref{eq:bound} is a \emph{variational} upper bound on \ref{eq:obj}.)
-%With sufficiently powerful RNNs and a flexible family for $q$, optimization could theoretically make this bound tight.
-%
-%\begin{proposition}
-%In the limit of sufficiently large neural networks, the optimum of ... is equal to ...
-%\end{proposition}
-%%As explained above, varying $\beta$, the optima for this objective function define the memory-surprisal tradeoff curve.
-%%To approximate this optimization, we can use backpropagation to optimize \ref{eq:bound}.
-%
-%The solutions obtained from optimizing (\ref{eq:bound}) will always constitute an upper bound (overestimating memory need at a given surprisal level) on the actual solutions of (\ref{eq:obj}).
-%Note that the same is true when applying the AB algorithm, which is also guaranteed to find an upper bound.
-%While the approximation is not guaranteed to be good, I think there is value in having a theoretical guarantee that the result is always an upper bound.\footnote{E.g., we can see which estimation method gives the best fit by seeing which one gives the lowest memory values.}
-%
 
 
 \subsection{Discusion}
@@ -611,13 +443,11 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 \paragraph{OCE}
 As discussed above, OCE overestimates structure in the process due to overfitting.
 To address this, and to enable fair comparison between OCE and our neural method, we follow the evaluation method used for NPRD, evaluating rate and distortion on held-out data:
-%We use held-out data to compute empirical estimates of quantities anlogous to those computed by NPRD.
 \rljf{Describe these in prose too and what they mean}
 We estimate rate using the variational bound that we stated in Proposition~\ref{ineq2}:
 \begin{equation}
 \frac{1}{N} \sum_{i=1}^N \operatorname{D_{KL}}(\infdiv{q(\cdot|x_i)}{s(\cdot)})
 \end{equation}
-%\E_{z \sim q(\cdot|x_i)} \log \frac{q(z|x_i)}{s(z)} $$
 We estimate the prediction loss on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
 \begin{equation}
 \frac{1}{N} \sum_{i=1}^N \E_{z \sim q(\cdot|x_i)} \log r(y_i|z).
@@ -641,15 +471,12 @@ These parameters are shown in Table~\ref{tab:nprd-hyperparameters}.
 We then randomly sampled, for each of the processes that we experimented on, combinations of $\beta$ and these hyperparameters to run NPRD on.
 
 The first group of parameters are the dimensions of the input embedings, the recurrent LSTM states.
-%We only use
 The second group of parameters are regularization parameters.
 We apply dropout~\citep{srivastava-dropout:-2014} to the input and output layers.
 The third group of parameters are related to the optimization procedure.
 We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
 We implemented the model using PyTorch \citep{paszke2017automatic}.
 Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow, the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow, and the number of layers in the flow.
-
-%This method allowed us to both efficiently find good bounds and to estimate the amount of variation in results between the parameter settings.
 
 \begin{table}
 \begin{tabular}{l||lll}
@@ -676,7 +503,6 @@ We first test NPRD on two processes where the predictive rate-distortion tradeof
 The \emph{Even Process} \citep{marzen-predictive-2016} is the process of 0/1 IID coin flips, conditioned on all blocks of consecutive ones having even length.
 Its complexity and excess entropy are both $\approx 0.63$ nats. % (stationary distribution: 1/3 for odd, 2/3 for even)
 It has infinite Markov order, and \cite{marzen-predictive-2016} find that OCE (at $M=5$) performs poorly. %, overestimating  even at $M=5$.
-%Their method using the (already known) epsilon machine  works well.
 The true predictive rate-distortion curve was computed in \cite{marzen-predictive-2016} using the analytically known epsilon machine.
 The \emph{Random Insertion Process} \citep{marzen-predictive-2016} consists of sequences of uniform coin flips $X_t \in \{0,1\}$, subject to the constraint that, if $X_{t-2}$ was a 0, then $X_{t}$ has to be a 1.
 
@@ -727,7 +553,6 @@ We restrict to those strings that have nonzero probability for RIP (no code will
 For comparison, we show the $\epsilon$-machine computed by \cite{marzen-predictive-2016}.
 Comparing the two diagrams shows that NPRD effectively recovers the $\epsilon$-machine:
 The three causal states are represented by the three different modes of $Z$, and the effect of appending a symbol also mirrors the state transitions of the $\epsilon$-machine.
-%\rljf{More detail on this part: it's a bit telegraphic}% even though $Z$ is a multivariate Gaussian variable. 
 
 \begin{figure*}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_2.png}
