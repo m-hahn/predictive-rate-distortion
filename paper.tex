@@ -1114,7 +1114,6 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 
 
 
-
 \begin{figure*}
 %\includegraphics[width=0.3\textwidth]{code/figures/en-words-surp-mem.pdf}
 %\includegraphics[width=0.3\textwidth]{code/figures/en-words-16-mem.pdf}
@@ -1191,6 +1190,24 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 
 
 
+\begin{figure*}
+\includegraphics[width=0.3\textwidth]{code/figures/en-words-info-fitted.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/en-words-nlogbeta-mem-fitted.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/en-words-nlogbeta-ee-fitted.pdf}
+	\caption{Word-level modeling of English.}\label{fig:en-logbeta-fit}
+\end{figure*}
+
+\begin{figure*}
+\includegraphics[width=0.3\textwidth]{code/figures/ru-words-info-fitted.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/ru-words-nlogbeta-mem-fitted.pdf}
+\includegraphics[width=0.3\textwidth]{code/figures/ru-words-nlogbeta-ee-fitted.pdf}
+	\caption{Word-level modeling of English.}\label{fig:ru-logbeta-fit}
+\end{figure*}
+
+
+
+
+
 %OCF becomes computationally intractable on this problem
 %- OCF fails even on the UD dataset, with more than $10^5$ distinct bigrams.
 
@@ -1234,6 +1251,44 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 %
 %%
 %%
+
+
+
+
+\section{Conclusion}
+We introduce Neural Predictive Rate Distortion (NPRD), a method for estimating predictive rate-distortion when only sample trajectories are given.
+Unlike OCE, the most general prior method, NPRD scales to long sequences and large state spaces.
+On analytically tractable processes, we show that it closely fits the analytical rate-distortion curve and recovers the causal states of the process.
+On POS-level modeling of natural language, it agrees with OCE in the setting of low rate and short sequences; outside these settings, OCE fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
+Finally, we use NPRD to provide the first estimates of predictive rate-distortion for modeling natural language.
+
+
+\bibliographystyle{apalike}
+%\bibliography{extracted}
+\bibliography{literature}
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1594,26 +1649,6 @@ The PRD curves don't converge.
 	
 %	TODO but the rate will also change???
 %\end{proposition}
-
-
-
-
-
-\section{Conclusion}
-We introduce Neural Predictive Rate Distortion (NPRD), a method for estimating predictive rate-distortion when only sample trajectories are given.
-Unlike OCE, the most general prior method, NPRD scales to long sequences and large state spaces.
-On analytically tractable processes, we show that it closely fits the analytical rate-distortion curve and recovers the causal states of the process.
-On POS-level modeling of natural language, it agrees with OCE in the setting of low rate and short sequences; outside these settings, OCE fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
-Finally, we use NPRD to provide the first estimates of predictive rate-distortion for word-level modeling of natural language.
-
-
-\bibliographystyle{apalike}
-%\bibliography{extracted}
-\bibliography{literature}
-
-
-
-\end{document}
 
 
 
