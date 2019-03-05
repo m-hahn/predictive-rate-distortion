@@ -135,15 +135,72 @@ plot = ggplot(dataU, aes(x=Beta, y=Memories, group=Type, color=Type)) + geom_poi
 
 
 
-dataU = data %>% filter(Language == "English")
+
+dataU = data %>% filter(Language == "Japanese")
+dataU$UncondEnt = 1.895
+dataU = dataU %>% mutate(MiWithFut = EE) #Horizon*(UncondEnt-FutureSurp))
+#plot = ggplot(dataU, aes(x=Beta, y=Memories/EE)) + geom_point()+ theme_classic()  + xlim(0, 0.4)
+dataDU = dataD %>% filter(Language == "Japanese")
+dataDU = dataDU %>% mutate(UncondEnt = case_when(Horizon == 1 ~ 2.563, Horizon == 2 ~ 2.18, Horizon == 3 ~  2.15)) 
+dataDU = dataDU %>% mutate(MiWithFut = Horizon*(UncondEnt-Surprisal))
+dataU = rbind(dataDU %>% select(Language, Beta,Surprisal, Memory, Horizon, UncondEnt, MiWithFut) %>% mutate(Type="Ngrams"), dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural"))
+dataU = dataU %>% filter(MiWithFut <= Memory)
+plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + theme(legend.position="none") + xlim(0, NA) + ylim(0, NA)
+ggsave("figures/japanese-info.pdf", plot=plot) 
+plot = ggplot(dataU, aes(x=Surprisal, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=Memory, y=Surprisal, group=Type, color=Type)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=Beta, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(0, 0.4) + ylim(0, NA)
+ggsave("figures/japanese-beta-mem.pdf", plot=plot)
+plot = ggplot(dataU, aes(x=log(Beta), y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + ylim(0, NA) + theme(legend.position="none")
+ggsave("figures/japanese-logbeta-mem.pdf", plot=plot)
+plot = ggplot(dataU, aes(x=-log(Beta), y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + ylim(0, NA) + theme(legend.position="none")
+ggsave("figures/japanese-nlogbeta-mem.pdf", plot=plot)
+plot = ggplot(dataU, aes(x=log(Beta), y=MiWithFut, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + ylim(0, NA) + theme(legend.position="none")
+ggsave("figures/japanese-logbeta-ee.pdf", plot=plot)
+plot = ggplot(dataU, aes(x=-log(Beta), y=MiWithFut, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + ylim(0, NA) + theme(legend.position="none")
+ggsave("figures/japanese-nlogbeta-ee.pdf", plot=plot)
+
+
+
+
+dataU = data %>% filter(Language == "English") %>% filter(model != "REAL")
+dataU$UncondEnt = 1.895
+dataU = dataU %>% mutate(MiWithFut = EE) #Horizon*(UncondEnt-FutureSurp))
+#plot = ggplot(dataU, aes(x=Beta, y=Memories/EE)) + geom_point()+ theme_classic()  + xlim(0, 0.4)
+#dataDU = dataD %>% filter(Language == "English")
+#dataDU = dataDU %>% mutate(UncondEnt = case_when(Horizon == 1 ~ 2.563, Horizon == 2 ~ 2.18, Horizon == 3 ~  2.15)) 
+#dataDU = dataDU %>% mutate(MiWithFut = Horizon*(UncondEnt-Surprisal))
+dataU = dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut, model, avg16) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural")
+dataU = dataU %>% filter(MiWithFut <= Memory)
+
+plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + xlim(0, NA) + ylim(0, NA)
+plot = ggplot(dataU, aes(x=Memory, y=avg16, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Past]") + ylab("Surprisal") + xlim(0, NA)
+
+plot = ggplot(dataU %>% filter(model %in% c("RANDOM_BY_TYPE", "REAL_REAL")), aes(x=Memory, y=avg16, group=model, color=model)) + geom_smooth(se=F)+ theme_classic() + xlab("Memory") + ylab("Future Surprisal") + xlim(0, NA)
+
+
+plot = ggplot(dataU, aes(x=Memory, y=Surprisal, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Past]") + ylab("Surprisal") + xlim(0, NA)
+
+
+plot = ggplot(dataU, aes(x=MiWithFut, y=avg16, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Past]") + ylab("Surprisal") + xlim(0, NA)
+
+plot = ggplot(dataU, aes(x=Surprisal, y=Memory-MiWithFut, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("Surprisal") + ylab("Crypticity") 
+
+
+dataU = data %>% filter(Language == "English") %>% filter(model == "REAL")
 dataU$UncondEnt = 1.895
 dataU = dataU %>% mutate(MiWithFut = EE) #Horizon*(UncondEnt-FutureSurp))
 #plot = ggplot(dataU, aes(x=Beta, y=Memories/EE)) + geom_point()+ theme_classic()  + xlim(0, 0.4)
 dataDU = dataD %>% filter(Language == "English")
 dataDU = dataDU %>% mutate(UncondEnt = case_when(Horizon == 1 ~ 2.563, Horizon == 2 ~ 2.18, Horizon == 3 ~  2.15)) 
 dataDU = dataDU %>% mutate(MiWithFut = Horizon*(UncondEnt-Surprisal))
-dataU = rbind(dataDU %>% select(Language, Beta,Surprisal, Memory, Horizon, UncondEnt, MiWithFut) %>% mutate(Type="Ngrams"), dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural"))
+dataU = rbind(dataDU %>% select(Language, Beta,Surprisal, Memory, Horizon, UncondEnt, MiWithFut) %>% mutate(Type="Ngrams") %>% mutate(model="REAL"), dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut, model) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural"))
 dataU = dataU %>% filter(MiWithFut <= Memory)
+
+plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + xlim(0, NA) + ylim(0, NA)
+plot = ggplot(dataU, aes(x=Memory, y=Surprisal, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("Surprisal") + xlim(0, NA)
+
+
 plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + theme(legend.position="none") + xlim(0, NA) + ylim(0, NA)
 ggsave("figures/english-info.pdf", plot=plot) 
 plot = ggplot(dataU, aes(x=Surprisal, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() 
@@ -443,8 +500,10 @@ data$Horizon = 15
 
 data$PastSurp = 15*data$FutureSurp+data$EE
 
-data = data %>% filter(Memories < UpperBound) #can also take UpperBound2
+#data = data %>% filter(Memories < UpperBound) #can also take UpperBound2
 data = data %>% mutate(Objective = Horizon * FutureSurp + Beta * Memories)
+
+data = data %>% filter(model != "REVERSE")
 
 dataU = data %>% filter(Language == "PTB")
 plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
@@ -493,6 +552,266 @@ ggsave(plot, file="figures/en-words-logbeta-ee.pdf")
 
 #plot = ggplot(dataU, aes(x=log(Beta), y=EE, alpha=0.5)) + geom_point()+ theme_classic() + geom_point(data=data.frame(x=x, y=1.3-(-x)^1/(-x-0.1)^2), aes(x=x, y=y), color="red")
 #ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=(3.5-(-x-0.1)^(-2))^(1.5)), aes(x=x, y=y), color="red") + ylim(0, NA)
+
+
+
+
+
+dataU = data %>% filter(Language == "LDC95T8")
+dataU$BeatsBound = (dataU$Memories < dataU$UpperBound)
+
+plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC95T8-words-surp-mem.pdf")
+
+plot = ggplot(dataU, aes(x=avg16, y=Memories, color=BeatsBound)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC95T8-words-16-mem.pdf")
+plot = ggplot(dataU, aes(x=avg17, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg18, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg19, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+
+x = 3.2 * (1:100)/100
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1.0*x^2*exp(1.3/(3.9-x))), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC95T8-words-ee-mem.pdf")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5, color=BeatsBound)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1)) 
+
+
+x = (1:500)/1000
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-log(x))^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC95T8-words-beta-mem.pdf")
+
+x = -6*(10:95)/100
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-x)^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, color=BeatsBound)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC95T8-words-logbeta-mem.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Objective, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1)) 
+
+
+x = 6*(10:100)/100
+plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1*(x)^2), aes(x=x, y=y), color="red")
+ggsave(plot, file="figures/LDC95T8-words-nlogbeta-mem-fitted.pdf")
+
+
+
+x = -6*(10:95)/100
+# this one looks good
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=0.012*(3.5-(-x-0.1)^(-1.5))^(4.5)), aes(x=x, y=y), color="red") + ylim(0, NA)
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC95T8-words-logbeta-ee.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))
+
+
+
+
+
+
+
+
+
+
+
+dataU = data %>% filter(Language == "LDC2012T05")
+dataU$BeatsBound = (dataU$Memories < dataU$UpperBound)
+
+plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC2012T05-words-surp-mem.pdf")
+
+
+plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, color=BeatsBound)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+plot = ggplot(dataU, aes(x=avg16, y=Memories, color=BeatsBound)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC2012T05-words-16-mem.pdf")
+plot = ggplot(dataU, aes(x=avg17, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg18, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg19, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+
+x = 3.2 * (1:100)/100
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1.0*x^2*exp(1.3/(3.9-x))), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC2012T05-words-ee-mem.pdf")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5, color=BeatsBound)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1)) 
+
+
+x = (1:500)/1000
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-log(x))^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC2012T05-words-beta-mem.pdf")
+
+x = -6*(10:95)/100
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-x)^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, color=BeatsBound)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC2012T05-words-logbeta-mem.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, color=BeatsBound)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Objective, color=BeatsBound)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+
+x = 6*(10:100)/100
+plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1*(x)^2), aes(x=x, y=y), color="red")
+ggsave(plot, file="figures/LDC2012T05-words-nlogbeta-mem-fitted.pdf")
+
+
+
+x = -6*(10:95)/100
+# this one looks good
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=0.012*(3.5-(-x-0.1)^(-1.5))^(4.5)), aes(x=x, y=y), color="red") + ylim(0, NA)
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/LDC2012T05-words-logbeta-ee.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))
+
+
+
+
+
+
+
+
+
+dataU = data %>% filter(Language == "Arabic")
+plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ar-words-surp-mem.pdf")
+
+dataU$BeatsBound = (dataU$Memories < dataU$UpperBound)
+
+plot = ggplot(dataU, aes(x=avg16, y=Memories, color=BeatsBound, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ar-words-16-mem.pdf")
+plot = ggplot(dataU, aes(x=avg17, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg18, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg19, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+
+x = 3.2 * (1:100)/100
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1.0*x^2*exp(1.3/(3.9-x))), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, color=BeatsBound, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ar-words-ee-mem.pdf")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1)) 
+
+
+x = (1:500)/1000
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-log(x))^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ar-words-beta-mem.pdf")
+
+x = -6*(10:95)/100
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-x)^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, color=BeatsBound, alpha=0.5)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ar-words-logbeta-mem.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+x = 6*(10:100)/100
+plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1*(x)^2), aes(x=x, y=y), color="red")
+ggsave(plot, file="figures/ar-words-nlogbeta-mem-fitted.pdf")
+
+
+
+x = -6*(10:95)/100
+# this one looks good
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=0.012*(3.5-(-x-0.1)^(-1.5))^(4.5)), aes(x=x, y=y), color="red") + ylim(0, NA)
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ar-words-logbeta-ee.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))
+
+
+
+
+
+
+
+
+
+
+
+dataU = data %>% filter(Language == "Japanese")
+plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ja-words-surp-mem.pdf")
+
+plot = ggplot(dataU, aes(x=avg16, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ja-words-16-mem.pdf")
+plot = ggplot(dataU, aes(x=avg17, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg18, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+plot = ggplot(dataU, aes(x=avg19, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
+
+x = 3.2 * (1:100)/100
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1.0*x^2*exp(1.3/(3.9-x))), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ja-words-ee-mem.pdf")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1)) 
+
+
+x = (1:500)/1000
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-log(x))^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ja-words-beta-mem.pdf")
+
+x = -6*(10:95)/100
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=2.8*(-x)^1.6), aes(x=x, y=y), color="red")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ja-words-logbeta-mem.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=Memories, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+x = 6*(10:100)/100
+plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=1*(x)^2), aes(x=x, y=y), color="red")
+ggsave(plot, file="figures/ja-words-nlogbeta-mem-fitted.pdf")
+
+
+
+x = -6*(10:95)/100
+# this one looks good
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=0.012*(3.5-(-x-0.1)^(-1.5))^(4.5)), aes(x=x, y=y), color="red") + ylim(0, NA)
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+ggsave(plot, file="figures/ja-words-logbeta-ee.pdf")
+
+plot = ggplot(dataU, aes(x=log(Beta), y=EE, group=flow_layers, color=flow_layers)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))
+
+
+
+
+
 
 
 
@@ -762,6 +1081,34 @@ x = -6*(10:95)/100
 ggplot(dataU, aes(x=log(Beta), y=EE, group=Script, color=Script)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=0.012*(3.5-(-x-0.1)^(-1.5))^(4.5)), aes(x=x, y=y, group=NULL, color=NULL), color="red") + ylim(0, NA)
 #plot = ggplot(dataU, aes(x=log(Beta), y=EE, alpha=0.5)) + geom_point()+ theme_classic() + geom_point(data=data.frame(x=x, y=1.3-(-x)^1/(-x-0.1)^2), aes(x=x, y=y), color="red")
 #ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, y=(3.5-(-x-0.1)^(-2))^(1.5)), aes(x=x, y=y), color="red") + ylim(0, NA)
+
+
+
+
+
+
+
+data = read.csv("~/CS_SCR/results-en-upos-neuralflow-test.tsv", sep="\t")
+    library(tidyr)
+    library(dplyr)
+    library(ggplot2)
+data$Horizon = 15
+
+data$PastSurp = 15*data$FutureSurp+data$EE
+
+data = data %>% filter(Memories < UpperBound) #can also take UpperBound2
+data = data %>% mutate(Objective = Horizon * FutureSurp + Beta * Memories)
+
+
+dataU = data %>% filter(Language == "PTB")
+plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, color=model, group=model, alpha=0.5)) + geom_point()+ theme_classic() + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+plot = ggplot(dataU, aes(x=avg16, y=Memories, color=model, group=model, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+plot = ggplot(dataU, aes(x=avg16, y=EE, color=model, group=model, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
+
+
+plot = ggplot(dataU, aes(x=EE, y=Memories, color=model, group=model, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
 
 
 
