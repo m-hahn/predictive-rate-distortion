@@ -206,22 +206,34 @@ is equivalent to the amount of mutual information between past and future that i
 \begin{equation}
 	I[\overleftarrow{X}, \overrightarrow{X}|Z]
 \end{equation}
-The distortion measure satisfies the relation
+Due to the Markov condition, the distortion measure satisfies the relation
 \begin{equation}
 	I[\overleftarrow{X}, \overrightarrow{X}|Z] = I[\overleftarrow{X}, \overrightarrow{X}] - I[\overrightarrow{X}, Z]
 \end{equation}
-so that, for a fixed process $(X_t)_t$ minimizing the distortion is equivalent to maximizing $I[\overrightarrow{X}, Z]$.
+For a fixed process $(X_t)_t$, minimizing the distortion is equivalent to maximizing the mutual information between the code and the future $I[\overrightarrow{X}, Z]$. We will refer to $I[\overrightarrow{X}, Z]$ as the \emph{predictiveness} of the code $Z$.
 
-The rate-distortion tradeoff then chooses $Z$ to minimize rate at bounded distortion:
-$$\min_{Z : I[\overleftarrow{X}, \overrightarrow{X}|Z] \leq d} I[Z, \overleftarrow{X}]$$
-, or -- equivalently -- minimize distortion at bounded rate.
-$$\min_{Z :  I[Z, \overleftarrow{X}] \leq d}  I[\overleftarrow{X}, \overrightarrow{X}|Z] $$
+The rate-distortion tradeoff then chooses $Z$ to %minimize rate at bounded distortion:
+%$$\min_{Z : I[\overleftarrow{X}, \overrightarrow{X}|Z] \leq d} I[Z, \overleftarrow{X}]$$
+%, or -- equivalently --
+ minimize distortion at bounded rate:
+\begin{equation}
+\min_{Z :  I[Z, \overleftarrow{X}] \leq d}  I[\overleftarrow{X}, \overrightarrow{X}|Z] 
+\end{equation}
+or -- equivalently -- maximize predictiveness at bounded rate:
+\begin{equation}
+\max_{Z :  I[Z, \overleftarrow{X}] \leq d}  I[Z, \overrightarrow{X}] 
+\end{equation}
 Equivalently, for each  $\beta \geq 0$, we study the problem 
 \begin{equation}\label{eq:ib}
 	\max_{Z} \left( I[\overrightarrow{X}, Z] - \beta \cdot I[Z, \overleftarrow{X}] \right)
 \end{equation}
-where the scope of the maximization is the class of all random variables $Z$ such that $Z - \overleftarrow{X} - \overrightarrow{X}$ is a Markov chain. %, that is, $Z$ is independent of the future given the past.
-It is not hard to see that this optimized by a trivial $Z$ with zero rate and maximal distortion when $\beta \geq 1$, so we will be concerned with the situation where $\beta \in [0,1]$.
+where the scope of the maximization is the class of all random variables $Z$ such that $Z \rightarrow \overleftarrow{X} \rightarrow \overrightarrow{X}$ is a Markov chain. %, that is, $Z$ is independent of the future given the past.
+
+The objective (\ref{eq:ib}) is equivalent to the Information Bottleneck \citep{tishby-information-1999}, applied to the past and future of a stochastic process.
+
+When $\beta \geq 1$, then (\ref{eq:ib}) is always optimized by a trivial $Z$ with zero rate and zero predictiveness, which follows from the Data Processing Inequality.
+When $\beta = 0$, any lossless code optimizes the problem.
+Therefore, we will be concerned with the situation where $\beta \in (0,1)$.
 
 %
 %
@@ -313,7 +325,7 @@ The encoder stochastically transforms observation sequences $x_{-M\dots -1}$ int
 Z = \phi(x_{-M\dots -1})
 \end{equation}
 distributed according to $Z \sim P_\phi(Z|x_{-M\dots -1})$.
-From this, one can obtain the conditional distribution over future observations via Bayes' rule: %, using the Markov condition: \rljf{Show some intermediate steps here}
+From this, one can obtain the conditional distribution over future observations via Bayes' rule: %, using the Markov condition: 
 \begin{equation}
 	\label{eq:cond-fut}
 	\begin{split}
@@ -368,7 +380,7 @@ where $\phi, \psi, q$ range over all triples of the appropriate types described 
 To carry out this optimization, we will restrict to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
 The values obtained for the resulting $\phi, \psi, q$ satisfy the bounds in (\ref{ineq1}-\ref{ineq2}), and---if the family of approximators is sufficiently rich---can come close to turning these into equalities.
 
-That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal. \rljf{Expand last sentence into a paragraph}
+That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal. 
 
 
 \subsection{Implementation}
@@ -443,7 +455,6 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 \paragraph{OCE}
 As discussed above, OCE overestimates structure in the process due to overfitting.
 To address this, and to enable fair comparison between OCE and our neural method, we follow the evaluation method used for NPRD, evaluating rate and distortion on held-out data:
-\rljf{Describe these in prose too and what they mean}
 We estimate rate using the variational bound that we stated in Proposition~\ref{ineq2}:
 \begin{equation}
 \frac{1}{N} \sum_{i=1}^N \operatorname{D_{KL}}(\infdiv{q(\cdot|x_i)}{s(\cdot)})
@@ -480,18 +491,18 @@ Neural Autoregressive Flows, used to approximate the marginal $q$, also have a s
 
 \begin{table}
 \begin{tabular}{l||lll}
-	            & Section~\ref{sec:tractable} \\ \hline\hline
-	Embedding Dimension & 50, 100 \\
-	LSTM Dimension & 32 \\ \hline
+	& Section~\ref{sec:tractable} &   POS & Words\\ \hline\hline
+	Embedding Dimension & 50, 100 &       &  150      \\
+	LSTM Dimension & 32           &       &    512     \\ \hline
 %	LSTM Layers & 1 \\ \hline
-	Dropout rate & 0.0, 0.1, 0.2 \\
-	Input Dropout & 0 \\ \hline
-	Adam Learning Rate & 0.0001, 0.0005, 0.001 (4 times), 0.002, 0.004 \\
-	Batch Size & 16, 32, 64 \\ \hline
-	Flow Length & 1, 2 \\
-	Flow Type & DSF, DDSF \\
-	Flow Dimension & 32, 64, 128, 512 \\
-	Flow Layers & 2 \\
+	Dropout rate & 0.0, 0.1, 0.2  &       &      0.4     \\
+	Input Dropout & 0  &       &        0.2             \\ \hline
+	Adam Learning Rate & 0.0001, 0.0005, 0.001 (4 times), 0.002, 0.004  &       &       0.00005, 0.0001, 0.0005, 0.001     \\
+	Batch Size & 16, 32, 64  &       &       32          \\ \hline
+	Flow Length & 1, 2  &       &          4              \\
+	Flow Type & DSF, DDSF  &       &       DSF, DDSF             \\
+	Flow Dimension & 32, 64, 128, 512  &       &    ???        \\
+	Flow Layers & 2  &       &                 ?????          \\
 \end{tabular}
 	\caption{NPRD Hyperparameters}\label{tab:nprd-hyperparameters}
 \end{table}
@@ -522,7 +533,7 @@ Bounding the tradeoff curve using the sets of runs of NPRD results in a close fi
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process and the Random Insertion Process. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Blue: OCE for $M\leq 5$. }\label{fig:even}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Blue: OCE for $M\leq 5$. }\label{fig:even}
 \end{figure*}
 
 \paragraph{Recovering Causal States}
@@ -673,10 +684,9 @@ Without optimizations specific to the task at hand, a direct application of OCE 
 
 \begin{figure*}
 %\includegraphics[width=0.45\textwidth]{code/figures/repeat2-ee-mem.pdf}
-\includegraphics[width=0.45\textwidth]{code/figures/repeat3-ee-mem-frontier.pdf}
+\includegraphics[width=0.45\textwidth]{code/figures/repeat3-info.pdf}
 	\caption{Rate-Distortion for the \textsc{Copy3} process. We show NPRD samples, and the resulting upper bound in red. The gray line represents the anaytical curve.}\label{fig:repeat}
 \end{figure*}
-%  \rljf{Red not green? Also y axis should be Memory, not Memories. Also let's label as Memory (nats) throughout (or bits), and Excess Entropy on the x axis throughout.}
 
 
 
@@ -698,6 +708,9 @@ The word-by-word surprisal has been shown to be an accurate linear predictor of 
 
 Human do prediction
 
+\cite{smith-effect-2013}
+
+\cite{Bar:2007,Clark:2016}
 There is the related question of how much memory is needed to predict.
 
 This is captured by NPRD: human memory vs surprisal
@@ -705,6 +718,8 @@ This is captured by NPRD: human memory vs surprisal
 In psycholinguistics, memory known to impact processing.
 
 Futrell and Levy
+
+\cite{futrell-noisy-context-2017}
 
 TODO Motivation
 
