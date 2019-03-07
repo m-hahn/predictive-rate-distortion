@@ -149,20 +149,18 @@ As an application, we provide bounds on the predictive rate-distortion of natura
 Predicting the future from past observations is a key problem across science.
 Constructing models that predict future observations is fundamental method of making and testing scientific discoveries.
 Understanding and predicting dynamics has been a fundamental goal of physics for centuries.
-In engineering, devices often have to predict the future of their environment to perform more efficiently.
+In engineering, devices often have to predict the future of their environment to perform efficiently.
 Living organisms need to make inferences about their environment and its future for survival.
 Prediction permeats the behavior of organisms at all levels:
-TODO something about bacteria?
-TODO something about other animals?
-something about language?
+\textbf{TODO talk more about bacteria, animals, language, ....}
 
 
 
-Often the underlying process is very complicated.
-Physical systems generate complex dynamics that can be hard to compute.
-Measurements are imprecise, limiting the precision with which one can hope to make predictions.
-Prediction need not be perfect.
-An organism typically will not have the computational capacity to perfectly represent the environment.
+%Often the underlying process is very complicated.
+Real-world systems often generate complex dynamics that can be hard to compute.
+A biological organism typically will not have the computational capacity to perfectly represent the environment.
+In science, measurements have limited precision, limiting the precision with which one can hope to make predictions.
+%Prediction need not be perfect.
 In these settings, the main goal will typically be to get good prediction at low computational cost.
 %Similarly natural language.
 
@@ -178,89 +176,77 @@ Due to its information-theoretic nature, this framework is extremely general and
 It has been applied to linear dynamical systems \citep{creutzig-past-future-2009,amir2015past}, but is equally meaningful for discrete dynamical systems~\citep{marzen-predictive-2016}.
 For biological systems that make predictions about their environment, this corresponds to placing an information-theoretic constraint on the computational cost used for conditioning actions on past observations~\citep{genewein2015bounded}.
 
-The problem of determining encodings that optimize the Predictive Rate Distortion has been solved for certain specific kinds of dynamics, namely for linear dynamic systems~\citep{creutzig-past-future-2009} and for processes whose predictive dynamic is represented exactly by a known, finite Hidden Markov Model~\citep{marzen-predictive-2016}.
+The problem of determining encodings that optimize the Predictive Rate Distortion tradeoff has been solved for certain specific kinds of dynamics, namely for linear dynamic systems~\citep{creutzig-past-future-2009} and for processes whose predictive dynamic is represented exactly by a known, finite Hidden Markov Model~\citep{marzen-predictive-2016}.
 However, real-world processes are often more complicated.
 When the dynamic is known, a representing Hidden Markov Model may still be extremely large or even infinite, making general-purpose automated computation difficult.
 Even more importantly, the underlying dynamic is often not known exactly.
-
-
-An organism doesn't know the exact dynamic of its surroundings.
-The exact distribution of sentences in a language is not known exactly.
+An organism typically does not have access to the exact dynamic of its surroundings.
+Similarly, the exact distribution of sentences in a natural language is not known exactly, precluding the application of methods that require an exact model.
 Such processes are typically only available implicitly, through a finite sample of trajectories.
 
 
 
-regularization: from finite data, want low-complexity model
-available data is finite, can only infer approximation to real dynamic
-In many cases, all we have is sample observation trajectories.
-
-
-
-Advances in dynamical systems over the past half century led to new methods that attempt to account for the inherent nonlinearity in many natural phenomena.1–7
-As a result, it is now well known that nonlinear systems produce highly correlated time series that are not adequately modeled under the typical statistical assumptions of linearity, independence, and identical distributions.
-
-
-
-However, in many cases, the underlying dynamics may not be known.
-It may be infinitely complicated.
+%regularization: from finite data, want low-complexity model
+%available data is finite, can only infer approximation to real dynamic
+%In many cases, all we have is sample observation trajectories.
 
 
 Optimal Causal Estimation (OCE, \citet{still-optimal-2010}) addresses the problem of estimating Predictive Rate Distortion from a finite sample of observation trajectories.
 It does so by constructing a matrix of observed frequencies of different pairs of past and future observations.
-This method faces a series of challenges~\citep{marzen-predictive-2016}.
+However, this method faces a series of challenges~\citep{marzen-predictive-2016}.
 One is the curse of dimensionality:
 Modeling long dependencies requires storing an exponential number of observations, which quickly becomes intractable for current computation methods.
-This exponential growth is particularly problematic when dealing with processes with a large state space -- e.g., the number of words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
-A second challenge is that, when making predictions on new data, OCE can only succeed when the past sequences have been seen previously; it does not generalize to unseen past sequences.
+This exponential growth is particularly problematic when dealing with processes with a large state space.
+For instance, the number of words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
+A second challenge is that of overfitting:
+%As OCE relies on counts of full past and future observation sequences,
+When deploying a predictive model constructed via OCE on new data to predict upcoming observations, such a model can only succeed when the past sequences occurred in the sample that OCE was applied to.
+This is because OCE relies on counts of full past and future observation sequences; it has no means to generalize to unseen past sequences.
+
+Traditional time series models representing processes taking continuous values are equipped to extrapolating to unseen pasts; however, such methods are less easily applied to discrete sequences such as natural language.
+Recent research has seen a flurry of interest in using flexible nonlinear function approximators, and in particular recurrent neural networks, which can handle sequences with discrete observations.
+Such machine learning methods provide generic models of sequence data.
+They are the basis of the state of the art by a clear and significant margin for prediction in natural language \citep{DBLP:journals/corr/JozefowiczVSSW16, merity2018analysis, dai2019transformer,takahashi2018cross}.
+They also have been successfully applied to modeling many other kinds of sequences, such as financial time series (Sirignano and Cont, 2018) and purely theoretical chaotic dynamical systems~\citep{ogunmolu2016nonlinear,laptev2017time,zhu2017deep,meyer2018survey,hundman2018detecting,white2018forecasting,woo2018dynamic,mohajerin2019multistep,hagge2017solving,sirignano2018universal}
+
+We propose Neural Predictive Rate Distortion (NPRD) to estimate predictive rate distortion when only a finite set of sample trajectories is given.
+We use neural networks both to encode past observations into a summary code, and to predict future observations from it.
+The universal function approximation capabilities of neural networks enable such networks to capture complex dynamics, with computational cost scaling only linearly with the length of observed trajectories, compared to the exponential cost of OCE.
+When deploying on new data, such a neural model can generalize seamlessly to unseen sequences, and generate appropriate novel summary encodings on the fly.
+Recent advances in neural variational inference~\citep{rezende-variational-2015,huang-neural-2018} allow us to construct predictive models that provide almost optimal predictive performance at a given rate, and to estimate the predictive rate distortion tradeoff from such networks.
+Our method can be applied to sample trajectories in an off-the-shelf manner, without prior knowledge of the underlying process.
+
+In Section~\ref{sec:background}, we formally introduce predictive rate distortion, and discuss related notions of predictive complexity.
+In Section~\ref{sec:oce}, we describe the prior method of Optimal Causel Estimation (OCE).
+In Section~\ref{sec:nprd}, we describe our method NPRD.
+In Section~\ref{sec:experiments}, we validate NPRD on processes whose predictive rate distortion is analytically known, showing that it finds essentially optimal predictive models.
+In Section~\ref{sec:language}, we apply NPRD to data from five languages, providing the first estimates of predictive rate distortion of natural language.
+
+
+%\paragraph{Marginal $q$}
+%For $q$, we choose the family of \emph{Neural Autoregressive Flows} \citep{}. 
+%This is a parametric family of distributions that allows efficient estimation of the probability density and its gradients.
+%This method widely generalizes a family of prior methods \citep{, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
 
 
 
-TODO somewhere need to address `traditional' time series analysis, which doesn't work for discrete data.
-
-However, such methods are less well-suited to discrete sequences such as natural language.
-
-Recent research has seen a flurry of interest in using flexible nonlinear function approximators, and in particular recurrent neural networks.
-Such machine learning methods provide generic models of sequence data
-applied to modeling diverse kinds of sequences
-financial time series (Sirignano and Cont, 2018)
-purely theoretical chaotic dynamical systems~\citep{ogunmolu2016nonlinear,laptev2017time,zhu2017deep,meyer2018survey,hundman2018detecting,white2018forecasting,woo2018dynamic,mohajerin2019multistep,hagge2017solving,sirignano2018universal}
-neural networks are the state of the art by a clear and significant margin for prediction in natural language.
-
-We propose to build on recurrent neural networks to estimate predictive rate distortion based on data.
+%TODO here is some more stuff:
+%There are several motivations for studying this predictive rate-distortion tradeoff.
+%One is that the shape of the tradeoff can provide insights into the structure of the process (TODO citations).
+%%(CITE) show that phase transitions in the tradeoff curve reveal ...
+%Second, this problem formalizes tradeoffs observed in real-world situations, where the goal is to predict the next observations in a sequence.
+%Statistically modeling natural language, constructing models of the probability distribution over different sentences in a language, is often implemented as the problem of sequentially predicting the next word from the prior context.
+%There is a tradeoff between the computational cost of representing the prior context, and accurately modeling the conditional distribution over the next word.
+%Third, studying tis tradeoff may provide simpler but faithful models of processes (TODO citations).
+%
+%
 
 
 
-\section{Background}
-
-GENERAL INTRO/FRAMING
 
 % Some other stuff to cite/consider in framing
 % - the Tim Genewein papers on bounded rationality -- predictive rate distortion is like the action of an boundedly rational predictor 
 % - Rubin, Shamir & Tishby (2010). Trading value and information in MDPs. Is predictive rate distortion the same as their model but with KL divergence as the value function?
-
-
-Predicting the future from past observations is everywhere.
-Physics, study of complex systems.
-Living organisms.
-Natural language.
-
-Often the process is very complicated.
-Prediction need not be perfect.
-An organism need not represent the environment perfect. Much more important is getting good prediction at low computational cost.
-Similarly natural language.
-
-This leads to a tradeoff between the cost of representing past observations and predicting the future well.
-Formalized in Predictive Rate Distortion, also known as Past Future Information Bottleneck.
-This applies rate-distortion theory.
-In certain cases, this has been solved: Gaussians, and when the exact dynamic is represented by a known, finite, HMM.
-
-However, in many cases, the underlying dynamics may not be known.
-An organism doesn't know the exact dynamic of its surroundings.
-The exact distribution of sentences in a language is not known.
-
-In many cases, all we have is sample observation trajectories.
-
-
 
 
 %In the modeling of stochastic processes, Predictive Rate-Distortion describes the tradeoff between the cost of encoding the past, and the benefit of predicting the future better.
@@ -268,13 +254,11 @@ In many cases, all we have is sample observation trajectories.
 
 
 
-
-
-\subsection{Predictive Rate-Distortion}
+\section{Predictive Rate-Distortion}\label{sec:background}
 
 
 We consider stationary stochastic processes $(X_t)_t$, taking values in a state space $S$.
-Given a time step, say $T=0$, we are interested in the problem of predicting the future of $X_{t>0} = (X_1, X_2, ...)$ from the past $X_{t\leq 0} = (..., X_{-1}, X_0)$.
+Given a reference point in time, say $T=0$, we are interested in the problem of predicting the future of $X_{t>0} = (X_1, X_2, ...)$ from the past $X_{t\leq 0} = (..., X_{-1}, X_0)$.
 In general -- unless the observations $X_t$ are independent -- predicting the future of the process accuractely will require taking into account the past observations.
 There is a tradeoff between the accuracy of prediction, and how much information about the past is being taken into account.
 On one extreme, not taking the past into account at all, one will not be able to take advantage of the dependencies between past and future observations.
@@ -282,14 +266,6 @@ On the other extreme, considering the entirety of the past observations $X_{t \l
 This tradeoff is referred to as \emph{Predictive Rate-Distortion} \citep{marzen-predictive-2016}.
 The term \emph{rate} refers to the amount of past information being taken into account, while \emph{distortion} refers to the degradation in prediction compared to optimal prediction from the full past.
 
-
-There are several motivations for studying this predictive rate-distortion tradeoff.
-One is that the shape of the tradeoff can provide insights into the structure of the process (TODO citations).
-%(CITE) show that phase transitions in the tradeoff curve reveal ...
-Second, this problem formalizes tradeoffs observed in real-world situations, where the goal is to predict the next observations in a sequence.
-Statistically modeling natural language, constructing models of the probability distribution over different sentences in a language, is often implemented as the problem of sequentially predicting the next word from the prior context.
-There is a tradeoff between the computational cost of representing the prior context, and accurately modeling the conditional distribution over the next word.
-Third, studying tis tradeoff may provide simpler but faithful models of processes (TODO citations).
 
 
 The problem of predictive rate-distortion has been formalized by a range of studies.
@@ -376,7 +352,7 @@ Therefore, we will be concerned with the situation where $\beta \in (0,1)$.
 Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989}.
 Given a stationary process $X_t$, its \emph{causal states} are the equivalence classes of semi-infinite pasts $\overleftarrow{X}$ that induce the same conditional probability over semi-infinite futures $\overrightarrow{X}$:
 Two pasts $\overleftarrow{x}, \overleftarrow{x}'$ belong to the same causal state if and only if $P(x_{1...M}|\overleftarrow{x}) = P(x_{1...M}|\overleftarrow{x}')$ holds for all sequences $x_{1...M}$.
-Note that this definition is not measure-theoretically rigorous; such a treatment is provided by (CITE).
+Note that this definition is not measure-theoretically rigorous; such a treatment is provided by~\citet{lohr-properties-2009}.
 
 One can show that the causal states constitute the state set of a a Hidden Markov Model (HMM) for the process.
 This HMM is referred to as the \emph{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
@@ -389,8 +365,12 @@ Further, \cite{still-optimal-2010} show that, in the limit of $\beta \rightarrow
 %The most generally applicable method for estimating statistical complexity and predictive rate distortion from time series data is Optima Causal Estimation.
 
 
+\subsection{Related Work}
 
-\section{Prior Work: Optimal Causal Estimation}
+TODO here discuss relation to other formalizations
+
+
+\section{Prior Work: Optimal Causal Estimation}\label{sec:oce}
 
 The main prior method for estimating predictive rate-distortion from data is Optimal Causal Estimation (OCE, \citet{still-optimal-2010}).
 This method approximates predictive rate-distortion using two approximations:
@@ -409,12 +389,12 @@ This leaves open how to obtain estimates outside of this regime, when the codebo
 The second challenge is that OCE requires the construction of a matrix whose rows and columns are indexed by the observed past and future sequences \citep{marzen-predictive-2016}.
 Depending on the topological entropy of the process, the number of such sequences can grow as $|A|^M$, where $A$ is the set of observed symbols, and processes of interest often do show this exponential growth \citep{marzen-predictive-2016}.
 Drastically, in the case of natural language, $A$ contains thousands of words.
-We will see that this makes application OCE infeasible even with $M=1$.
+We will see that this makes applying OCE infeasible even with $M=1$.
 
 A further challenge is that OCE is infeasible if the number of required codewords is too large, again because OCE requires constructing a matrix whose rows and columns are indexed by the codewords and observed sequences.
 Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $I[Z, \overleftarrow{X}] > log(10^5) \approx 11.5$ cannot be captured with OCE.
 
-\section{Neural Estimation via Variational Upper Bound}
+\section{Neural Estimation via Variational Upper Bound}\label{sec:nprd}
 
 We now introduce our method, Neural Predictive Rate Distortion (NPRD), to address the shortcomings of OCE, by using parametric function approximation:
 Whereas OCE constructs a codebook mapping between observed sequences and codes, we use general-purpose function approximation estimation methods to compute the representation $Z$ from the past and to estimate a distribution over future sequences from $Z$.
@@ -560,7 +540,7 @@ NPRD provably provides \emph{upper bounds} on the predictive rate-distortion cur
 This makes it possible to objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve (up to sampling error).
 
-\section{Experiments}
+\section{Experiments}\label{sec:experiments}
 
 \subsection{Setup}
 
@@ -803,7 +783,7 @@ Without optimizations specific to the task at hand, a direct application of OCE 
 
 
 
-\section{Natural Language}
+\section{Natural Language}\label{sec:language}
 
 We consider the problem of estimating rate-distortion for Natural Language.
 
