@@ -347,19 +347,19 @@ Therefore, we will be concerned with the situation where $\beta \in (0,1)$.
 %
 %
 
-\subsection{Relation to Statistical Complexity}
+\subsection{Relation to Statistical Complexity}\label{sec:complexity}
 
 Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989}.
 Given a stationary process $X_t$, its \emph{causal states} are the equivalence classes of semi-infinite pasts $\overleftarrow{X}$ that induce the same conditional probability over semi-infinite futures $\overrightarrow{X}$:
 Two pasts $\overleftarrow{x}, \overleftarrow{x}'$ belong to the same causal state if and only if $P(x_{1...M}|\overleftarrow{x}) = P(x_{1...M}|\overleftarrow{x}')$ holds for all sequences $x_{1...M}$.
 Note that this definition is not measure-theoretically rigorous; such a treatment is provided by~\citet{lohr-properties-2009}.
 
-One can show that the causal states constitute the state set of a a Hidden Markov Model (HMM) for the process.
-This HMM is referred to as the \emph{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
+The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \emph{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
 The \emph{Statistical Complexity} of a process is the state entropy of the $\epsilon$ machine.
-Statistical complexity can be computed easiy if the $\epsilon$-machine is given, but estimating statistical complexity from time series is challenging.
+Statistical complexity can be computed easiy if the $\epsilon$-machine is given, but estimating statistical complexity from time series is challenging~\citep{clarke2003application}.
+
 The problem of estimating statistical complexity, and the $\epsilon$-machine, is related to Predictive Rate-Distortion.
-\citep{marzen-predictive-2016} show that predictive rate-distortion is equivalent to the problem of compressing causal states, i.e. equivalence classes of pasts, to predict causal states of the backwards process, i.e., equivalence classes of futures.
+\citet{marzen-predictive-2016} show that predictive rate-distortion is equivalent to the problem of compressing causal states, i.e. equivalence classes of pasts, to predict causal states of the backwards process, i.e., equivalence classes of futures.
 Further, \cite{still-optimal-2010} show that, in the limit of $\beta \rightarrow 0$, the code $Z$ that optimizes Predictive Rate-Distortion turns into the causal states.
 
 %The most generally applicable method for estimating statistical complexity and predictive rate distortion from time series data is Optima Causal Estimation.
@@ -367,7 +367,22 @@ Further, \cite{still-optimal-2010} show that, in the limit of $\beta \rightarrow
 
 \subsection{Related Work}
 
-TODO here discuss relation to other formalizations
+
+
+
+There are related models that represent past observations by extracting those features that are relevant for prediction.
+Predictive State Representations \citep{singh-learning-2003,singh-predictive-2004} and Observable Operator Models \citep{jaeger1998discrete} encode past observations as sets of predictions about future observations.
+\citet{rubin2012trading} study agents that trade the cost of representing information about the evironment against the reward they can obtain by choosing actions based on the representation.
+Relatedly, \citet{still-information-2014} introduces a Recursive Past Future Information Bottleneck where past information is compressed repeatedly, not just at one reference point in time.
+
+
+As discussed in Section~\ref{sec:complexity}, estimating predictive rate-distortion is related to the problem of estimating statistical complexity.
+\citet{clarke2003application} and \citet{still-optimal-2010} consider the problem of estimating statistical complexity from finite data.
+While statistical complexity cannot be identified from finite data in general \citep{clarke2003application}, \citet{clarke2003application} introduce certain restrictions on the underlying process that make this more feasible.
+
+
+%%It also turned up in \cite{creutzig-past-future-2009}, \cite{still-information-2014}.
+
 
 
 \section{Prior Work: Optimal Causal Estimation}\label{sec:oce}
@@ -785,39 +800,58 @@ Without optimizations specific to the task at hand, a direct application of OCE 
 
 \section{Natural Language}\label{sec:language}
 
+\textbf{This is still TODO.}
+
 We consider the problem of estimating rate-distortion for Natural Language.
 
 
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
 Much interest has been devoted to estimating the entropy rate of natural language~\citep{shannon1951prediction,takahira2016entropy,bentz2017entropy,takahashi2018cross}.
-
-
 Indeed, the information density of language has been linked to human processing effort and to language structure.
 The word-by-word surprisal has been shown to be an accurate linear predictor of human processing effort as measured by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013}.
 Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz, genzel2002entropy, jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
-There has also been some interest in other information-theoretic aspects of language, such as the information contained in word forms and word order \cite{koplenig2017statistical}.
-\cite{dkebowski2018natural} examines the excess entropy of natural language.
-
-The difficulty of prediction is another interesting aspect of language complexity:
-
+The relevance of prediction to human language processing makes the \emph{difficulty} of prediction another interesting aspect of language complexity:
 Predictive Rate Distortion describes how much memory of the past humans need to maintain to predict future words accuractely.
 Beyond the entropy rate, it thus forms another important aspect of linguistic complexity.
 
 
-In Psycholinguistics, the idea of a tradeoff between representing the past well and predicting the future accurately appears in \cite{futrell-noisy-context-2017}.
+Understanding the complexity of prediction in language holds promise to enabling a deeper understanding of the nature of language as a stochastic process (CITE Debowski).
+Recently, \cite{dkebowski2018natural} has studied statistical properties beyond the entropy rate, such as the excess entropy.
+\cite{koplenig2017statistical} shows a link between the information contained in word forms and word order and traditional linguistic notions of grammatical structure.
 
 
-Human do prediction
+
+TODO also cite physicists on long-range correlations in text
+
+The difficulty of prediction is another interesting aspect of language complexity:
 
 
 
-\cite{Bar:2007,Clark:2016}
+In Psycholinguistics, the idea of a tradeoff between representing the past well and predicting the future accurately appears in \cite{futrell-noisy-context-2017}. Also Prediction Cost~\cite{gibson-linguistic-1998}
+
+
+Human do prediction \cite{Bar:2007,Clark:2016}
+
 There is the related question of how much memory is needed to predict.
 
 This is captured by NPRD: human memory vs surprisal
 
 In psycholinguistics, memory known to impact processing.
+
+
+We study entirely within individual sentences.
+
+One motivation for this is because we are ultimately interested in PRD as a model of memory in human sentence processing, formalizing psycholinguistic models \citep{gibson-linguistic-1998,futrell-noisy-context-2017} and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
+Another motivation is that, when directly estimating PRD, computational cost has to increase with the length of sequences considered.
+We limit our computations to sequences of length 30, already improving over OCE by an order of magnitude.
+
+
+Our work is related to studies of long-range correlations in text (CITE).
+
+
+
+Long-range correlations in text have been a subject of study \citep{altmann2012origin,ebeling1995long,yang2016long,ebeling1994entropy,chen2018quantifying,schenkel1993long}
 
 
 
