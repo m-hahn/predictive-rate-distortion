@@ -146,6 +146,90 @@ As an application, we provide bounds on the predictive rate-distortion of natura
 
 
 
+Predicting the future from past observations is a key problem across science.
+Constructing models that predict future observations is fundamental method of making and testing scientific discoveries.
+Understanding and predicting dynamics has been a fundamental goal of physics for centuries.
+In engineering, devices often have to predict the future of their environment to perform more efficiently.
+Living organisms need to make inferences about their environment and its future for survival.
+Prediction permeats the behavior of organisms at all levels:
+TODO something about bacteria?
+TODO something about other animals?
+something about language?
+
+
+
+Often the underlying process is very complicated.
+Physical systems generate complex dynamics that can be hard to compute.
+Measurements are imprecise, limiting the precision with which one can hope to make predictions.
+Prediction need not be perfect.
+An organism typically will not have the computational capacity to perfectly represent the environment.
+In these settings, the main goal will typically be to get good prediction at low computational cost.
+%Similarly natural language.
+
+
+
+This motivates the study of models that try to extract those key features of past observations that are most relevant to predicting the future.
+%This results in a tradeoff between the cost of representing past observations and predicting the future well.
+%This tradeoff has been formalized and computationally studied in a range of prior studies.
+A general information-theoretic framework for this problem is provided by Predictive Rate Distortion, also known as the Past-Future Information Bottleneck.
+The Predictive Rate Distortion tradeoff seeks to find an encoding of past observations that is maximally informative about future observations, while satisfying a bound on the amount of information that has to be stored.
+More formally, this framework trades off prediction loss in the future, formalized as cross-entropy, with the cost of representing the past, formalized as the mutual information between summary encodings of the past and the past observations.
+Due to its information-theoretic nature, this framework is extremely general and applies to processes across vastly different domains.
+It has been applied to linear dynamical systems \citep{creutzig-past-future-2009,amir2015past}, but is equally meaningful for discrete dynamical systems~\citep{marzen-predictive-2016}.
+For biological systems that make predictions about their environment, this corresponds to placing an information-theoretic constraint on the computational cost used for conditioning actions on past observations~\citep{genewein2015bounded}.
+
+The problem of determining encodings that optimize the Predictive Rate Distortion has been solved for certain specific kinds of dynamics, namely for linear dynamic systems~\citep{creutzig-past-future-2009} and for processes whose predictive dynamic is represented exactly by a known, finite Hidden Markov Model~\citep{marzen-predictive-2016}.
+However, real-world processes are often more complicated.
+When the dynamic is known, a representing Hidden Markov Model may still be extremely large or even infinite, making general-purpose automated computation difficult.
+Even more importantly, the underlying dynamic is often not known exactly.
+
+
+An organism doesn't know the exact dynamic of its surroundings.
+The exact distribution of sentences in a language is not known exactly.
+Such processes are typically only available implicitly, through a finite sample of trajectories.
+
+
+
+regularization: from finite data, want low-complexity model
+available data is finite, can only infer approximation to real dynamic
+In many cases, all we have is sample observation trajectories.
+
+
+
+Advances in dynamical systems over the past half century led to new methods that attempt to account for the inherent nonlinearity in many natural phenomena.1–7
+As a result, it is now well known that nonlinear systems produce highly correlated time series that are not adequately modeled under the typical statistical assumptions of linearity, independence, and identical distributions.
+
+
+
+However, in many cases, the underlying dynamics may not be known.
+It may be infinitely complicated.
+
+
+Optimal Causal Estimation (OCE, \citet{still-optimal-2010}) addresses the problem of estimating Predictive Rate Distortion from a finite sample of observation trajectories.
+It does so by constructing a matrix of observed frequencies of different pairs of past and future observations.
+This method faces a series of challenges~\citep{marzen-predictive-2016}.
+One is the curse of dimensionality:
+Modeling long dependencies requires storing an exponential number of observations, which quickly becomes intractable for current computation methods.
+This exponential growth is particularly problematic when dealing with processes with a large state space -- e.g., the number of words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
+A second challenge is that, when making predictions on new data, OCE can only succeed when the past sequences have been seen previously; it does not generalize to unseen past sequences.
+
+
+
+TODO somewhere need to address `traditional' time series analysis, which doesn't work for discrete data.
+
+However, such methods are less well-suited to discrete sequences such as natural language.
+
+Recent research has seen a flurry of interest in using flexible nonlinear function approximators, and in particular recurrent neural networks.
+Such machine learning methods provide generic models of sequence data
+applied to modeling diverse kinds of sequences
+financial time series (Sirignano and Cont, 2018)
+purely theoretical chaotic dynamical systems~\citep{ogunmolu2016nonlinear,laptev2017time,zhu2017deep,meyer2018survey,hundman2018detecting,white2018forecasting,woo2018dynamic,mohajerin2019multistep,hagge2017solving,sirignano2018universal}
+neural networks are the state of the art by a clear and significant margin for prediction in natural language.
+
+We propose to build on recurrent neural networks to estimate predictive rate distortion based on data.
+
+
+
 \section{Background}
 
 GENERAL INTRO/FRAMING
@@ -153,6 +237,35 @@ GENERAL INTRO/FRAMING
 % Some other stuff to cite/consider in framing
 % - the Tim Genewein papers on bounded rationality -- predictive rate distortion is like the action of an boundedly rational predictor 
 % - Rubin, Shamir & Tishby (2010). Trading value and information in MDPs. Is predictive rate distortion the same as their model but with KL divergence as the value function?
+
+
+Predicting the future from past observations is everywhere.
+Physics, study of complex systems.
+Living organisms.
+Natural language.
+
+Often the process is very complicated.
+Prediction need not be perfect.
+An organism need not represent the environment perfect. Much more important is getting good prediction at low computational cost.
+Similarly natural language.
+
+This leads to a tradeoff between the cost of representing past observations and predicting the future well.
+Formalized in Predictive Rate Distortion, also known as Past Future Information Bottleneck.
+This applies rate-distortion theory.
+In certain cases, this has been solved: Gaussians, and when the exact dynamic is represented by a known, finite, HMM.
+
+However, in many cases, the underlying dynamics may not be known.
+An organism doesn't know the exact dynamic of its surroundings.
+The exact distribution of sentences in a language is not known.
+
+In many cases, all we have is sample observation trajectories.
+
+
+
+
+%In the modeling of stochastic processes, Predictive Rate-Distortion describes the tradeoff between the cost of encoding the past, and the benefit of predicting the future better.
+%It is formalized as the tradeoff between the mutual information of an encoding with the past and with the future of the process, an application of the Information Bottleneck to processes \citep{tishby-information-1999}.
+
 
 
 
@@ -696,19 +809,28 @@ We consider the problem of estimating rate-distortion for Natural Language.
 
 
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
-Much interest has been devoted to the study of the entropy rate of language.
-....
-
-Indeed, the information density of language has been linked to human processing effort.
+Much interest has been devoted to estimating the entropy rate of natural language~\citep{shannon1951prediction,takahira2016entropy,bentz2017entropy,takahashi2018cross}.
 
 
-The Uniform Information Density and Constant Entropy Rate hypotheses 
+Indeed, the information density of language has been linked to human processing effort and to language structure.
+The word-by-word surprisal has been shown to be an accurate linear predictor of human processing effort as measured by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013}.
+Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz, genzel2002entropy, jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
-The word-by-word surprisal has been shown to be an accurate linear predictor of human processing effort as measured by per-word reading times.
+There has also been some interest in other information-theoretic aspects of language, such as the information contained in word forms and word order \cite{koplenig2017statistical}.
+\cite{dkebowski2018natural} examines the excess entropy of natural language.
+
+The difficulty of prediction is another interesting aspect of language complexity:
+
+Predictive Rate Distortion describes how much memory of the past humans need to maintain to predict future words accuractely.
+Beyond the entropy rate, it thus forms another important aspect of linguistic complexity.
+
+
+In Psycholinguistics, the idea of a tradeoff between representing the past well and predicting the future accurately appears in \cite{futrell-noisy-context-2017}.
+
 
 Human do prediction
 
-\cite{smith-effect-2013}
+
 
 \cite{Bar:2007,Clark:2016}
 There is the related question of how much memory is needed to predict.
@@ -717,29 +839,11 @@ This is captured by NPRD: human memory vs surprisal
 
 In psycholinguistics, memory known to impact processing.
 
-Futrell and Levy
 
-\cite{futrell-noisy-context-2017}
 
-TODO Motivation
-
-UID
-
-%Fenk, A.; Fenk, G. Konstanz im Kurzzeitgedächtnis-Konstanz im sprachlichen Informationsfluß. Z. Exp. Angew. Pshychol. 1980, 27, 400–414.
 %Fenk-Oczlon, G. Familiarity, information flow, and linguistic form. In Frequency and the Emergence of Linguistic Structure; Bybee, J.L., Hopper, P.J., Eds.; John Benjamins: Amsterdam, The Netherlands, 2001; pp. 431–448.
-%Ferrer-i Cancho, R.; D ̨ebowski, Ł.; del Prado Martín, F.M. Constant conditional entropy and related hypotheses. J. Stat. Mech. Theory Exp. 2013, L07001, doi:10.1088/1742-5468/2013/07/L07001.
 
-%People have studied information density as a model of cost in human language processing.
 
-%But also memory cost is relevant
-
-\cite{bentz2017entropy}
-
-\cite{koplenig2017statistical}
-
-\cite{dkebowski2018natural}
-
-\cite{takahira2016entropy}
 
 \rljf{Some motivation for why this is cool and interesting, maybe in parallel with the Bentz et al entropy paper, and other information theoretic linguistic complexity papers like Koplenig et al, and Dembowski's work}
 
