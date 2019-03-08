@@ -53,15 +53,18 @@ plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + 
 ggsave(plot, file="figures/ar-words-logbeta-ee.pdf")
 
 
+####################################
+
+
 x = 6*(10:100)/100
-alpha=1
-beta=2.3
+alpha=1.5
+beta=2.0
 plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + geom_point(data=data.frame(x=x, y=alpha*(x)^beta), aes(x=x, y=y), color="red")
 plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Beta)")
+plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 ggsave(plot, file="figures/ar-words-nlogbeta-mem-fitted.pdf")
@@ -72,7 +75,7 @@ library(expint)
 
 y = 60*(1:500)/500
 # by solving diff eq obtained from superlinear growth
-E0=3.1
+E0=2.9
 plot = ggplot(dataU, aes(x=EE, y=Memories)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + theme(legend.position="none") + xlim(0, NA) + ylim(0, NA) + geom_point(data=data.frame(y=y), aes(x=E0-alpha*beta * gammainc(beta, (y/alpha)^(1/beta)), y=y), color="red")
 plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
@@ -89,7 +92,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Beta)")
+plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Predictiveness")
 plot = plot + theme(legend.position="none")
 ggsave("figures/ar-words-nlogbeta-ee-fitted.pdf", plot=plot) 

@@ -43,7 +43,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Beta)")
+plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 ggsave(plot, file="figures/en-words-nlogbeta-mem-fitted.pdf")
@@ -79,7 +79,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Beta)")
+plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Predictiveness")
 plot = plot + theme(legend.position="none")
 ggsave("figures/en-words-nlogbeta-ee-fitted.pdf", plot=plot) 

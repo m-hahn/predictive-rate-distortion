@@ -151,8 +151,8 @@ Constructing models that predict future observations is fundamental method of ma
 Understanding and predicting dynamics has been a fundamental goal of physics for centuries.
 In engineering, devices often have to predict the future of their environment to perform efficiently.
 Living organisms need to make inferences about their environment and its future for survival.
-Prediction permeats the behavior of organisms at all levels:
-\textbf{TODO talk more about bacteria, animals, language, ....}
+%Prediction has been argued to permeat the behavior of organisms at all levels:
+%\textbf{TODO some more about biological systems, language, ...?}
 
 
 
@@ -186,11 +186,6 @@ Such processes are typically only available implicitly, through a finite sample 
 
 
 
-%regularization: from finite data, want low-complexity model
-%available data is finite, can only infer approximation to real dynamic
-%In many cases, all we have is sample observation trajectories.
-
-
 Optimal Causal Estimation (OCE, \citet{still-optimal-2010}) addresses the problem of estimating Predictive Rate Distortion from a finite sample of observation trajectories.
 It does so by constructing a matrix of observed frequencies of different pairs of past and future observations.
 However, this method faces a series of challenges~\citep{marzen-predictive-2016}.
@@ -199,7 +194,6 @@ Modeling long dependencies requires storing an exponential number of observation
 This exponential growth is particularly problematic when dealing with processes with a large state space.
 For instance, the number of words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
 A second challenge is that of overfitting:
-%As OCE relies on counts of full past and future observation sequences,
 When deploying a predictive model constructed via OCE on new data to predict upcoming observations, such a model can only succeed when the past sequences occurred in the sample that OCE was applied to.
 This is because OCE relies on counts of full past and future observation sequences; it has no means to generalize to unseen past sequences.
 
@@ -227,9 +221,6 @@ In Section~\ref{sec:language}, we apply NPRD to data from five languages, provid
 %For $q$, we choose the family of \emph{Neural Autoregressive Flows} \citep{}. 
 %This is a parametric family of distributions that allows efficient estimation of the probability density and its gradients.
 %This method widely generalizes a family of prior methods \citep{, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
-
-
-
 %TODO here is some more stuff:
 %There are several motivations for studying this predictive rate-distortion tradeoff.
 %One is that the shape of the tradeoff can provide insights into the structure of the process (TODO citations).
@@ -238,16 +229,10 @@ In Section~\ref{sec:language}, we apply NPRD to data from five languages, provid
 %Statistically modeling natural language, constructing models of the probability distribution over different sentences in a language, is often implemented as the problem of sequentially predicting the next word from the prior context.
 %There is a tradeoff between the computational cost of representing the prior context, and accurately modeling the conditional distribution over the next word.
 %Third, studying tis tradeoff may provide simpler but faithful models of processes (TODO citations).
-%
-%
-
-
-
 
 % Some other stuff to cite/consider in framing
 % - the Tim Genewein papers on bounded rationality -- predictive rate distortion is like the action of an boundedly rational predictor 
 % - Rubin, Shamir & Tishby (2010). Trading value and information in MDPs. Is predictive rate distortion the same as their model but with KL divergence as the value function?
-
 
 %In the modeling of stochastic processes, Predictive Rate-Distortion describes the tradeoff between the cost of encoding the past, and the benefit of predicting the future better.
 %It is formalized as the tradeoff between the mutual information of an encoding with the past and with the future of the process, an application of the Information Bottleneck to processes \citep{tishby-information-1999}.
@@ -269,11 +254,11 @@ The term \emph{rate} refers to the amount of past information being taken into a
 
 
 The problem of predictive rate-distortion has been formalized by a range of studies.
-A principled and general formalization is provided by applying the Information Bottleneck idea \citep{still-optimal-2010, marzen-predictive-2016}:
+A principled and general formalization is provided by applying the Information Bottleneck idea \citep{tishby-information-1999, still-optimal-2010, marzen-predictive-2016}:
 We will write $\overleftarrow{X}$ for the past $X_{\leq 0}$, and $\overrightarrow{X}$ for the future $X_{> 0}$, following \cite{marzen-predictive-2016}.
 We consider random variables $Z$, called \emph{codes}, that summarise the past and are used by the observer to predict the future.
 Formally, $Z$ needs to be independent pf the future $\overrightarrow{X}$ conditional on the past $\overleftarrow{X}$. Symbolically, 
-\begin{equation}
+\begin{equation}\label{eq:markov}
 	Z \bot \overrightarrow{X} | \overleftarrow{X}
 \end{equation}
 This is equivalent to the requirement that $Z - \overleftarrow{X} - \overrightarrow{X}$ be a Markov chain.
@@ -281,48 +266,51 @@ This formalizes the idea that the code is computed by an observer from the past,
 
 
 
-The \emph{rate} of the code $Z$ is the mutual information between $Z$ and the past: $I[Z, \overleftarrow{X}]$.
+The \emph{rate} of the code $Z$ is the mutual information between $Z$ and the past: $\operatorname{I}[Z, \overleftarrow{X}]$.
 By the Channel Coding Theorem, this describes the channel capacity that the observer requires in order to transform past observations into the code $Z$.
 
 The \emph{distortion} is the loss in predictive accuracy when predicting from $Z$, relative to optimal prediction from the full past $\overleftarrow{X}$.
 In the Information Bottleneck formalization, this
-%the distortion measure is computed based on the entropy:
-%\begin{equation}
-%H[\overrightarrow{X}|Z] - H[\overrightarrow{X}|\overleftarrow{X}]
-%\end{equation}
-%This
 is equivalent to the amount of mutual information between past and future that is not captured by $Z$:
 \begin{equation}
-	I[\overleftarrow{X}, \overrightarrow{X}|Z]
+	\operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z]
 \end{equation}
 Due to the Markov condition, the distortion measure satisfies the relation
 \begin{equation}
-	I[\overleftarrow{X}, \overrightarrow{X}|Z] = I[\overleftarrow{X}, \overrightarrow{X}] - I[\overrightarrow{X}, Z]
+	\operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z] = \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}] - \operatorname{I}[\overrightarrow{X}, Z]
 \end{equation}
-For a fixed process $(X_t)_t$, minimizing the distortion is equivalent to maximizing the mutual information between the code and the future $I[\overrightarrow{X}, Z]$. We will refer to $I[\overrightarrow{X}, Z]$ as the \emph{predictiveness} of the code $Z$.
+For a fixed process $(X_t)_t$, minimizing the distortion is equivalent to maximizing the mutual information between the code and the future $\operatorname{I}[\overrightarrow{X}, Z]$. We will refer to $\operatorname{I}[\overrightarrow{X}, Z]$ as the \emph{predictiveness} of the code $Z$.
 
 The rate-distortion tradeoff then chooses $Z$ to %minimize rate at bounded distortion:
-%$$\min_{Z : I[\overleftarrow{X}, \overrightarrow{X}|Z] \leq d} I[Z, \overleftarrow{X}]$$
+%$$\min_{Z : \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z] \leq d} \operatorname{I}[Z, \overleftarrow{X}]$$
 %, or -- equivalently --
  minimize distortion at bounded rate:
 \begin{equation}
-\min_{Z :  I[Z, \overleftarrow{X}] \leq d}  I[\overleftarrow{X}, \overrightarrow{X}|Z] 
+\min_{Z :  \operatorname{I}[Z, \overleftarrow{X}] \leq d}  \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z] 
 \end{equation}
 or -- equivalently -- maximize predictiveness at bounded rate:
 \begin{equation}
-\max_{Z :  I[Z, \overleftarrow{X}] \leq d}  I[Z, \overrightarrow{X}] 
+\max_{Z :  \operatorname{I}[Z, \overleftarrow{X}] \leq d}  \operatorname{I}[Z, \overrightarrow{X}] 
 \end{equation}
-Equivalently, for each  $\beta \geq 0$, we study the problem 
+Equivalently, for each  $\lambda \geq 0$, we study the problem 
 \begin{equation}\label{eq:ib}
-	\max_{Z} \left( I[\overrightarrow{X}, Z] - \beta \cdot I[Z, \overleftarrow{X}] \right)
+	\max_{Z} \left( \operatorname{I}[\overrightarrow{X}, Z] - \lambda \cdot \operatorname{I}[Z, \overleftarrow{X}] \right)
 \end{equation}
 where the scope of the maximization is the class of all random variables $Z$ such that $Z \rightarrow \overleftarrow{X} \rightarrow \overrightarrow{X}$ is a Markov chain. %, that is, $Z$ is independent of the future given the past.
 
 The objective (\ref{eq:ib}) is equivalent to the Information Bottleneck \citep{tishby-information-1999}, applied to the past and future of a stochastic process.
+The coefficient $\lambda$ indicates how strongly a high rate $\operatorname{I}[Z, \overleftarrow{X}]$ is penalized; higher values of $\lambda$ result in lower rates and thus lower values of predictiveness.
 
-When $\beta \geq 1$, then (\ref{eq:ib}) is always optimized by a trivial $Z$ with zero rate and zero predictiveness, which follows from the Data Processing Inequality.
-When $\beta = 0$, any lossless code optimizes the problem.
-Therefore, we will be concerned with the situation where $\beta \in (0,1)$.
+
+The largest achievable predictiveness $\operatorname{I}[\overrightarrow{X}, Z]$ is equal to $\operatorname{I}[\overrightarrow{X}, \overleftarrow{X}]$, which is known as the \emph{excess entropy} of the process~\citep{feldman-synchronizing-2004}.
+Due to the Markov condition~(\ref{eq:markov}) and the Data Processing Inequality, predictiveness of a code $Z$ is always upper-bounded by the rate:
+\begin{equation}
+\operatorname{I}[\overrightarrow{X}, Z] \leq \operatorname{I}[Z, \overleftarrow{X}] 
+\end{equation}
+As a consequence, when $\lambda \geq 1$, then (\ref{eq:ib}) is always optimized by a trivial $Z$ with zero rate and zero predictiveness.
+When $\lambda = 0$, any lossless code optimizes the problem.
+Therefore, we will be concerned with the situation where $\lambda \in (0,1)$.
+
 
 %
 %
@@ -332,15 +320,15 @@ Therefore, we will be concerned with the situation where $\beta \in (0,1)$.
 %There is a tradeoff between the complexity of $Z$ and the success of predicting the future:
 %More complex representations of the past can reduce future prediction error -- up to a certain limit given by the entropy rate of the process. %This limit corresponds to perfect modeling, and results in Crutchfield and colleagues' notion of complexity.
 %
-%The complexity of the representation $Z$, or the \emph{rate}, is formalized as the mutual information between the past and the representation $Z$: $I[Z, \overleftarrow{X}]$.
+%The complexity of the representation $Z$, or the \emph{rate}, is formalized as the mutual information between the past and the representation $Z$: $\operatorname{I}[Z, \overleftarrow{X}]$.
 %Different distortion measures could be used as measures of prediction error.
-%CITE maximize the entropy, or, equivalently, minimize the mutual information, between $Z$ and the future: $I[Z, \overleftarrow{X}]$.
+%CITE maximize the entropy, or, equivalently, minimize the mutual information, between $Z$ and the future: $\operatorname{I}[Z, \overleftarrow{X}]$.
 %
 %Thus, for any process $(X_t)$, we obtain a rate-distortion tradeoff curve.
 %The achievable region is populated by the random variables $Z$ such that $Z \rightarrow \left(\overleftarrow{X}\right) \rightarrow \left(\overrightarrow{X}\right)$ is a Markov chain.
 %The points on the tradeoff curve are obtained by solving, for each $\beta \in [0,1]$, the problem
 %\begin{equation}\label{eq:ib}
-%	\max_{Z} \left( I[\overrightarrow{X}, Z] - \beta \cdot I[Z, (\overleftarrow{X})] \right)
+%	\max_{Z} \left( \operatorname{I}[\overrightarrow{X}, Z] - \beta \cdot \operatorname{I}[Z, (\overleftarrow{X})] \right)
 %\end{equation}
 %where the scope of the maximization is the class of all random variables $Z$ such that $Z - \left(\overleftarrow{X}\right) - \left(\overrightarrow{X}\right)$ is a Markov chain, that is, $Z$ is independent of the future given the past.
 %This is exactly the Information Bottleneck \cite{tishby-information-1999}, applied to the past and future of a stochastic process.
@@ -360,7 +348,7 @@ Statistical complexity can be computed easiy if the $\epsilon$-machine is given,
 
 The problem of estimating statistical complexity, and the $\epsilon$-machine, is related to Predictive Rate-Distortion.
 \citet{marzen-predictive-2016} show that predictive rate-distortion is equivalent to the problem of compressing causal states, i.e. equivalence classes of pasts, to predict causal states of the backwards process, i.e., equivalence classes of futures.
-Further, \cite{still-optimal-2010} show that, in the limit of $\beta \rightarrow 0$, the code $Z$ that optimizes Predictive Rate-Distortion turns into the causal states.
+Further, \cite{still-optimal-2010} show that, in the limit of $\lambda \rightarrow 0$, the code $Z$ that optimizes Predictive Rate-Distortion turns into the causal states.
 
 %The most generally applicable method for estimating statistical complexity and predictive rate distortion from time series data is Optima Causal Estimation.
 
@@ -391,14 +379,14 @@ The main prior method for estimating predictive rate-distortion from data is Opt
 This method approximates predictive rate-distortion using two approximations:
 First, it replaces semi-infinite pasts and futures with bounded-length contexts $(X_{-M, -1}), (X_{0, M-1})$:
 \begin{equation}\label{eq:ib-oce}
-	\max_{Z} \left( I[X_{-M\dots -1}, Z] - \beta \cdot I[Z, X_{0\dots M-1}] \right)
+	\max_{Z} \left( \operatorname{I}[X_{-M\dots -1}, Z] - \lambda \cdot \operatorname{I}[Z, X_{0\dots M-1}] \right)
 \end{equation}
 Second, it estimates information measures directly from the observed counts of $(X_{-M, -1}), (X_{0, M-1})$ using the plug-in estimator of mutual information.
 With such an estimator, the problem in (\ref{eq:ib}) can be solved using a variant of the Blahut-Arimoto algorithm \citep{tishby-information-1999}, obtaining an encoder $P(Z|X_{-M...-1})$ that maps each observed past sequence $X_{-M...-1}$ to a distribution over a (finite) set of codes $Z$. From this, one obtains a corresponding decoder $P(X_{0...M}|Z)$ via Bayes' Rule.
 
 Two main challenges have been noted in prior work:
 First, solving the problem for a finite empirical sample leads to overfitting, overestimating the amount of structure in the process.
-\citet{still-optimal-2010} address this by subtracting an asymptotic correction term that becomes valid in the limit of large $M$ and $\beta \rightarrow 0$, when the codebook $P(Z|\overleftarrow{X})$ becomes deterministic, and which allows them to select a deterministic codebook of an appropriate complexity.
+\citet{still-optimal-2010} address this by subtracting an asymptotic correction term that becomes valid in the limit of large $M$ and $\lambda \rightarrow 0$, when the codebook $P(Z|\overleftarrow{X})$ becomes deterministic, and which allows them to select a deterministic codebook of an appropriate complexity.
 This leaves open how to obtain estimates outside of this regime, when the codebook can be far from deterministic.
 
 The second challenge is that OCE requires the construction of a matrix whose rows and columns are indexed by the observed past and future sequences \citep{marzen-predictive-2016}.
@@ -407,7 +395,7 @@ Drastically, in the case of natural language, $A$ contains thousands of words.
 We will see that this makes applying OCE infeasible even with $M=1$.
 
 A further challenge is that OCE is infeasible if the number of required codewords is too large, again because OCE requires constructing a matrix whose rows and columns are indexed by the codewords and observed sequences.
-Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $I[Z, \overleftarrow{X}] > log(10^5) \approx 11.5$ cannot be captured with OCE.
+Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $\operatorname{I}[Z, \overleftarrow{X}] > log(10^5) \approx 11.5$ cannot be captured with OCE.
 
 \section{Neural Estimation via Variational Upper Bound}\label{sec:nprd}
 
@@ -474,7 +462,7 @@ The KL Divergence between $P(Z|X)$ and $q(Z)$, averaged over $X$, upper-bounds t
 \begin{aligned}
 	\mathbb{E}_{X}\left[ \operatorname{D_{KL}}(\infdiv{P(Z|X)}{q(Z)})\right] &=   \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P_\phi(Z|X_{-M\dots -1})}{q(Z)}  \\
 	& \geq  \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P(Z|X_{-M\dots -1})}{P(Z)}  \\
-	& = I[X_{-M\dots 0},Z].
+	& = \operatorname{I}[X_{-M\dots 0},Z].
 \end{aligned}
 \end{equation}
 Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$.
@@ -482,7 +470,7 @@ Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) =
 
 Therefore, the predictive rate-distortion objective is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P(X_{0\dots M} | z)\right] + \beta \cdot \operatorname{D_{KL}}(\infdiv{\phi(X_{-M\dots-1})}{q})\right],
+	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P(X_{0\dots M} | z)\right] + \lambda \cdot \operatorname{D_{KL}}(\infdiv{\phi(X_{-M\dots-1})}{q})\right],
 \end{equation}
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
 To carry out this optimization, we will restrict to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
@@ -521,15 +509,17 @@ We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for
 During optimization, we approximate the gradient by taking a single sample from $z$ per sample trajectory and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
 
-Following standard practice in machine learning, we split the data into a training and a held-out set, using the training set for optimizing the parameters.
-After every pass through the training set, the objective is evaluated on the held-out set; optimization terminates once the value on the held-out set does not improve any more.
+Following standard practice in machine learning, we split the data into three partitions (\emph{training set}, \emph{validation set}, and \emph{test set}).
+We use the training set for optimizing the parameters.
+After every pass through the training set, the objective is evaluated on the validation set; optimization terminates once the value on the held-out set does not improve any more.
+After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
 
 
 \paragraph{Evaluating}
-After optimizing the parameters on a set of observed trajectories, we evaluate it on a held-out set of trajectories to estimate (\ref{eq:bound}).
+After optimizing the parameters on a set of observed trajectories, we evaluate it on the test set to estimate (\ref{eq:bound}).
 Given parameters for $\phi, \psi, q$, we evaluate the objective~(\ref{eq:bound}) on the dataset by taking, for each timeseries $X_{-M}...X_M$, a single sample of $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing
 \begin{equation}\label{eq:bound-mc}
-	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P(X_{0\dots M} | z_{-M...-1}) + \beta \cdot \log \frac{\mathcal{N}(\mu, \sigma^2)(z)}{q(z)}
+	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P(X_{0\dots M} | z_{-M...-1}) + \lambda \cdot \log \frac{\mathcal{N}(\mu, \sigma^2)(z)}{q(z)}
 \end{equation}
 When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
@@ -587,7 +577,7 @@ Given that NPRD provably provides upper bounds, one can identify the best hyperp
 
 As a computationally more efficient method, we defined a range of plausible hyperparameters based both on experience reported in the literature, and considerations of computational efficiency.
 These parameters are shown in Table~\ref{tab:nprd-hyperparameters}.
-We then randomly sampled, for each of the processes that we experimented on, combinations of $\beta$ and these hyperparameters to run NPRD on.
+We then randomly sampled, for each of the processes that we experimented on, combinations of $\lambda$ and these hyperparameters to run NPRD on.
 
 The first group of parameters are the dimensions of the input embedings, the recurrent LSTM states.
 The second group of parameters are regularization parameters.
@@ -596,6 +586,7 @@ The third group of parameters are related to the optimization procedure.
 We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
 We implemented the model using PyTorch \citep{paszke2017automatic}.
 Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow, the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow, and the number of layers in the flow.
+
 
 \begin{table}
 \begin{tabular}{l||lll}
@@ -609,8 +600,8 @@ Neural Autoregressive Flows, used to approximate the marginal $q$, also have a s
 	Batch Size & 16, 32, 64  &       &       32          \\ \hline
 	Flow Length & 1, 2  &       &          4              \\
 	Flow Type & DSF, DDSF  &       &       DSF, DDSF             \\
-	Flow Dimension & 32, 64, 128, 512  &       &    ???        \\
-	Flow Layers & 2  &       &                 ?????          \\
+	Flow Dimension & 32, 64, 128, 512  &       &    TODO        \\
+	Flow Layers & 2  &       &                 TODO         \\
 \end{tabular}
 	\caption{NPRD Hyperparameters}\label{tab:nprd-hyperparameters}
 \end{table}
@@ -627,8 +618,8 @@ The \emph{Random Insertion Process} \citep{marzen-predictive-2016} consists of s
 
 
 
-We applied NPRD to these processes by training on 3M random trajectories of length 30, and using 3000 additional trajectories as held-out data.
-For each process, we ran NPRD 1000 times for randomly choices of $\beta \in [0,1]$.
+We applied NPRD to these processes by training on 3M random trajectories of length 30, and using 3000 additional trajectories for validation and test data.
+For each process, we ran NPRD 1000 times for randomly choices of $\lambda \in [0,1]$.
 Due to computational constraints, when running OCE, we limited sample size to 3000 trajectories for estimation and as held-out data.
 Following \cite{marzen-predictive-2016}, we ran OCE for $M=1,...,5$.
 
@@ -652,19 +643,17 @@ The process has three caual states:
 A represents those pasts where the future starts with $1^{2k}0$ ($k = 0, 1, 2, \dots$) -- these are the pasts ending in either $001$ or $10111^m$ ($m= 0, 1, 2, \dots$). % but cannot go in with 10
 B represents those pasts ending in 10 -- the future has to start with 01 or 11.
 C represents those pasts ending in either 00 or 01 -- the future has to start with $1^{2k+1}0$ ($k = 0, 1, 2, \dots$).
-%These states represent the 
-%As itThis $\epsilon$-machine is the smallest unifilar
 
 The analytical solution to the predictive rate-distortion problem was computed by \cite{marzen-predictive-2016}.
-At $\beta > 0.5$, the optimal solution collapses $A$ and $B$ into a single codeword, while all three states are mapped to separate codewords for $\beta \leq 0.5$.
+At $\lambda > 0.5$, the optimal solution collapses $A$ and $B$ into a single codeword, while all three states are mapped to separate codewords for $\lambda \leq 0.5$.
 
 
 Does NPRD recover this picture?
-We applied PCA to samples from $Z$ computed at two different values of $\beta$, $\beta = 0.25$ and $\beta = 0.6$, corresponding to the two points marked in the rate-distortion figure.
+We applied PCA to samples from $Z$ computed at two different values of $\lambda$, $\lambda = 0.25$ and $\lambda = 0.6$, corresponding to the two points marked in the rate-distortion figure.
 The first two principal components are shown in Figure~\ref{fig:latent}.
 Samples are colored by the causal states corresponding to the pasts of the trajectories that were encoded into the respective points by NPRD.
-On the left, obtained at $\beta=0.6$, the states A and B are collapsed, as expected.
-On the right, obtained at $\beta=0.25$, the three causal states are reflected as distinct modes of $Z$.
+On the left, obtained at $\lambda=0.6$, the states A and B are collapsed, as expected.
+On the right, obtained at $\lambda=0.25$, the three causal states are reflected as distinct modes of $Z$.
 Note that, at finite $M$, a fraction of pasts is ambiguous between the green and blue causal states; these are colored in black and NPRD maps them into a region between the modes corresponding to these states.
 
 In Figure~\ref{fig:rip-machine}, we record, for each of the three modes to which cluster the distribution of the code $Z$ shifts when a symbol is appended.
@@ -676,7 +665,7 @@ The three causal states are represented by the three different modes of $Z$, and
 \begin{figure*}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_2.png}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3.png}
-	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\beta = 0.25$ and $\beta = 0.6$. Samples are colored according to the states in the $\epsilon$ machine. Black samples belong to sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C).}\label{fig:latent}
+	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.25$ and $\lambda = 0.6$. Samples are colored according to the states in the $\epsilon$ machine. Black samples belong to sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C).}\label{fig:latent}
 \end{figure*}
 % colors = [{"A" : "red", "B" : "green", "C" : "blue", "U" : "black"}[x] for x in states]
 
@@ -800,15 +789,12 @@ Without optimizations specific to the task at hand, a direct application of OCE 
 
 \section{Natural Language}\label{sec:language}
 
-\textbf{This is still TODO.}
-
 We consider the problem of estimating rate-distortion for Natural Language.
-
-
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
 Much interest has been devoted to estimating the entropy rate of natural language~\citep{shannon1951prediction,takahira2016entropy,bentz2017entropy,takahashi2018cross}.
 Indeed, the information density of language has been linked to human processing effort and to language structure.
-The word-by-word surprisal has been shown to be an accurate linear predictor of human processing effort as measured by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013}.
+The word-by-word information content has been shown to impact human processing effort as measured both by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013} and by neural EEG signals~\citep{DBLP:conf/acl/FrankOGV13, kuperberg2016we}.
+Consequently, prediction is a fundamental component across theories of human language processing  \citep{kuperberg2016we}.
 Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz, genzel2002entropy, jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
 The relevance of prediction to human language processing makes the \emph{difficulty} of prediction another interesting aspect of language complexity:
@@ -816,70 +802,47 @@ Predictive Rate Distortion describes how much memory of the past humans need to 
 Beyond the entropy rate, it thus forms another important aspect of linguistic complexity.
 
 
-Understanding the complexity of prediction in language holds promise to enabling a deeper understanding of the nature of language as a stochastic process (CITE Debowski).
-Recently, \cite{dkebowski2018natural} has studied statistical properties beyond the entropy rate, such as the excess entropy.
-\cite{koplenig2017statistical} shows a link between the information contained in word forms and word order and traditional linguistic notions of grammatical structure.
+Understanding the complexity of prediction in language holds promise to enabling a deeper understanding of the nature of language as a stochastic process, and to human language processing.
+Long-range correlations in text have been a subject of study for a while \citep{schenkel1993long,ebeling1994entropy,ebeling1995long,altmann2012origin,yang2016long,chen2018quantifying}.
+Recently, \cite{dkebowski2018natural} has studied the excess entropy of language across long-range discourses, aiming to better understand the nature of the stochastic processes underlying language.
+\cite{koplenig2017statistical} shows a link between traditional linguistic notions of grammatical structure and the information contained in word forms and word order.
+The idea that predicting future words creates a need to represent the past well also forms a cornerstone of theories of how humans process sentences \citep{gibson-linguistic-1998,futrell-noisy-context-2017}.
 
 
+%Human do prediction \cite{Bar:2007,Clark:2016}
+%There is the related question of how much memory is needed to predict.
+%This is captured by NPRD: human memory vs surprisal
+%In psycholinguistics, memory known to impact processing.
 
-TODO also cite physicists on long-range correlations in text
-
-The difficulty of prediction is another interesting aspect of language complexity:
-
-
-
-In Psycholinguistics, the idea of a tradeoff between representing the past well and predicting the future accurately appears in \cite{futrell-noisy-context-2017}. Also Prediction Cost~\cite{gibson-linguistic-1998}
-
-
-Human do prediction \cite{Bar:2007,Clark:2016}
-
-There is the related question of how much memory is needed to predict.
-
-This is captured by NPRD: human memory vs surprisal
-
-In psycholinguistics, memory known to impact processing.
-
-
-We study entirely within individual sentences.
-
-One motivation for this is because we are ultimately interested in PRD as a model of memory in human sentence processing, formalizing psycholinguistic models \citep{gibson-linguistic-1998,futrell-noisy-context-2017} and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
-Another motivation is that, when directly estimating PRD, computational cost has to increase with the length of sequences considered.
-We limit our computations to sequences of length 30, already improving over OCE by an order of magnitude.
-
-
-Our work is related to studies of long-range correlations in text (CITE).
-
-
-
-Long-range correlations in text have been a subject of study \citep{altmann2012origin,ebeling1995long,yang2016long,ebeling1994entropy,chen2018quantifying,schenkel1993long}
-
-
+We study prediction at the range of the words in individual sentences.
+As in the previous experiments, we limit our computations to sequences of length 30, already improving over OCE by an order of magnitude.
+One motivation is that, when directly estimating PRD, computational cost has to increase with the length of sequences considered, making the consideration of sequences of hundreds or thousands of words computationally infeasible.
+Another motivation for this is that we are ultimately interested in predictive rate distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models \citep{gibson-linguistic-1998,futrell-noisy-context-2017} and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
 
 %Fenk-Oczlon, G. Familiarity, information flow, and linguistic form. In Frequency and the Emergence of Linguistic Structure; Bybee, J.L., Hopper, P.J., Eds.; John Benjamins: Amsterdam, The Netherlands, 2001; pp. 431–448.
 
 
 
-\rljf{Some motivation for why this is cool and interesting, maybe in parallel with the Bentz et al entropy paper, and other information theoretic linguistic complexity papers like Koplenig et al, and Dembowski's work}
 
-\subsection{Part-of-speech-level language modeling}
+\subsection{Part-of-speech-level language modeling}\label{sec:pos}
 
 We first consider the problem of predicting English on the level of Part-of-Speech (POS) tags, using the Universal POS tagset \citep{petrov-universal-2012}. 
 This is a simplified setting where the vocabulary is small (20), and one can hope that OCE will produce reasonable results.
 We use the English portions of the Universal Dependencies Project~\citep{nivre-universal-2017} tagged with Universal POS Tags \citep{petrov-universal-2012}, consisting of approximately 586K words.
 We used the training portions to estimate NPRD and OCE, and the validation portions to estimate rate-distortion.
-We used NPRD to generate 350 codebooks for values of $\beta$ sampled from [0,0.4].
+We used NPRD to generate 350 codebooks for values of $\lambda$ sampled from [0,0.4].
 We were only able to run OCE for $M \leq 3$, as the number of sequences exceeds $10^4$ already at $M=4$.
 
 
 The information curve is shown in Figure~\ref{fig:eng-pos} (left).
-In the setting of low rate and high distortion, NPRD and OCE ($M=3$) show essentially identical results.
-This holds true until $I[Z, \overrightarrow{X}] \approx 0.7$, at which point the bounds provided by OCE deteriorate, showing the effects of overfitting.
+In the setting of low rate and high distortion, NPRD and OCE (blue, $M=1,2,3$) show essentially identical results.
+This holds true until $\operatorname{I}[Z, \overrightarrow{X}] \approx 0.7$, at which point the bounds provided by OCE deteriorate, showing the effects of overfitting.
 NPRD continues to provide estimates at greater rates.
 
-Figure~\ref{fig:eng-pos} (right) shows rate as a function of $\beta$.
-In Figure~\ref{fig:eng-logbeta}, we show rate and the mutual information with the future, as a function of $\log \frac{1}{\beta}$.
-Recall that $\beta$ is the tradeoff-parameter from the objective function~\ref{eq:ib}.
-As $\beta \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.
+Figure~\ref{fig:eng-pos} (center) shows rate as a function of $\log \frac{1}{\lambda}$.
+Recall that $\lambda$ is the tradeoff-parameter from the objective function~\ref{eq:ib}.
+In Figure~\ref{fig:eng-pos} (right), we show rate and the mutual information with the future, as a function of $\log \frac{1}{\lambda}$.
+As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.
 
 Note that NPRD reports rates of 15 nats and more when modeling with very low distortion.
 A discrete codebook would need over 3 million distinct codewords for a code of such a rate, exceeding the size of the training corpus (about 500K words), replicating what we found for the \textsc{Copy3} process:
@@ -893,7 +856,7 @@ Unlike discrete codebooks, the geometric structure makes it possible for neural 
 %\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee.pdf}
-	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \beta$. As $\beta \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.}\label{fig:eng-pos}
+	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \lambda$. As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.}\label{fig:eng-pos}
 \end{figure*}
 
 
@@ -909,22 +872,21 @@ At the highest rate measured by NPRD in our experiment, rate is about 20 nats, w
 If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. \rljf{Wow, is this true for any other natural processes?}
 Note that this picture agrees qualitatively with the OCE results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
 
-Now turning to the other plots in Figure~\ref{fig:eng-pos}, we observe that rate increases at least linearly with $\log\lambda$, whereas predictiveness again asymptotes.
+Now turning to the other plots in Figure~\ref{fig:eng-pos}, we observe that rate increases at least linearly with $\log\frac{1}{\lambda}$, whereas predictiveness again asymptotes.
 This is in qualitative agreement with the picture gained from the rate-predictiveness curve.
 
 
 Let us consider this more quantitatively.
-Based on Figure~\ref{fig:eng-pos} (center), we make the guess that the map from $\log\lambda$ to the rate $R$ is superlinear:
+Based on Figure~\ref{fig:eng-pos} (center), we make the ansatz that the map from $\log\frac{1}{\lambda}$ to the rate $R$ is superlinear:
 \rljf{Was there a change of variables between $\beta$ and $\lambda$ here?}
-\begin{equation}
-	R = \alpha (\log\lambda)^\beta
+\begin{equation}\label{eq:r-alpha-beta}
+	R = \alpha \left(\log\frac{1}{\lambda}\right)^\beta
 \end{equation}
 	with $\alpha>0, \beta>1$.
-We fitted $R \approx (\log\lambda)^{1.7}$.
-
+We fitted $R \approx \left(\log\frac{1}{\lambda}\right)^{1.7}$ ($\alpha=1$, $\beta=1.7$).
 Equivalently
 \begin{equation}
-\lambda = \exp\left(\frac{1}{\alpha^{1/\beta}} M^{1/\beta}\right)
+\frac{1}{\lambda} = \exp\left(\frac{1}{\alpha^{1/\beta}} M^{1/\beta}\right)
 \end{equation}
 From this, we can derive expressions for rate $R$ and predictiveness $P$ as follows.
 For the solution of Predictive Rate Distortion, we have
@@ -949,7 +911,7 @@ Qualitatively, this says that $P$ asymptotes to a finite value, whereas $R$ is u
 %\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-logbeta-mem-fitted.pdf}
 	\includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee-fitted.pdf}
-	\caption{Fitted values. \rljf{Definitely need a better label, also axis labels are too small to read}}\label{fig:eng-pos-fitted}
+	\caption{Interpolated values for POS-level prediction of English (compare Figure~\ref{fig:eng-pos})}\label{fig:eng-pos-fitted}
 \end{figure*}
 
 This yields
@@ -957,14 +919,14 @@ This yields
 	P = C - \alpha\beta \cdot \Gamma\left(\beta, (R/\alpha)^{1/\beta}\right)
 \end{equation}
 where $\Gamma$ is the incomplete Gamma function.
-Since $\lim_{R \rightarrow \infty} P = C$, we can identify the constant $C$ with the excess entropy $I[\overleftarrow{X}, \overrightarrow{X}]$ of the process.
+Since $\lim_{R \rightarrow \infty} P = C$, the constant $C$ has to equal the excess entropy $E_0 := \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}]$ of the process.
 
 As $M \rightarrow \infty$, this behaves as
 \begin{equation}
 	P \approx E_0 - \alpha\beta \cdot (R/\alpha)^{\frac{\beta-1}{\beta}} e^{-(R/\alpha)^{1/\beta}}
 \end{equation}
 which asymptotes to $E_0$.
-We found that $\beta = 1.7$, $E_0 = 1.13$ yielded a good fit.
+Given the values fitted above ($\alpha=1$, $\beta=1.7$), we found that $E_0 = 1.13$ yielded a good fit.
 This can be extended without further parameters to the third curve in Figure~\ref{fig:eng-pos}.
 Resulting fits are shown in Figure~\ref{fig:eng-pos-fitted}.
 %$E = E_0 - \Gamma(1.6, (\log\beta))$
@@ -976,20 +938,20 @@ We will describe a proposal:
 Let us assume that the causal states of natural language are the singletons $\overleftarrow{X}$, that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
 Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ achieves predictiveness \rljf{Write out what the min is doing logically: when $t$ exceeds $T$ we multiply only by $T$ (I'm not sure why). Also maybe subscript $P_T$}
 \begin{equation}
-	P =	I[X_{-T...-1}, \overrightarrow{X}]
+	P =	\operatorname{I}[X_{-T...-1}, \overrightarrow{X}]
 \end{equation}
-By writing $I_t := I[X_0, X_t | X_1 ... X_{t-1}]$, and repeatedly applying the chain rule of conditional mutual infomation, we obtain
+By writing $I_t := \operatorname{I}[X_0, X_t | X_1 ... X_{t-1}]$, and repeatedly applying the chain rule of conditional mutual infomation, we obtain
 \begin{equation}
-	P = \sum_{t_- = -T}^{-1} \sum_{t_+ = 0}^\infty I[X_{t_+},X_{t_-}|X_{t_-+1}\dots X_{t_+-1}] = \sum_{t_- = -T}^{-1} \sum_{t_+ = 0}^\infty I_{t_+-t_-}  = \sum_{t=1}^\infty \min(t,T) I_t = E_0 - \sum_{t > T} (t-T) I_t
+	P = \sum_{t_- = -T}^{-1} \sum_{t_+ = 0}^\infty \operatorname{I}[X_{t_+},X_{t_-}|X_{t_-+1}\dots X_{t_+-1}] = \sum_{t_- = -T}^{-1} \sum_{t_+ = 0}^\infty I_{t_+-t_-}  = \sum_{t=1}^\infty \min(t,T) I_t = E_0 - \sum_{t > T} (t-T) I_t
 \end{equation}
 where $E_0$ is again the excess entropy.
 Again, this asymptotes to the excess entropy, but---as long as $I_t > 0$ for arbitarily large $t$---never achieves predictiveness $E_0$ at finite $T$.
 The code has rate
 \begin{equation}
-	R =	H[X_{-T...-1}]
+	R =	\operatorname{H}[X_{-T...-1}]
 \end{equation}
 which is lower bounded by $T$ times the entropy rate: $R \approx T \cdot \operatorname{H}[X_0|\overleftarrow{X}]$, and thus is unbounded (if the entropy rate is nonzero).
-TODO \rljf{A few cites on previous work arguing about whether natural language has nonzero entropy rate. A conference paper by Ryosuke Takahira has a lit review}
+%TODO \rljf{A few cites on previous work arguing about whether natural language has nonzero entropy rate. A conference paper by Ryosuke Takahira has a lit review}
 
 Approximating $t$ as a continuous variable, we can write
 \begin{equation}
@@ -1018,18 +980,53 @@ I_t \propto T^{1/\beta-1}	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\op
 \subsection{Word-level language modeling}
 
 
-We have applied NPRD to POS-level modeling.
-More realistic: words
-Finally, we consider word-level modeling for .
-For Engish, we turn to the Wall Street Journal portion of the Penn Treebank \citep{marcus-building-1993}, a standard benchmark for language modeling, containing TODO tokens.
-For Russian and Arabic, we use the respective portions of the Universal Dependencies treebanks~\citep{nivre-universal-2016}, containing TODO tokens.
-For Chinese, we use the Chinese Dependency Treebank~\cite{che2012chinese}, containing TODO tokens.
-For Japanese, we use the first 2 Million words from a large processed corpus of Japanese business text~\cite{graff1995japanese}.
+We have applied NPRD to the problem of predicting English on the level of parts of speech in Section~\ref{sec:pos}.
+%We verified that NPRD matches OCE in the low-rate regime where OCE is still applicable, and we fitted 
+We found that the resulting curves were described well by Equation~\ref{eq:derivatives}.
+%\begin{equation}\label{eq:derivatives}
+%	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
+%\end{equation}
+We now consider the more realistic problem of prediction at the level of words, using data from multiple languages.
+This problem is much closer to the task faced by a human in the process of comprehending text, having to encode prior observations so as to minimize surprisal on the upcoming words.
+We will examine whether Equation~\ref{eq:derivatives} describes the resulting tradeoff in this more realistic setting, and whether it holds across languages.
 
-Our setup is based on the standard setup for neural language modeling.
-We only consider the most frequent 10,000 words, and replace other words by an out-of-vocabulary (OOV) token (CITE).
+For the setup, we followed standard setup for recurrent neural language modeling.
+The hyperparameters are shown in Table~\ref{tab:nprd-hyperparameters}.
+Following standard practice in neural language modeling, we restrict the observation space to the most frequent $10^4$ words; other words are replaced by their part-of-speech tag.
+We do this for simplicity and to stay close to standard practice in natural language processing; NPRD could deal with unbounded state spaces through a range of more sophisticated techniques such as subword modeling and character-level prediction~\citep{kim2016character, luong2016achieving}.
 
 
+We used data from five diverse languages.
+For English, we turn to the Wall Street Journal portion of the Penn Treebank \citep{marcus-building-1993}, a standard benchmark for language modeling, containing about 1,2 Million tokens.
+For Arabic, we pooled all relevant portions of the Universal Dependencies treebanks~\citep{nivre-universal-2016,maamouri2004penn, hajic2004prague}. We obtained 1 Million tokens.
+We applied the same method to construct a Russian corpus~\citep{syntagrus}, obtaining 1,2 Million tokens.
+For Chinese, we use the Chinese Dependency Treebank~\citep{che2012chinese}, containing 0.9 Million tokens.
+For Japanese, we use the first 2 Million words from a large processed corpus of Japanese business text~\citep{graff1995japanese}.
+For all these languages, we used the predefined splits into training, validation, and test sets.
+
+For each language, we sampled about 120 values of $\log \lambda$ from $[-6, 0]$ and applied NPRD to these.
+The resulting curves are shown in Figures~\ref{fig:wordlevel-fit-1}-\ref{fig:wordlevel-fit-2}, together with fitted curves resulting from Equation~\ref{eq:derivatives}.
+As can be seen, the curves are qualitatively very similar across languages:
+In all languages, rate initially scales linearly with predictiveness, but diverges as the predictiveness approaches its supremum $E_0$.
+As a function of $\log \frac{1}{\lambda}$, rate grows at slightly superlinear speed, confirming our ansatz (\ref{eq:r-alpha-beta}).
+
+These results confirm our results from Section~\ref{sec:pos}:
+NPRD reports rates up to $\approx$ 60 nats, more than ten times the largest values of predictiveness.
+On the other hand, the growth of rate with predictiveness is relatively gentle in the low-rate regime.
+At the level of individual sentences, prediction can be approximated with small memory capacity, but more accurate prediction requires very fine-grained memory representations.
+
+%
+%\begin{table}
+%	\begin{tabular}{lllllll}
+%		& $\alpha$ & $\beta$ & $E_0$ \\
+%		English         & \\
+%		Russian & \\
+%		Arabic & \\
+%		Japanese & 
+%		CHinese & \\
+%	\end{tabular}
+%
+%\end{table}
 
 %
 %\begin{figure*}
@@ -1108,46 +1105,51 @@ We only consider the most frequent 10,000 words, and replace other words by an o
 %
 
 
+
 \begin{figure*}
 	\begin{center}
-	English
+		English {\tiny{($\alpha=2.0$, $\beta=1.9$, $E_0=3.5$)}}
+
 
 \includegraphics[width=0.3\textwidth]{code/figures/en-words-info-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/en-words-nlogbeta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/en-words-nlogbeta-ee-fitted.pdf}
 
-Russian
+		Russian {\tiny ($\alpha=0.5$, $\beta=2.3$, $E_0=1.7$)}
+
 
 	\includegraphics[width=0.3\textwidth]{code/figures/ru-words-info-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/ru-words-nlogbeta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/ru-words-nlogbeta-ee-fitted.pdf}
 
-		Arabic
+		Arabic {\tiny ($\alpha=1.5$, $\beta=2.0$, $E_0=2.9$)}
 
 		\includegraphics[width=0.3\textwidth]{code/figures/ar-words-info-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/ar-words-nlogbeta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/ar-words-nlogbeta-ee-fitted.pdf}
 	\end{center}
-	\caption{Word-level results.}\label{fig:ar-logbeta-fit}
+	\caption{Word-level results.}\label{fig:wordlevel-fit-1}
 \end{figure*}
 
 
 
 \begin{figure*}
 	\begin{center}
-	Japanese
+		Japanese {\tiny ($\alpha=2.0$, $\beta=2.0$, $E_0=4.5$)}
+
 
 \includegraphics[width=0.3\textwidth]{code/figures/LDC95T8-words-info-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/LDC95T8-words-nlogbeta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/LDC95T8-words-nlogbeta-ee-fitted.pdf}
 
-		Chinese
+		Chinese {\tiny ($\alpha=1.0$, $\beta=2.3$, $E_0=3.1$)}
+
 
 		\includegraphics[width=0.3\textwidth]{code/figures/LDC2012T05-words-info-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/LDC2012T05-words-nlogbeta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/LDC2012T05-words-nlogbeta-ee-fitted.pdf}
 	\end{center}
-	\caption{Word-level results (cont.).}\label{fig:LDC2012T05-logbeta-fit}
+	\caption{Word-level results (cont.).}\label{fig:wordlevel-fit-2}
 \end{figure*}
 
 
@@ -1236,7 +1238,7 @@ There are many measures $\mu$ that satisfy both constraints, e.g. $\mu(x) \propt
 \begin{proof}
 We first show that the process has finite excess entropy:
 \begin{align*}
-I[X_{<0}, X_{>0}] &= \sum_{t=1}^\infty t I[X_t, X_0|X_1\dots X_{t-1}] \\
+\operatorname{I}[X_{<0}, X_{>0}] &= \sum_{t=1}^\infty t \operatorname{I}[X_t, X_0|X_1\dots X_{t-1}] \\
 & \leq \sum_{t=1}^\infty t \operatorname{\mu}(\{k : k \geq t\}) \\
 &= \sum_{t=1}^\infty \frac{t(t-1)}{2} \operatorname{\mu}(\{t\}) \\
 &= \frac{1}{2} \E_{k \sim \mu} \left[k^2-k\right]
@@ -1287,11 +1289,11 @@ Thus, the elements of $\mathcal{X}$ yield different distributions over future ob
 Indeed, we have shown that the prefixes $x_{1\dots t_i}$ ($i \in \mathbb{N}$), for $x_{1,2,...} \in \mathcal{X}$, represent disjoint sets of causal sets.
 For all integers $i$ and any sequence $X_1^\infty \in \mathcal{X}$, the block $x_{1...t_i}$ has log-probability at least $t_i \log \frac{\mu(0)}{2} = \Theta(t_i)$.
 Thus
-$$H[X_1...X_{t_i} | X \in \mathcal{X}] \geq  t_i \log \frac{\mu(0)}{2} = \Theta(t_i)$$
+$$\operatorname{H}[X_1...X_{t_i} | X \in \mathcal{X}] \geq  t_i \log \frac{\mu(0)}{2} = \Theta(t_i)$$
 In conclusion, the statistical complexity is infinite.
 
 
-%For any positive integer $T$ and any string $x_1...x_T \in \{0,1\}^T$, we have $\log P(X_1...X_T=x_1...x_T) \geq T \log\frac{\mu(\{0\})}{2}$, showing that $$H[X_1...X_T] \geq T \log\frac{\mu(\{0\})}{2} \rightarrow_{T \rightarrow\infty}\infty$$
+%For any positive integer $T$ and any string $x_1...x_T \in \{0,1\}^T$, we have $\log P(X_1...X_T=x_1...x_T) \geq T \log\frac{\mu(\{0\})}{2}$, showing that $$\operatorname{H}[X_1...X_T] \geq T \log\frac{\mu(\{0\})}{2} \rightarrow_{T \rightarrow\infty}\infty$$
 
 \end{proof}
 
@@ -1307,27 +1309,27 @@ The rate of this code is $\Theta(T)$ (since $\mu(0) > 0$).
 (This code might not be optimal.)
 
 
-Its distortion is $I[X_{\leq 0}, X_{>T}|X_{1\dots T}]$.
+Its distortion is $\operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}]$.
 This is upper-bounded by the probability that any future $K$ would reach back to a bit earlier than the last $T$ bits.\footnote{
 \begin{align*}
-I[X_{\leq 0}, X_{>T}|X_{1\dots T}] & = \sum_{t=T}^\infty (t-T) I[X_t, X_0|X_1\dots X_{t-1}] \\
+\operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] & = \sum_{t=T}^\infty (t-T) \operatorname{I}[X_t, X_0|X_1\dots X_{t-1}] \\
 & \leq \sum_{t=T}^\infty (t-T) \operatorname{\mu}(\{k : k \geq t\}) \\
 & = \sum_{t=1}^\infty t \operatorname{\mu}(\{k : k \geq t+T\}) \\
 &= \sum_{t=1}^\infty \frac{t(t-1)}{2} \operatorname{\mu}(\{t+T\}) \\
 &= \sum_{t=T}^\infty \frac{(t-T)(t-1-T)}{2} \operatorname{\mu}(\{t\}) \\
 &= 1/2 \cdot \E[(k-T)_+^2-(k-T)_+]
 \end{align*}}
-and a lower bound can similarly be derived. \footnote{$I[X_t, X_0|X_1\dots X_{t-1}]$ is at least the probability that the block did not copy from $X_0$, but $X_t$ does.
+and a lower bound can similarly be derived. \footnote{$\operatorname{I}[X_t, X_0|X_1\dots X_{t-1}]$ is at least the probability that the block did not copy from $X_0$, but $X_t$ does.
 This is $(1-\mu(1))\dots(1-\mu(t-1))\mu(t)$. So we get
 \begin{align*}
-I[X_{\leq 0}, X_{>T}|X_{1\dots T}] & = \sum_{t=T}^\infty (t-T) I[X_t, X_0|X_1\dots X_{t-1}] \\
+\operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] & = \sum_{t=T}^\infty (t-T) \operatorname{I}[X_t, X_0|X_1\dots X_{t-1}] \\
 & \geq \sum_{t=T}^\infty (t-T) (1-\mu(1))\dots(1-\mu(t-1))\mu(t) \\
 & \geq \left(\sum_{t=T}^\infty (t-T)\mu(t) \right) \left( \prod_{j=1}^\infty (1-\mu(j))\right) \\
 & = \E \left[(t-T)_+ \right] \left( \prod_{j=1}^\infty (1-\mu(j))\right) \\
 \end{align*}}
 We get that the distortion of the code $Z_T$ is bounded as 
 \begin{equation}
-\E \left[(t-T)_+ \right] \left( \prod_{j=1}^\infty (1-\mu(j))\right) \leq I[X_{\leq 0}, X_{>T}|X_{1\dots T}] \leq 1/2 \cdot \E[(k-T)_+^2-(k-T)_+]
+\E \left[(t-T)_+ \right] \left( \prod_{j=1}^\infty (1-\mu(j))\right) \leq \operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] \leq 1/2 \cdot \E[(k-T)_+^2-(k-T)_+]
 \end{equation}
 
 If $\mu(k) = q^{k} \cdot (1-q)$ (which is a probability distribution over $\mathbb{N}$ for $q < 1$), we have(TODO probably there are algebra errors here)\footnote{$\E \left[(t-T)_+ \right] = \E[k] \mu(k\geq T)$
@@ -1335,11 +1337,11 @@ $\E \left[(t-T)_+^2 \right] = \E[k^2] \mu(k\geq T) = \frac{q+q^2}{(1-q)^2} T q^T
 $\mu(k\geq T) = T q^T (1-q)$
 . where $\phi(q)$ is the Euler function, equal to the Pochhammer symbol $(q;q)_\infty$.}
 \begin{equation}
-T \frac{q^{T+1}}{1-q}  \phi(q) (1-q) \leq I[X_{\leq 0}, X_{>T}|X_{1\dots T}] \leq 1/2 \cdot (\frac{q+q^2}{(1-q)^2} T q^T (1-q) - T \frac{q^{T+1}}{1-q} )
+T \frac{q^{T+1}}{1-q}  \phi(q) (1-q) \leq \operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] \leq 1/2 \cdot (\frac{q+q^2}{(1-q)^2} T q^T (1-q) - T \frac{q^{T+1}}{1-q} )
 \end{equation}
 and thus
 \begin{equation}
-I[X_{\leq 0}, X_{>T}|X_{1\dots T}] = \Theta(T q^T)
+\operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] = \Theta(T q^T)
 \end{equation}
 In conclusion, we find that $R = \Theta(T)$, $P = \Theta(C-T q^T)$.
 
@@ -1347,11 +1349,11 @@ Now look at $\mu(k) \sim k^{-t}$ where $t > 3$.
 We will take $t$ as a constant here, considering only $T$ as varying.
 The infinite product is a (nonzero) constant $C(t)$.
 \begin{equation}
-\Theta(T^{-t+2} + T^{-t+1}) \leq I[X_{\leq 0}, X_{>T}|X_{1\dots T}] \leq \Theta(T^{-t+3} + T^{-t+2})
+\Theta(T^{-t+2} + T^{-t+1}) \leq \operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] \leq \Theta(T^{-t+3} + T^{-t+2})
 \end{equation}
 and thus
 \begin{equation}
-I[X_{\leq 0}, X_{>T}|X_{1\dots T}] = \Theta(T^{-t+2})
+\operatorname{I}[X_{\leq 0}, X_{>T}|X_{1\dots T}] = \Theta(T^{-t+2})
 \end{equation}
 We find that $D = \Theta(R^{-t+1})$, and $\frac{\partial P}{\partial R} = \Theta( R^{-t})$.
 
@@ -1388,15 +1390,15 @@ These processes, however, have zero crypticity, so their PRD curves are straight
 Here we want to show that, even for processes with infinite statistical complexity, the PRD curve provides meaningful quantification of the difficulty of prediction.
 
 \begin{proposition}
-Let $(X_t)_t$ be a process such that the entropy $H[X_t]$ is finite (e.g., if the state space is finite).
+Let $(X_t)_t$ be a process such that the entropy $\operatorname{H}[X_t]$ is finite (e.g., if the state space is finite).
 
 Then the PRD curve, as a function of Predictiveness, is finite on the interval from 0 to (possibly excluding) the excess entropy.
 \end{proposition}
 
 \begin{proof}
-An upper bound on the curve is given by the (convex hull) of the pairs of $$\{(H[X_1...X_t], I[(X_1...X_t), X_{>t}]) : t \in \mathbb{N}\}$$
+An upper bound on the curve is given by the (convex hull) of the pairs of $$\{(\operatorname{H}[X_1...X_t], \operatorname{I}[(X_1...X_t), X_{>t}]) : t \in \mathbb{N}\}$$
 all which are finite under the assumption. 
-Also, $$EE = \sup_{t \in \mathbb{N}} I[(X_1...X_t), X_{>t}]$$
+Also, $$EE = \sup_{t \in \mathbb{N}} \operatorname{I}[(X_1...X_t), X_{>t}]$$
 So for all values of predictiveness that are strictly below the EE, the corresponding rate has a finite bound.
 \end{proof}
 
@@ -1410,7 +1412,7 @@ Unlike statistical complexity, the PRD curve will not differ much between proces
 %	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ (distributed according to $P$) in KL Divergence in the following sense: For all $M \in \mathbb{N}$,
 %	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1\dots X_{M}|X_{-\infty}...X_0)}{Q(X_1\dots X_{M}|X_{-\infty}...X_0)}\right] < \epsilon$$
 %%	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1|X_{-\infty}...X_0)}{Q(X_1|X_{-\infty}...X_0)}\right] < \epsilon$$
-	%$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon H[S_0]$.
+	%$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
 %	Then the predictive rate-distortion curve of $(Y_t)_t$ is, up to $\epsilon$, a (pessimistic) upper bound on the curve of $(X_t)_t$.
 %\end{proposition}
 
@@ -1467,7 +1469,7 @@ When applied to pasts sampled from $(X_t)_t$, it results in rate
 \begin{align*}
 \sum_{x_{-M...-1}} P_X(x_{-M...-1}) \sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_X(z)} \leq \sum_{x_{-M...-1}} P_X(x_{-M...-1}) \sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}
 \end{align*}
-We always know that $- \left(\sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}\right) \leq \frac{I[Z,X]}{\exp(-K)} \leq \log |S| \cdot M \cdot \exp(K)$.
+We always know that $- \left(\sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}\right) \leq \frac{\operatorname{I}[Z,X]}{\exp(-K)} \leq \log |S| \cdot M \cdot \exp(K)$.
 Therefore
 \begin{align*}
 \left|\sum_{x_{-M...-1}} (P_X(x_{-M...-1}) - P_Y(x_{-M...-1})) \sum_z p(z|x_{-M...-1}) \log \frac{p(z|x_{-M...-1})}{p_Y(z)}\right| \leq \epsilon \cdot \log |S| \cdot M \cdot \exp(K)
@@ -1483,7 +1485,7 @@ A similar argument holds for predictiveness.
 
 %$$\leq \E_X \log Q_Y(Z) - \E_Y \log Q_Y(Z) $$
 
-%Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
+%Storing $S'_0$ and predicting the future on its basis results in $\epsilon \operatorname{H}[S_0]$ additional loss in the future.
 \end{proof}
 
 
@@ -1541,9 +1543,9 @@ The PRD curves don't converge.
 %	Fix $\epsilon_1, \epsilon_2 > 0$ and $M \in \mathbb{N}$.
 %	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ (distributed according to $P$) in KL Divergence in the following sense:
 %	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1\dots X_{M}|X_{-\infty}...X_0)}{Q(X_1\dots X_{M}|X_{-\infty}...X_0)}\right] < \epsilon_1$$
-%	Further, assume $I[X_{>M}, X_{<0}|X_{1...M}] < \epsilon_2$.
+%	Further, assume $\operatorname{I}[X_{>M}, X_{<0}|X_{1...M}] < \epsilon_2$.
 %	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1|X_{-\infty}...X_0)}{Q(X_1|X_{-\infty}...X_0)}\right] < \epsilon$$
-	%$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon H[S_0]$.
+	%$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
 %	Then the predictive rate-distortion curve of $(Y_t)_t$ is, up to $\epsilon_1 + \epsilon_2$, a (pessimistic) upper bound on the curve of $(X_t)_t$:
 %	For a given level of rate, the achieved predictivity of $(X_t)_t$ at this rate is at least the predictivity of $(Y_t)_t$ at this rate minus $\epsilon_1+\epsilon_2$.
 	
@@ -1616,24 +1618,24 @@ TODO that's not actually totally clear to me
 %%For instance, for the states $S_0$ of the full $\epsilon$ machine, one could substitute the states of 
 %
 %
-%$K_M := H[S_0|X_{-M\dots 0}]$ is an upper bound on the statistical complexity
+%$K_M := \operatorname{H}[S_0|X_{-M\dots 0}]$ is an upper bound on the statistical complexity
 %
-%$K_M := I[S_0, X_{-M\dots 0}]$ is a lower bound on the statistical complexity
+%$K_M := \operatorname{I}[S_0, X_{-M\dots 0}]$ is a lower bound on the statistical complexity
 %
 %the statistical complexity of the $2M$-order Markov approximation is a lower bound on the statistical complexity
 %
-%If $I[S_0, X_{\leq 0}] - K_M \epsilon$, then predictive rate-distortion estimated with trajectories of length $M$ will be close to tight.
+%If $\operatorname{I}[S_0, X_{\leq 0}] - K_M \epsilon$, then predictive rate-distortion estimated with trajectories of length $M$ will be close to tight.
 %
 %In general, if $X_{-T...0}$ leads to low distortion, this does not mean that 
 %
 %(can always also get a lower bound)
 %
 %%The rate-distortion tradeoff curve is uniformly $\epsilon$-close at length $T$ if and only if the statistical complexity of the $T$-order Markov approximation is $\epsilon$-close to the full statistical complexity for predicting the next $M$ words.
-%%$$\inf_{Z \rightarrow X_{-M...0} \rightarrow X_{1...M} : I[Z, X_{1...M}] = H[Z]} H[Z]$$
-%%$$\inf_{Z \rightarrow X_{-\infty...0} \rightarrow X_{1...M} : I[Z, X_{1...M}] = H[Z]} H[Z]$$
+%%$$\inf_{Z \rightarrow X_{-M...0} \rightarrow X_{1...M} : \operatorname{I}[Z, X_{1...M}] = \operatorname{H}[Z]} \operatorname{H}[Z]$$
+%%$$\inf_{Z \rightarrow X_{-\infty...0} \rightarrow X_{1...M} : \operatorname{I}[Z, X_{1...M}] = \operatorname{H}[Z]} \operatorname{H}[Z]$$
 %
 %or 
-%$K_M := I[S_0, X_{-M\dots 0}]$
+%$K_M := \operatorname{I}[S_0, X_{-M\dots 0}]$
 %
 %
 %
@@ -1645,8 +1647,8 @@ TODO that's not actually totally clear to me
 
 %\section{Discussion}
 %
-%In (\ref{eq:bound}), we upper-bounded $I[Z, (X_{-T\dots -1})]$ using $D_{KL}(N(\mu, \sigma^2) || q)$.
-%There are other ways of approximating $I[Z, (X_{-T\dots -1})]$ that (for fixed $Z$) give a lower bound instead of an upper bound.
+%In (\ref{eq:bound}), we upper-bounded $\operatorname{I}[Z, (X_{-T\dots -1})]$ using $D_{KL}(N(\mu, \sigma^2) || q)$.
+%There are other ways of approximating $\operatorname{I}[Z, (X_{-T\dots -1})]$ that (for fixed $Z$) give a lower bound instead of an upper bound.
 %As a result, the solutions will not be guaranteed to be an upper or lower bound on the theoretical solutions of the actual problem (\ref{eq:ib}), but the approximation may be tighter.
 %
 %-adversarial (by reconstructing past)
@@ -1699,11 +1701,11 @@ Assume that
 	\begin{enumerate}
 		\item The probability mass of sequences $X_{-M\dots 1}$ from which $S_0$ can be uniquely identified is at least $1-\epsilon$. More formally,
 	$$ P\left(\{X_{-M\dots 1} : \#\{S_0 : P(S_0|X_{-M\dots 1}) > 0\}\}\right) \geq 1-\epsilon  $$
-\item	$\frac{I[S_0, X_{M+1...\infty}|X_{1...M}]}{H[S_0]} < \epsilon$
+\item	$\frac{\operatorname{I}[S_0, X_{M+1...\infty}|X_{1...M}]}{\operatorname{H}[S_0]} < \epsilon$
 	\end{enumerate}
-%Assume that the epsilon machine has $\epsilon/2$-mixing time $< M$ (in the sense that $I[S_0, S_M] < \epsilon/2$), 
-	Then the predictive rate-distortion curve of the $2M$-order Markov approximation is $3\epsilon H[S_0]$-close to the curve of $(X_t)_t$.
-	%Assume that $H[S_0|X_{-M\dots 1}] < \epsilon/2$ and that
+%Assume that the epsilon machine has $\epsilon/2$-mixing time $< M$ (in the sense that $\operatorname{I}[S_0, S_M] < \epsilon/2$), 
+	Then the predictive rate-distortion curve of the $2M$-order Markov approximation is $3\epsilon \operatorname{H}[S_0]$-close to the curve of $(X_t)_t$.
+	%Assume that $\operatorname{H}[S_0|X_{-M\dots 1}] < \epsilon/2$ and that
 \end{proposition}
 
 \begin{proof}
@@ -1711,10 +1713,10 @@ Assume that
 Let $Z$ be $S'_0$ if $S_0$ is identifiable and some uniformly random state otherwise.
 	Then
 	\begin{equation}
-		I[S'_0, \overleftarrow{X}] - \epsilon H[S'_0]\leq	I[Z, X_{-M, ..., 0}] \leq I[S'_0, \overleftarrow{X}]
+		\operatorname{I}[S'_0, \overleftarrow{X}] - \epsilon \operatorname{H}[S'_0]\leq	\operatorname{I}[Z, X_{-M, ..., 0}] \leq \operatorname{I}[S'_0, \overleftarrow{X}]
 	\end{equation}
 	\begin{equation}
-		I[S'_0,\overrightarrow{X}] \geq 	I[Z, X_{1...M}] \geq I[S'_0, X_{1...M}] - \epsilon H[S'_0] \geq I[S'_0, \overrightarrow{X}] - I[S'_0, X_{M+1...\infty}|X_{1...M}] - \epsilon H[S'_0] \geq I[S'_0, \overrightarrow{X}] _ 2\epsilon H[S'_0]
+		\operatorname{I}[S'_0,\overrightarrow{X}] \geq 	\operatorname{I}[Z, X_{1...M}] \geq \operatorname{I}[S'_0, X_{1...M}] - \epsilon \operatorname{H}[S'_0] \geq \operatorname{I}[S'_0, \overrightarrow{X}] - \operatorname{I}[S'_0, X_{M+1...\infty}|X_{1...M}] - \epsilon \operatorname{H}[S'_0] \geq \operatorname{I}[S'_0, \overrightarrow{X}] _ 2\epsilon \operatorname{H}[S'_0]
 	\end{equation}
 \end{proof}
 
@@ -1724,13 +1726,13 @@ Unlike statistical complexity, the tradeoff will not differ much between process
 	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
 	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ in KL Divergence in the following sense:
 	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon$$
-%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon H[S_0]$.
+%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
 	Then the predictive rate-distortion curve of $(X_t)_t$ is, up to $\epsilon$, a (pessimistic) bound on the curve of $(Y_t)_t$.
 
 \end{proposition}
 
 \begin{proof}
-Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
+Storing $S'_0$ and predicting the future on its basis results in $\epsilon \operatorname{H}[S_0]$ additional loss in the future.
 \end{proof}
 
 In particular, if we can find a process $Y_t$ for which the conditions in the proposition above hold, and which is close to $X_t$ in both directions of the KL Divergence, then we can guarantee good approximation to the predictive rate-distortion curve of $X_t$.
@@ -1738,14 +1740,14 @@ In particular, if we can find a process $Y_t$ for which the conditions in the pr
 %\begin{proposition}
 %	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
 %	Let $(Y_t)_t$ be a process satisfying the conditions of the previous proposition, distributed according to $Q$, and assume that
-%	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon H[S_0]$$
-%%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon H[S_0]$.
-%	Then the predictive rate-distortion curve of the $2M$-order Markov approximation of $(Y_t)_t$ is $5\epsilon H[S_0]$-close to the curve of $(X_t)_t$.
+%	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon \operatorname{H}[S_0]$$
+%%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
+%	Then the predictive rate-distortion curve of the $2M$-order Markov approximation of $(Y_t)_t$ is $5\epsilon \operatorname{H}[S_0]$-close to the curve of $(X_t)_t$.
 %
 %\end{proposition}
 %
 %\begin{proof}
-%Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
+%Storing $S'_0$ and predicting the future on its basis results in $\epsilon \operatorname{H}[S_0]$ additional loss in the future.
 %\end{proof}
 
 %This proposition shows that good estimation of rate-distortion tradeoff can be guaranteed if it can be guaranteed for a `similar' but more well-behaved process $Q$.
@@ -1854,7 +1856,7 @@ L := \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]
 
 Ambiguity Cost:
 \begin{equation}\label{eq:ambiguity-cost}
-A := H[M_0|\overrightarrow{X}]
+A := \operatorname{H}[M_0|\overrightarrow{X}]
 \end{equation}
 
 
@@ -1864,13 +1866,13 @@ Note that both terms are nonnegative.
 
 \begin{proof}
 By the definitions of conditional entropy and mutual information,
-$H[M_0] = H[M_0 | \overrightarrow{X}] + I[M_0, \overrightarrow{X}]$
+$\operatorname{H}[M_0] = \operatorname{H}[M_0 | \overrightarrow{X}] + \operatorname{I}[M_0, \overrightarrow{X}]$
 The first part is Ambiguity cost.
 Now we show that the second part is equal to Locality cost.
-As we assume that the listeners predictions are optimal, $I[M_0, \overrightarrow{X}] = I[X_{\leq 0}, \overrightarrow{X}]$.
+As we assume that the listeners predictions are optimal, $\operatorname{I}[M_0, \overrightarrow{X}] = \operatorname{I}[X_{\leq 0}, \overrightarrow{X}]$.
 Then the formula is a consequence of the chain rule for mutual information:
 \begin{align*}
-I[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
+\operatorname{I}[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
 &= \sum_{i=1}^\infty \sum_{j=0}^{-\infty} I(X_i, X_j|X_{j+1}...X_{i-1}) \\
 & = \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]
 \end{align*}
@@ -1917,10 +1919,10 @@ This quantity is also known as the \emph{excess entropy} of the process (CITE).
 
 \begin{proof}
 %We assume that the process is stationary, that is, that there is no `absolute clock' built into the model. Formally, this means that, for any set of indices $t_1 < t_2 < \dots < t_n$, the joint distribution $(X_{t_1}, X_{t_2}, ..., X_{t_n})$ only depends on the differences $(t_{i+1}-t_i)_{i=1,...,n-1}$, not on the absolute values $t_i$.
-The number of bits of memory is lower bounded by the mutual information between past and future observations, $I[(X_i)_{i>0}, (X_i)_{i \leq 0}]$. 
+The number of bits of memory is lower bounded by the mutual information between past and future observations, $\operatorname{I}[(X_i)_{i>0}, (X_i)_{i \leq 0}]$. 
 Then the formula is a consequence of the chain rule for mutual information:
 \begin{align*}
-I[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
+\operatorname{I}[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
 &= \sum_{i=1}^\infty \sum_{j=0}^{-\infty} I(X_i, X_j|X_{j+1}...X_{i-1}) \\
 & = \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]
 \end{align*}
@@ -1951,12 +1953,12 @@ We want to derive a quantitative measure of Information Locality.
 By information locality, we refer to the degree to which words that are predictive of each other are closer together.
 Stated differently, information in past observations that helps predict $X_t$ should be concentrated in recent observations $X_{t'}$ ($t' < t$) with $t'$ close to $t$.
 
-Information locality is maximised if all contextual information predicting $X_t$ is contained in $X_{t-1}$, in which case $J = I[X_t, X_{t-1}]$.
+Information locality is maximised if all contextual information predicting $X_t$ is contained in $X_{t-1}$, in which case $J = \operatorname{I}[X_t, X_{t-1}]$.
 
 To quantify information locality more generally, we consider the relation between the quantity
-$$J = I[X_{\geq t}, X_{<t}] = \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$$
+$$J = \operatorname{I}[X_{\geq t}, X_{<t}] = \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$$
 and the quantity
-$$P = I[X_t, X_{< t}] = \sum_{t=1}^\infty\ \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$$
+$$P = \operatorname{I}[X_t, X_{< t}] = \sum_{t=1}^\infty\ \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$$
 The first one quantifies how much information is transmitted between past and future, the second one captures the average predictability of single words from their prior context.
 Evidently, $P \leq J$ -- higher degrees of predictability will require more information to be stored from past observations.
 Stated differently, there is a tradeoff between predictability and memory: If the future is easier to predict from the past (at the same unconditional entropy), more memory is required to store all the relevant predictive information from the past.
@@ -2012,7 +2014,7 @@ Information locality is maximized by processes on the diagonal; the distance fro
 
 \subsection{Discussion}
 \paragraph{Conditional and Unconditional Mutual Information}
-Prior work has studied the decay of \emph{unconditional} mutual information $I[X_t, X_0]$ in natural language, and linked it to locality and memory.
+Prior work has studied the decay of \emph{unconditional} mutual information $\operatorname{I}[X_t, X_0]$ in natural language, and linked it to locality and memory.
 However, they decay of unconditional mutual information is less closely linked to memory requirements:
 While the decay of conditional mutual informnations provides a lower bound on memory need, unconditional mutual information does not:
 Consider the constant process where with probability 1/2 all $X_t = 0$, and with probability 1/2 all $X_t = 1$. %%$X_t = c$, where $c$ is random but independent of $t$ for each specific draw from the process.
@@ -2124,7 +2126,7 @@ Given a corpus, we estimate a language model by training the LSTM on a training 
 The hyperparameters (number of hidden units, learning rate, etc.) are chosen so as to maximize the likelihood of the held-out partition.
 This procedure helps prevent overfitting the model to the training data, and ensure that it generalizes to unseen data. 
 
-Note that the quantities $\operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$ in~(\ref{eq:memory-bound}) are equal to difference between conditional entropies $H[X_t|X_1, ..., X_{t-1}] - H[X_t|X_0, X_1, ..., X_{t-1}]$.
+Note that the quantities $\operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$ in~(\ref{eq:memory-bound}) are equal to difference between conditional entropies $\operatorname{H}[X_t|X_1, ..., X_{t-1}] - \operatorname{H}[X_t|X_0, X_1, ..., X_{t-1}]$.
 Therefore, to compute this quantity, we compute the differences between the surprisals
 $-\log P[X_t | X_0, X_1, ..., X_{t-1}]$ and $-\log P[X_t | X_1, ..., X_{t-1}]$ for each word in the held-out partition, and take the average over these.
 
@@ -2206,9 +2208,9 @@ pointwise memory cost is
 $$\E_{f|p} \left[ pmi(f,p) -  \log(\pi(p)|f)\right]$$
 \end{corollary}
 Taking the expectation over $p$, the left component is the excess entropy, while the right component is the gap between excess entropy and state entropy:
-$$\E{f,p} \log(\pi(p)|f) = H[\pi(P) | F]$$
+$$\E{f,p} \log(\pi(p)|f) = \operatorname{H}[\pi(P) | F]$$
 
-$H[\pi(P)] = I[P,F] + H[\pi(P) | F] = I[\pi(P), F] + H[\pi(p) | F]$
+$\operatorname{H}[\pi(P)] = \operatorname{I}[P,F] + \operatorname{H}[\pi(P) | F] = \operatorname{I}[\pi(P), F] + \operatorname{H}[\pi(p) | F]$
 
 Memory = Non-Locality + Difficulty of Guessing Past from Future
 
@@ -2263,11 +2265,11 @@ randomized memory is useful because we can apply gradient descent, solving an op
 
 - solving a discrete optimization problem (probably not super scalable)
 
-- variational: stochastic continuous memory representations and take memory cost to be $I[Memory, Past]$ (also done in IB)
+- variational: stochastic continuous memory representations and take memory cost to be $\operatorname{I}[Memory, Past]$ (also done in IB)
 
 (noise the LSTM hidden state in each time step)
 
-calculate upper bound $D_{KL}(P(Memory|Past) || P_{prior}(Memory)) \geq I[Memory, Past]$, estimate the tradeoff curve between this and cross-entropy (the resulting curve is a variational upper bound on the real curve).
+calculate upper bound $D_{KL}(P(Memory|Past) || P_{prior}(Memory)) \geq \operatorname{I}[Memory, Past]$, estimate the tradeoff curve between this and cross-entropy (the resulting curve is a variational upper bound on the real curve).
 
 
 - other ways of minimizing MI with past (don't require noising of the hidden state):
@@ -2352,10 +2354,10 @@ This quantity is also known as \emph{excess entropy} (CITE).
 
 \begin{proof}
 %We assume that the process is stationary, that is, that there is no `absolute clock' built into the model. Formally, this means that, for any set of indices $t_1 < t_2 < \dots < t_n$, the joint distribution $(X_{t_1}, X_{t_2}, ..., X_{t_n})$ only depends on the differences $(t_{i+1}-t_i)_{i=1,...,n-1}$, not on the absolute values $t_i$.
-The number of bits of memory is lower bounded by the mutual information between past and future observations, $I[(X_i)_{i>0}, (X_i)_{i \leq 0}]$. 
+The number of bits of memory is lower bounded by the mutual information between past and future observations, $\operatorname{I}[(X_i)_{i>0}, (X_i)_{i \leq 0}]$. 
 Then the formula is a consequence of the chain rule for mutual information:
 \begin{align*}
-I[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
+\operatorname{I}[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
 &= \sum_{i=1}^\infty \sum_{j=0}^{-\infty} I(X_i, X_j|X_{j+1}...X_{i-1}) \\
 & = \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]
 \end{align*}
@@ -2398,9 +2400,9 @@ The memory representation $f(X_{<t})$ is a random variable whose entropy is the 
 In general, a model could use any mapping from memory states to distributions over the vocabulary to make its predictions.
 However, we will focus on Bayes-optimal models, i.e., models that correctly compute the distribution of $X_t$ given the memory representation $f(X_{<t})$.
 (Other models would incur even higher average surprisal, without reduction in memory cost.)
-The average surprisal experienced by such a model is $H[X_t | f(X_{<t})]$, and is lower bounded by the true surprisal, $H[X_t|X_{<t}]$.
+The average surprisal experienced by such a model is $\operatorname{H}[X_t | f(X_{<t})]$, and is lower bounded by the true surprisal, $\operatorname{H}[X_t|X_{<t}]$.
 
-This section provides some results relating the model's memory cost $H[f(X_{<t})]$ to the attained surprisal $H[X_t | f(X_{<t})]$.
+This section provides some results relating the model's memory cost $\operatorname{H}[f(X_{<t})]$ to the attained surprisal $\operatorname{H}[X_t | f(X_{<t})]$.
 %Naturally, we expect that lower surprisal rates will require more memory.
 
 %\subsection{Lower bound on approximation with n-th order Markov models}
@@ -2410,7 +2412,7 @@ This section provides some results relating the model's memory cost $H[f(X_{<t})
 
 There is a direct and obvious connection between the decay of mutual information and approximation by $n$-th order Markov models:
 \begin{proposition}\label{prop:markov}
-The Bayes-optimal $n$-th order Markov model will experience average surprisal (that is, cross-entropy) exactly $$H[X_t|X_{<t}] + \sum_{t > n} I[X_t, X_0 | X_{1\dots t-1}]$$
+The Bayes-optimal $n$-th order Markov model will experience average surprisal (that is, cross-entropy) exactly $$\operatorname{H}[X_t|X_{<t}] + \sum_{t > n} \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]$$
 \end{proposition}
 
 
@@ -2425,7 +2427,7 @@ How much greater will their surprisal be? In general, if a model has memory much
 However, we can get such a bound in relation to the contribution of long-term dependencies to $M$.
 %The state I've arrived at so far is still a bit complicated, but there is a reasonable final result for a wide class of processes.
 %For smaller contribution of long-term dependencies is to $M$, we can lower bound the model's surprisal more strongly.
-We write $$I_t := I[X_t, X_0 | X_{1\dots t-1}]$$
+We write $$I_t := \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]$$
 
 
 
@@ -2436,16 +2438,16 @@ We write $$I_t := I[X_t, X_0 | X_{1\dots t-1}]$$
 
 The following result holds for any process:
 \begin{proposition}[Approximation by Models with Small Memory, lower bound]~\label{prop:lower-bound}
-%For any $T \in \mathbb{N}$, a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $$H[X_t|X_{<t}] + \sum_{t \leq T} \frac{t}{T} I_t + \sum_{t > T} I_t - J/T$$
+%For any $T \in \mathbb{N}$, a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $$\operatorname{H}[X_t|X_{<t}] + \sum_{t \leq T} \frac{t}{T} I_t + \sum_{t > T} I_t - J/T$$
 %Let $\epsilon > 0$, $T \in \mathbb{N}$ such that $\sum_{t > T} t I_t < \epsilon$.
-%$$\sum_{t > T} t I[X_t, X_0 | X_{1\dots t-1}] < \epsilon$$
-%Then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $$H[X_t|X_{<t}] + \frac{M-J-\epsilon}{T} + \sum_{t > T} I_t$$
+%$$\sum_{t > T} t \operatorname{I}[X_t, X_0 | X_{1\dots t-1}] < \epsilon$$
+%Then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $$\operatorname{H}[X_t|X_{<t}] + \frac{M-J-\epsilon}{T} + \sum_{t > T} I_t$$
 %Choose any $T \in \mathbb{N}$.
 Any model with memory $J$ will experience average surprisal (that is, cross-entropy) at least
-$$H[X_t|X_{<t}] +\sup_{T\in \mathbb{N}}\ \left[ \frac{\left(\sum_{t=1}^T t I_t\right)-J}{T} + \sum_{t > T} I_t\right]$$
-%$$H[X_t|X_{<t}] + \sup_{T\in \mathbb{N}}\ \left[\frac{M-J}{T} - \sum_{t > T} (t/T - 1) I_t\right]$$
+$$\operatorname{H}[X_t|X_{<t}] +\sup_{T\in \mathbb{N}}\ \left[ \frac{\left(\sum_{t=1}^T t I_t\right)-J}{T} + \sum_{t > T} I_t\right]$$
+%$$\operatorname{H}[X_t|X_{<t}] + \sup_{T\in \mathbb{N}}\ \left[\frac{M-J}{T} - \sum_{t > T} (t/T - 1) I_t\right]$$
 \end{proposition}
-%The second term confirms the intuition that the model's surprisal should grow with the difference $M-J$, but the strength of the bound depends on the choice of $T$.\footnote{The bound can be vacuous for small choices of $T$: If we choose $T = 1$, the bound simply evaluates to the trivial lower bound $H[X_t] - J$, which may be even weaker than the likewise trivial lower bound $H[X_t|X_{<t}]$. It will become clear below that the bound is always nonvacuous when $T$ is large enough.}
+%The second term confirms the intuition that the model's surprisal should grow with the difference $M-J$, but the strength of the bound depends on the choice of $T$.\footnote{The bound can be vacuous for small choices of $T$: If we choose $T = 1$, the bound simply evaluates to the trivial lower bound $\operatorname{H}[X_t] - J$, which may be even weaker than the likewise trivial lower bound $\operatorname{H}[X_t|X_{<t}]$. It will become clear below that the bound is always nonvacuous when $T$ is large enough.}
 %An equivalent way of stating this bound is:
 Finding the optimal $T$ will require knowledge of the decay profile $I_t.$\footnote{For any fixed $T$, one can find a decay profile for which the bound would end up vacuous at that $T$, but meaningful for a larger $T$.}
 Note that this bound only requires knowledge of $J$ and $I_t$, but no further knowledge of the process and the model.
@@ -2453,7 +2455,7 @@ I think that the bound is also optimal among all bounds that only require knowle
 
 
 \begin{proof}
-Let $f$ be the function mapping histories $X_{<t}$ to memory representations of the model. By assumption, $f(X_{<t})$ can be encoded with up to $J$ bits, so $H[f(X_{<t})] \leq J$.
+Let $f$ be the function mapping histories $X_{<t}$ to memory representations of the model. By assumption, $f(X_{<t})$ can be encoded with up to $J$ bits, so $\operatorname{H}[f(X_{<t})] \leq J$.
 As explained above, without loss of generality, we can assume that the model is Bayes optimal. %: the model's distribution over $X_t$ after reading $X_{<t}$ is equal to $P(X_t | f(X_{<t}))$ (any other model would incur even higher surprisal).
 By definition, the difference between the model's surprisal and optimal surprisal is
 \footnote{The first inequality seems really crude. In general, we cannot do better. If we know more about the approximating model, we might be able to improve this. Also, consider the relation to the other inequality. Can they be attained at the same time?}
@@ -2461,19 +2463,19 @@ By definition, the difference between the model's surprisal and optimal surprisa
 %& - \E_{X} \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t})\ \ \ \ \ \ \text{(for any $t$, due to stationarity)} \\
 %& = - \frac{1}{T} \E_{X} \sum_{t=1}^T \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t}) \\
 %& \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(\overleftarrow{X})) - \log P(X_{1\dots T} | \overleftarrow{X})  \\
-& H[X_t | f(X_{<t})] - H[X_t | X_{<t}] =  \frac{1}{T} \sum_{t=1}^{T} \left(H[X_t | f(X_{<t})] - H[X_t | X_{<t}]\right) \\
-& \geq   \frac{1}{T} \left(H[X_{1\dots T} | f(X_{\leq 0})] - H[X_{1\dots T} | X_{\leq 0}]\right)  = \frac{1}{T} \left(I[X_{1\dots T}|X_{\leq 0}] - I[X_{1\dots T}|f(X_{\leq 0})]\right) \\
-& = \frac{1}{T} \left(\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - I[X_{1\dots T}|f(X_{\leq 0})]\right) = \frac{1}{T} \left(M - \sum_{t > T} t I_t + T \sum_{t > T} I_t - I[X_{1\dots T}|f(X_{\leq 0})]\right) \\
+& \operatorname{H}[X_t | f(X_{<t})] - \operatorname{H}[X_t | X_{<t}] =  \frac{1}{T} \sum_{t=1}^{T} \left(\operatorname{H}[X_t | f(X_{<t})] - \operatorname{H}[X_t | X_{<t}]\right) \\
+& \geq   \frac{1}{T} \left(\operatorname{H}[X_{1\dots T} | f(X_{\leq 0})] - \operatorname{H}[X_{1\dots T} | X_{\leq 0}]\right)  = \frac{1}{T} \left(\operatorname{I}[X_{1\dots T}|X_{\leq 0}] - \operatorname{I}[X_{1\dots T}|f(X_{\leq 0})]\right) \\
+& = \frac{1}{T} \left(\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{\leq 0})]\right) = \frac{1}{T} \left(M - \sum_{t > T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{\leq 0})]\right) \\
 & \geq \frac{1}{T} \left(M + \sum_{t > T} (T-t) I_t - J\right) 
 \end{align*}
 \end{proof}
-%We can restate this bound in the following two, maybe more insightful, ways:\footnote{Note that (1) and (2) make clear that the bound is guaranteed to be larger than the basic bound $H[X_t|X_{<t}]$ when $T$ is chosen sufficiently large, but the gain over that trivial bound diminishes as $T \rightarrow \infty$. Finding an optimal $T$ that makes the bound as large as possible will depend on the process in question.}
+%We can restate this bound in the following two, maybe more insightful, ways:\footnote{Note that (1) and (2) make clear that the bound is guaranteed to be larger than the basic bound $\operatorname{H}[X_t|X_{<t}]$ when $T$ is chosen sufficiently large, but the gain over that trivial bound diminishes as $T \rightarrow \infty$. Finding an optimal $T$ that makes the bound as large as possible will depend on the process in question.}
 %
 %\begin{corollary}
-%(1) A model with memory $J$ will experience average surprisal at least $$H[X_t|X_{<t}] +\sup_{T\in \mathbb{N}}\ \left[ \frac{\left(\sum_{t=1}^T t I_t\right)-J}{T} + \sum_{t > T} I_t\right]$$
+%(1) A model with memory $J$ will experience average surprisal at least $$\operatorname{H}[X_t|X_{<t}] +\sup_{T\in \mathbb{N}}\ \left[ \frac{\left(\sum_{t=1}^T t I_t\right)-J}{T} + \sum_{t > T} I_t\right]$$
 %
 %(2) Let $\epsilon > 0$, $T \in \mathbb{N}$ such that $\sum_{t > T} t I_t < \epsilon$.
-%Then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $$H[X_t|X_{<t}] + \frac{M-J-\epsilon}{T} + \sum_{t > T} I_t$$
+%Then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $$\operatorname{H}[X_t|X_{<t}] + \frac{M-J-\epsilon}{T} + \sum_{t > T} I_t$$
 %
 %\end{corollary}
 %
@@ -2481,7 +2483,7 @@ By definition, the difference between the model's surprisal and optimal surprisa
 
 Here is way of phrasing the same statement in terms of memory:
 \begin{corollary}
-Let $\epsilon > 0$. Then it takes at least (and possibly more than) $$\sup_{T \in \mathbb{N}} \left(\sum_{t=1}^T t I_t\right) + T\left(\sum_{t > T} I_t - \epsilon\right)$$ bits of memory to achieve surprisal $\leq H[X_t|X_{<t}] + \epsilon$.
+Let $\epsilon > 0$. Then it takes at least (and possibly more than) $$\sup_{T \in \mathbb{N}} \left(\sum_{t=1}^T t I_t\right) + T\left(\sum_{t > T} I_t - \epsilon\right)$$ bits of memory to achieve surprisal $\leq \operatorname{H}[X_t|X_{<t}] + \epsilon$.
 \end{corollary}
 
 
@@ -2507,7 +2509,7 @@ Searching for the optimal $T$ in the bound, we find:
 Consider any memory requirement $J \in [0,M)$.
 Let $T$ be the smallest $T \in \{1,2,\dots\}$ such that $$\left(\sum_{t=1}^T t I_t\right) \geq J$$
 Informally, we choose $T$ such that a memory capacity of $\approx J$ is sufficient for perfectly modeling all statistical dependencies up to length $T$ when ignoring any longer dependencies.
-Then any model with memory $J$ will experience average surprisal at least $$H[X_t|X_{<t}] + \sum_{t > T} I_t$$
+Then any model with memory $J$ will experience average surprisal at least $$\operatorname{H}[X_t|X_{<t}] + \sum_{t > T} I_t$$
 That is, it cannot do better than a $T$-th order Markov model.
 \end{corollary}
 Informally, this means that, irrespective of the architecture of the approximating model, it cannot do better than a model that spends all its capacity on modeling short-range dependencies, and fully ignores long-range ones.
@@ -2516,7 +2518,7 @@ Informally, this means that, irrespective of the architecture of the approximati
 
 Here is a way of rephrasing this in terms of memory demand:
 \begin{corollary}
-Let $\epsilon > 0$, then let $T$ be the largest $T$ such that $\sum_{t > T} I_t > \epsilon$. Then it takes at least (and possibly more than) $\left(\sum_{t=1}^T t I_t\right)$ bits of memory to achieve surprisal $\leq H[X_t|X_{<t}] + \epsilon$.
+Let $\epsilon > 0$, then let $T$ be the largest $T$ such that $\sum_{t > T} I_t > \epsilon$. Then it takes at least (and possibly more than) $\left(\sum_{t=1}^T t I_t\right)$ bits of memory to achieve surprisal $\leq \operatorname{H}[X_t|X_{<t}] + \epsilon$.
 \end{corollary}
 
 
@@ -2534,19 +2536,19 @@ Let $\epsilon > 0$, then let $T$ be the largest $T$ such that $\sum_{t > T} I_t 
 %
 
 \begin{example}
-%It follows instantly from the bounds that, if $I_t$ is zero for $t > T$ (i.e., the process is $T$-order Markov), average surprisal of the model is lower-bounded by $H[X_t|X_{<t}] + \frac{M-J}{T}$.\footnote{I think that this bound is optimal: If all we require about $I_t$ is that it is zero for $t > T$, and have no other knowledge about $I_t$, then this bound should be attained by some processes where $I_T = M/T$, and all other $I_t$'s are zero.}
+%It follows instantly from the bounds that, if $I_t$ is zero for $t > T$ (i.e., the process is $T$-order Markov), average surprisal of the model is lower-bounded by $\operatorname{H}[X_t|X_{<t}] + \frac{M-J}{T}$.\footnote{I think that this bound is optimal: If all we require about $I_t$ is that it is zero for $t > T$, and have no other knowledge about $I_t$, then this bound should be attained by some processes where $I_T = M/T$, and all other $I_t$'s are zero.}
 %
 Let us consider a class of processes that might be a reasonable model of language: Assume $I_t = \alpha t^{-\beta}$ for some $\alpha > 0$, $\beta >2$ (for smaller $\beta$, we would have $M = +\infty$).
 We can bound $M = \sum_{t=1}^\infty \alpha t^{-\beta+1} \geq \int_1^\infty \alpha t^{-\beta+1} dt = \frac{\alpha}{\beta-2}$, and similarly $M \leq \alpha + \frac{\alpha}{\beta-2} = \alpha \frac{\beta-1}{\beta-2}$.
 
-Then we can lower-bound the surprisal of a model with memory $J$ by $H[X_t|X_{<t}]$ plus (TODO algebra errors may lie ahead)
+Then we can lower-bound the surprisal of a model with memory $J$ by $\operatorname{H}[X_t|X_{<t}]$ plus (TODO algebra errors may lie ahead)
 $$\frac{1}{T} \int_1^T \alpha t^{-\beta+1} dt - j/T + \int_T^\infty \alpha t^{-\beta} = T^{-1}[\frac{\alpha}{\beta-2} - J] + T^{-\beta+1} [ \frac{\alpha}{\beta-1} - \frac{\alpha}{\beta-2}]$$
 To get an optimal $T$, we can take derivatives and maximize this expression, which gives us (assuming that $[\frac{\alpha}{\beta-2} - J] > 0$, otherwise the maximum will be assumed at $T=1$?)
 $$T := \left(\frac{(1-\beta)[ \frac{\alpha}{\beta-1} - \frac{\alpha}{\beta-2}]}{[\frac{\alpha}{\beta-2} - J]}\right)^{1/(\beta-2)}$$
 and, plugging back into the bound, get that the model's surprisal is at least
-$$ H[X_t|X_{<t}] + \frac{[\frac{\alpha}{\beta-2} - J]^{\frac{\beta-1}{\beta-2}}}{\left((1-\beta) [ \frac{\alpha}{\beta-1} - \frac{\alpha}{\beta-2}]\right)^{1/(\beta-2)}} + \frac{[\frac{\alpha}{\beta-2} - J]^{\frac{\beta+1}{\beta-2}}}{(\beta-1)^{\frac{\beta+1}{\beta-2}} [ \frac{\alpha}{\beta-2} - \frac{\alpha}{\beta-1}]^{\frac{\beta+1}{\beta-2}-1}}$$
+$$ \operatorname{H}[X_t|X_{<t}] + \frac{[\frac{\alpha}{\beta-2} - J]^{\frac{\beta-1}{\beta-2}}}{\left((1-\beta) [ \frac{\alpha}{\beta-1} - \frac{\alpha}{\beta-2}]\right)^{1/(\beta-2)}} + \frac{[\frac{\alpha}{\beta-2} - J]^{\frac{\beta+1}{\beta-2}}}{(\beta-1)^{\frac{\beta+1}{\beta-2}} [ \frac{\alpha}{\beta-2} - \frac{\alpha}{\beta-1}]^{\frac{\beta+1}{\beta-2}-1}}$$
 which grows monotonically, with slightly superlinear speed, as the approximating model's memory $J$ decreases.
-Furthermore, if information locality in the process decreases -- that is, $\beta$ decreases but we adjust $\alpha$ to keep $I[X_t|X_{<t}]$ constant -- it seems that the factor $(\beta-1)$ in both denominators will increase the bound, confirming the intuition that approximating a process with less information locality will require more memory.
+Furthermore, if information locality in the process decreases -- that is, $\beta$ decreases but we adjust $\alpha$ to keep $\operatorname{I}[X_t|X_{<t}]$ constant -- it seems that the factor $(\beta-1)$ in both denominators will increase the bound, confirming the intuition that approximating a process with less information locality will require more memory.
 \end{example}
 
 
@@ -2558,7 +2560,7 @@ Furthermore, if information locality in the process decreases -- that is, $\beta
 %Then
 %$$\frac{\sum_{M/P < t < T} I_t}{P} \geq $$
 %
-%Any $n$-gram model will experience average surprisal (that is, cross-entropy) $$H[X_t|X_{<t}] + \sum_{t > n} I_t$$
+%Any $n$-gram model will experience average surprisal (that is, cross-entropy) $$\operatorname{H}[X_t|X_{<t}] + \sum_{t > n} I_t$$
 %\end{corollary}
 %
 %\begin{proof}
@@ -2569,7 +2571,7 @@ Furthermore, if information locality in the process decreases -- that is, $\beta
 
 
 \subsection{Upper Bounds on imperfect approximation}
-$M$ is only a lower bound on memory need, not necessarily identical to it: When we require that the model can optimally model the data, then there are examples where the memory need is much larger than $M$, as proved by~\cite[Section 6]{harsha-communication-nodate} (though it's not clear to me whether they are relevant to language).\footnote{Here is a much simpler example sufficient for our need: Let $Z$ be some random variable with nonzero, finite entropy. Let $Z'$ be an independent copy of $Z$, and let $B \sim Bernoulli(p)$. Then define $(X,Y) := (Z,Z)$ if $B=1$ and $(Z, Z')$ else. We consider the problem of coding $X$ with small memory to predict $Y$ optimally. We have $I[X,Y] = pH[Z]$, but any method of predicting $Y$ from a (possibly randomized) function $f(X)$ of $X$ will be suboptimal unless $H[f(X)] \geq H[X]$. In particular, as $p$ can be made small and $H[Z]$ can be made large, the gap between $I[X,Y]$ and the entropy of any mediating storage representation $f(X)$ can be arbitrarily large. The situation changes when encoding and decoding can share a random string (this randomness is then also averaged over when computing the KL-loss), as shown by \cite{harsha-communication-nodate}, but this doesn't seem to model the setting we're interested in.}
+$M$ is only a lower bound on memory need, not necessarily identical to it: When we require that the model can optimally model the data, then there are examples where the memory need is much larger than $M$, as proved by~\cite[Section 6]{harsha-communication-nodate} (though it's not clear to me whether they are relevant to language).\footnote{Here is a much simpler example sufficient for our need: Let $Z$ be some random variable with nonzero, finite entropy. Let $Z'$ be an independent copy of $Z$, and let $B \sim Bernoulli(p)$. Then define $(X,Y) := (Z,Z)$ if $B=1$ and $(Z, Z')$ else. We consider the problem of coding $X$ with small memory to predict $Y$ optimally. We have $\operatorname{I}[X,Y] = p\operatorname{H}[Z]$, but any method of predicting $Y$ from a (possibly randomized) function $f(X)$ of $X$ will be suboptimal unless $\operatorname{H}[f(X)] \geq \operatorname{H}[X]$. In particular, as $p$ can be made small and $\operatorname{H}[Z]$ can be made large, the gap between $\operatorname{I}[X,Y]$ and the entropy of any mediating storage representation $f(X)$ can be arbitrarily large. The situation changes when encoding and decoding can share a random string (this randomness is then also averaged over when computing the KL-loss), as shown by \cite{harsha-communication-nodate}, but this doesn't seem to model the setting we're interested in.}
 
 However, this needn't be a problem: As long as we only require \emph{near}-optimal prediction and work in the setting of \emph{sequence prediction}, memory need can be bounded in a way that grows linearly in $M$.
 We do this using a result of~\cite{sharan-prediction-2016} showing that the loss of $n$-th order Markov models can be bounded in terms of $M$, and noting that we can compute the storage cost of $n$-th order Markov models.
@@ -2578,7 +2580,7 @@ We do this using a result of~\cite{sharan-prediction-2016} showing that the loss
 %By a theorem of (CITE), lower excess entropy translates into better approximation by modeling with fixed context window (n-gram models).
 
 \begin{proposition}[Approximation by Markov Models, upper bound. \cite{sharan-prediction-2016}]
-The Bayes-optimal $n$-th order Markov model achieves average surprisal $\leq H[X_t|X_{<t}] + M/n$.
+The Bayes-optimal $n$-th order Markov model achieves average surprisal $\leq \operatorname{H}[X_t|X_{<t}] + M/n$.
 %For any $\epsilon > 0$, an $M/\epsilon$-order Markov model can achieve KL loss $\leq \epsilon$.
 \end{proposition}
 \begin{proof}
@@ -2588,32 +2590,32 @@ In their Proposition 1, they showed that, for any $\epsilon > 0$, a $M/\epsilon$
 %Compared with the lower bound from the previous section, we see:
 Computing the memory cost of a an n-th order Markov model, we can conclude:
 \begin{corollary}
-(1) For any $\epsilon > 0$, there is a model achieving surprisal $H[X_t|X_{<t}] + \epsilon$ using $\leq M \frac{H[X]}{\epsilon}$ bits of memory.
+(1) For any $\epsilon > 0$, there is a model achieving surprisal $\operatorname{H}[X_t|X_{<t}] + \epsilon$ using $\leq M \frac{\operatorname{H}[X]}{\epsilon}$ bits of memory.
 
-(2) For any $J < M$, there is a model with memory $J$ that achieves average surprisal at most $$H[X_t|X_{<t}] + \frac{M}{J} H[X_t]$$
+(2) For any $J < M$, there is a model with memory $J$ that achieves average surprisal at most $$\operatorname{H}[X_t|X_{<t}] + \frac{M}{J} \operatorname{H}[X_t]$$
 
 \end{corollary}
 \begin{proof}
-By the proposition, we can achieve a surprisal of $H[X_t|X_{<t}] + \epsilon$ with an $M/\epsilon$-gram model.
+By the proposition, we can achieve a surprisal of $\operatorname{H}[X_t|X_{<t}] + \epsilon$ with an $M/\epsilon$-gram model.
 This model can be implemented using 
-$H[X_1 ... X_{M/\epsilon}] \leq M \frac{H[X]}{\epsilon}$ bits of memory.\footnote{
+$\operatorname{H}[X_1 ... X_{M/\epsilon}] \leq M \frac{\operatorname{H}[X]}{\epsilon}$ bits of memory.\footnote{
 This bound is really crude. We can compute
 \begin{align*}
-H[X_1 ... X_{M/\epsilon}] &= \frac{M}{\epsilon} H[X] - \sum_{t=1}^{M/\epsilon} (M/\epsilon-t) I_t
-%&= I/\epsilon H[X] - I/\epsilon \left(\sum_{t=1}^{I/\epsilon} I_t\right) + \sum_{t=1}^{I/\epsilon} t I_t \\
-%&\leq I/\epsilon H[X] + I \\
-%& = I(1+H[X]/\epsilon) \\
+\operatorname{H}[X_1 ... X_{M/\epsilon}] &= \frac{M}{\epsilon} \operatorname{H}[X] - \sum_{t=1}^{M/\epsilon} (M/\epsilon-t) I_t
+%&= I/\epsilon \operatorname{H}[X] - I/\epsilon \left(\sum_{t=1}^{I/\epsilon} I_t\right) + \sum_{t=1}^{I/\epsilon} t I_t \\
+%&\leq I/\epsilon \operatorname{H}[X] + I \\
+%& = I(1+\operatorname{H}[X]/\epsilon) \\
 \end{align*}
 but does this gives us anything?}
 The second statement is a rephrasing of the first.
 \end{proof}
 As expected, this bound on surprisal increases as the available memory $J$ decreases in relation to $M$.
-In the case of natural language, $H[X]$ is a reasonably small constant.
+In the case of natural language, $\operatorname{H}[X]$ is a reasonably small constant.
 
 %Combining with (REF), we can characterize the surprisal of an $n$-gram model in terms of $M$ as
 %\begin{corollary}[Approximation by $n$-gram models]
 %The average surprisal $S_n$ of the Bayes-optimal $n$-gram model is bounded as
-%$$H[X_t|X_{<t}] + \frac{M}{n} - \left(\sum_{t > n} (t/n - 1) I_t\right)\ \leq\ S_n\ \leq\ H[X_t|X_{<t}] + \frac{M}{n}$$
+%$$\operatorname{H}[X_t|X_{<t}] + \frac{M}{n} - \left(\sum_{t > n} (t/n - 1) I_t\right)\ \leq\ S_n\ \leq\ \operatorname{H}[X_t|X_{<t}] + \frac{M}{n}$$
 %\end{corollary}
 
 
@@ -2637,7 +2639,7 @@ In the case of natural language, $H[X]$ is a reasonably small constant.
 
 \section{Normalized Excess Entropy}
 
-We quantify information (non-)locality by $\frac{I[X_{\geq t}, X_{<t}]}{I[X_t, X_{<t}]}$
+We quantify information (non-)locality by $\frac{\operatorname{I}[X_{\geq t}, X_{<t}]}{\operatorname{I}[X_t, X_{<t}]}$
 
 Why?
 
@@ -2770,24 +2772,24 @@ Given a corpus, we estimate a language model by training the LSTM on a training 
 The hyperparameters (number of hidden units, learning rate, etc.) are chosen so as to maximize the likelihood of the held-out partition.
 This procedure helps prevent overfitting the model to the training data, and ensure that it generalizes to unseen data. 
 
-Note that the quantities $\operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$ in~(\ref{eq:memory-bound}) are equal to difference between conditional entropies $H[X_t|X_1, ..., X_{t-1}] - H[X_t|X_0, X_1, ..., X_{t-1}]$.
+Note that the quantities $\operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]$ in~(\ref{eq:memory-bound}) are equal to difference between conditional entropies $\operatorname{H}[X_t|X_1, ..., X_{t-1}] - \operatorname{H}[X_t|X_0, X_1, ..., X_{t-1}]$.
 Therefore, to compute this quantity, we compute the differences between the surprisals
 $-\log P[X_t | X_0, X_1, ..., X_{t-1}]$ and $-\log P[X_t | X_1, ..., X_{t-1}]$ for each word in the held-out partition, and take the average over these.
 
 
 \section{Measuring Information Locality via Normalized Excess Entropy}
 
-%We consider the following question: For a fixed budget of predictability, $I[X_t|X_{<t}]$, we want to minimize excess entropy -- that is, we want to 
+%We consider the following question: For a fixed budget of predictability, $\operatorname{I}[X_t|X_{<t}]$, we want to minimize excess entropy -- that is, we want to 
 
 
 How do we compare excess entropies for models with different predictabilities?
 We can take the quotient of excess entropy and predictability:
-$$\frac{\sum_{t=1}^\infty t \cdot I[X_t,X_0 | X_{1...t-1}]}{\sum_{t=1}^\infty I[X_t,X_0|X_{1...t-1}]}$$
+$$\frac{\sum_{t=1}^\infty t \cdot \operatorname{I}[X_t,X_0 | X_{1...t-1}]}{\sum_{t=1}^\infty \operatorname{I}[X_t,X_0|X_{1...t-1}]}$$
 Why is this a good measure of locality?
 
 \begin{enumerate}
 \item Minimizing this quantity (subject to constraints) is equivalent to minizing excess entropy subject to fixed predictability (and these constraints).
-\item This quantity stays invariant when we multiply each $I[X_t,X_0 | X_{1...t-1}]$ with a fixed factor. This makes it a natural measure of the decay of $I[X_t,X_0 | X_{1...t-1}]$ as $t \rightarrow \infty$.
+\item This quantity stays invariant when we multiply each $\operatorname{I}[X_t,X_0 | X_{1...t-1}]$ with a fixed factor. This makes it a natural measure of the decay of $\operatorname{I}[X_t,X_0 | X_{1...t-1}]$ as $t \rightarrow \infty$.
 \item This quantity is $\geq 1$, and it takes on the value $1$ if and only if the process is modeled perfectly by a bigram model (is a first-order Markov process).
 
 For fixed entropy rate, the excess entropy is minimized by exactly the Markov processes of this entropy rate.
@@ -3152,9 +3154,9 @@ We could define the actual information content in $Mem(X)$ that is relevant to $
 & - \E_{X} \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t})\ \ \ \ \ \ \text{(for any $t$, due to stationarity)} \\
 & = - \frac{1}{T} \E_{X} \sum_{t=1}^T \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t}) \\
 & \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(\overleftarrow{X})) - \log P(X_{1\dots T} | \overleftarrow{X})  \\
-& = \frac{1}{T} \left(H[X_{1\dots T}|f(X_{<0})] -  H[X_{1\dots T}|X_{<0}]\right) \\
-& = \frac{1}{T} (I[X_{1\dots T}|X_{<0}] - I[X_{1\dots T}|f(X_{<0})]) \\
-& = \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - I[X_{1\dots T}|f(X_{<0})]) \\
+& = \frac{1}{T} \left(\operatorname{H}[X_{1\dots T}|f(X_{<0})] -  \operatorname{H}[X_{1\dots T}|X_{<0}]\right) \\
+& = \frac{1}{T} (\operatorname{I}[X_{1\dots T}|X_{<0}] - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
+& = \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
 & \geq \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - J) \\
 & = \sum_{t \leq T} \frac{t}{T} I_t + \sum_{t > T} I_t - J/T \\
 \end{align*}
@@ -3186,10 +3188,10 @@ The bound from the proposition evaluates to
 %
 %\begin{proposition}
 %Let $\epsilon > 0$, $T \in \mathbb{N}$.
-%If $\sum_{t > T} t I[X_t, X_0 | X_{1\dots t-1}] < \epsilon$, then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $H[X_t|X_{<t}] + \frac{M-J-\epsilon}{T}$. TODO
+%If $\sum_{t > T} t \operatorname{I}[X_t, X_0 | X_{1\dots t-1}] < \epsilon$, then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $\operatorname{H}[X_t|X_{<t}] + \frac{M-J-\epsilon}{T}$. TODO
 %\end{proposition}
 %\begin{proof}
-%Let $f$ be the function mapping histories $X_{<t}$ to memory representations of the model. By assumption, $f(X_{<t})$ can be encoded with up to $J$ bits, so $H[f(X_{<t})] \leq J$.
+%Let $f$ be the function mapping histories $X_{<t}$ to memory representations of the model. By assumption, $f(X_{<t})$ can be encoded with up to $J$ bits, so $\operatorname{H}[f(X_{<t})] \leq J$.
 %Without loss of generality, we can assume that the model is Bayes optimal: the model's distribution over $X_t$ after reading $X_{<t}$ is equal to $P(X_t | f(X_{<t}))$ (any other model would incur even higher surprisal).
 %
 %By definition, the difference between the model's surprisal and optimal surprisal is
@@ -3197,25 +3199,25 @@ The bound from the proposition evaluates to
 %& - \E_{X} \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t})\ \ \ \ \ \ \text{(for any $t$, due to stationarity)} \\
 %& = - \frac{1}{T} \E_{X} \sum_{t=1}^T \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t}) \\
 %& \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(X_{<0})) - \log P(X_{1\dots T} | X_{<0})  \\
-%& = \frac{1}{T} \left(H[X_{1\dots T}|f(X_{<0})] -  H[X_{1\dots T}|X_{<0}]\right) \\
-%& = \frac{1}{T} (I[X_{1\dots T}|X_{<0}] - I[X_{1\dots T}|f(X_{<0})]) \\
-%& = \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - I[X_{1\dots T}|f(X_{<0})]) \\
+%& = \frac{1}{T} \left(\operatorname{H}[X_{1\dots T}|f(X_{<0})] -  \operatorname{H}[X_{1\dots T}|X_{<0}]\right) \\
+%& = \frac{1}{T} (\operatorname{I}[X_{1\dots T}|X_{<0}] - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
+%& = \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
 %& \geq \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - J) \\
 %& = \sum_{t \leq T} \frac{t}{T} I_t + \sum_{t > T} I_t - J/T \\
 %%& \geq \frac{1}{T} \sum_{t \leq T}  I_t + \sum_{t > T} I_t - J/T \\
-%%& \geq \frac{1}{T} (TODO - I[X_{1\dots T}|f(X_{<0})]) \\
+%%& \geq \frac{1}{T} (TODO - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
 %%& \geq \frac{1}{T} (TODO M - J - \epsilon) \\
 %\end{align*}
 %\end{proof}
 
-%If we consider ratios between the memory bound and the predictability $I[X_t, X_{<t}]$, we can also express this as follows:
+%If we consider ratios between the memory bound and the predictability $\operatorname{I}[X_t, X_{<t}]$, we can also express this as follows:
 %\begin{corollary}
-%Let $\epsilon > 0$, and let $P := I[X_t, X_{<t}]$ the predictability.
-%Then If $\sum_{t > T} t I[X_t, X_0 | X_{1\dots t-1}] < \epsilon$, then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $H[X_t|X_{<t}] + \frac{M-J-\epsilon}{T}$.
+%Let $\epsilon > 0$, and let $P := \operatorname{I}[X_t, X_{<t}]$ the predictability.
+%Then If $\sum_{t > T} t \operatorname{I}[X_t, X_0 | X_{1\dots t-1}] < \epsilon$, then a model with memory $J$ will experience average surprisal (that is, cross-entropy) at least $\operatorname{H}[X_t|X_{<t}] + \frac{M-J-\epsilon}{T}$.
 %\end{corollary}
 %
 %\begin{proof}
-%$\frac{\sum_{t > M/\epsilon} t I[X_t, X_0 | X_{1\dots t-1}]}{P} = \frac{\sum_{t > M/\epsilon} t I[X_t, X_0 | X_{1\dots t-1}]}{\sum_{t > 0} I[X_t, X_0 | X_{1\dots t-1}]}  \leq \frac{\sum_{t > M/\epsilon} t I[X_t, X_0 | X_{1\dots t-1}]}{\sum_{t > M/\epsilon} I[X_t, X_0 | X_{1\dots t-1}]}< \epsilon$
+%$\frac{\sum_{t > M/\epsilon} t \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]}{P} = \frac{\sum_{t > M/\epsilon} t \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]}{\sum_{t > 0} \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]}  \leq \frac{\sum_{t > M/\epsilon} t \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]}{\sum_{t > M/\epsilon} \operatorname{I}[X_t, X_0 | X_{1\dots t-1}]}< \epsilon$
 %
 %Let $T := M/\epsilon$.
 %Then 
@@ -3229,12 +3231,12 @@ The bound from the proposition evaluates to
 
 
 
-There is a tradeoff between the surprisal the listener experiences in the future, and $I[Z, (X_{< 0})]$: For greater values of this mutual information, lower surprisal can be achieved in the future -- up to a certain limit where additional storage cannot further reduce surprisal. This limit corresponds to perfect modeling, and results in Crutchfield and colleagues' notion of complexity.
+There is a tradeoff between the surprisal the listener experiences in the future, and $\operatorname{I}[Z, (X_{< 0})]$: For greater values of this mutual information, lower surprisal can be achieved in the future -- up to a certain limit where additional storage cannot further reduce surprisal. This limit corresponds to perfect modeling, and results in Crutchfield and colleagues' notion of complexity.
 
 Thus, for any process $(X_t)$, we obtain a memory-surprisal tradeoff curve.
 The points on the tradeoff curve are obtained by solving, for each $\beta \in \mathbb{R}_+$, the problem
 \begin{equation}\label{eq:ib}
-	\max_{Z} \left( I[\overrightarrow{X}, Z] - \beta \cdot I[Z, (X_{<0})] \right)
+	\max_{Z} \left( \operatorname{I}[\overrightarrow{X}, Z] - \beta \cdot \operatorname{I}[Z, (X_{<0})] \right)
 \end{equation}
 where the scope of the maximization is the class of all random variables $Z$ such that $Z - \left(X_{<0}\right) - \left(\overrightarrow{X}\right)$ is a Markov chain, that is, $Z$ is independent of the future given the past.
 %\footnote{This requirement should hold if $Z$ models the memory of a listener, whose internal state must be independent of the future conditioned on the past.} (TODO From a speaker perspective, this wouldn't need to hold. It seems that the `Ambiguity cost' part of memory could be much lower for a speaker than for a listener, while the locality part is the same for both.)
@@ -3244,7 +3246,7 @@ This is exactly the Information Bottleneck \cite{tishby-information-1999}, appli
 
 I'd argue that, for the kinds of processes we are interested in (natural language), estimating this tradeoff curve may make more sense than attempting to study the limit of perfect modeling, as we cannot really model the latter computationally unless we have very large corpora.\footnote{Even then, there are limitations -- e.g., it's not clear whether the excess entropy of language is finite. If it is infinite, perfect modeling woud require infinite memory resources anyways.}
 
-If we considered $H[Z]$ as the measure of memory need, instead of $I[Z, (X_{<0})]$, we would get a different tradeoff curve; however, the curve will always be bounded by the curve obtained from \ref{eq:ib}.
+If we considered $\operatorname{H}[Z]$ as the measure of memory need, instead of $\operatorname{I}[Z, (X_{<0})]$, we would get a different tradeoff curve; however, the curve will always be bounded by the curve obtained from \ref{eq:ib}.
 
 For imperfect modeling, the two measures yield different tradeoff curves.
 In the limit of perfect modeling, the two measures coincide (for the kinds of processes that we are interested in, at least).
@@ -3256,11 +3258,11 @@ Unlike statistical complexity, the tradeoff will not differ much between process
 	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
 	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ in KL Divergence in the following sense:
 	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon$$
-%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon H[S_0]$.
+%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
 	Then the predictive rate-distortion curve of $(X_t)_t$ is, up to $\epsilon$, a (pessimistic) bound on the curve of $(Y_t)_t$.
 
 \end{proposition}
 
 \begin{proof}
-Storing $S'_0$ and predicting the future on its basis results in $\epsilon H[S_0]$ additional loss in the future.
+Storing $S'_0$ and predicting the future on its basis results in $\epsilon \operatorname{H}[S_0]$ additional loss in the future.
 \end{proof}
