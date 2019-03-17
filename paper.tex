@@ -147,7 +147,7 @@ As an application, we provide bounds on the predictive rate-distortion of natura
 
 
 Predicting the future from past observations is a key problem across science.
-Constructing models that predict future observations is fundamental method of making and testing scientific discoveries.
+Constructing models that predict future observations is a fundamental method of making and testing scientific discoveries.
 Understanding and predicting dynamics has been a fundamental goal of physics for centuries.
 In engineering, devices often have to predict the future of their environment to perform efficiently.
 Living organisms need to make inferences about their environment and its future for survival.
@@ -169,18 +169,18 @@ In these settings, the main goal will typically be to get good prediction at low
 This motivates the study of models that try to extract those key features of past observations that are most relevant to predicting the future.
 %This results in a tradeoff between the cost of representing past observations and predicting the future well.
 %This tradeoff has been formalized and computationally studied in a range of prior studies.
-A general information-theoretic framework for this problem is provided by Predictive Rate Distortion, also known as the Past-Future Information Bottleneck.
+A general information-theoretic framework for this problem is provided by Predictive Rate Distortion~~\citep{marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
 The Predictive Rate Distortion tradeoff seeks to find an encoding of past observations that is maximally informative about future observations, while satisfying a bound on the amount of information that has to be stored.
-More formally, this framework trades off prediction loss in the future, formalized as cross-entropy, with the cost of representing the past, formalized as the mutual information between summary encodings of the past and the past observations.
+More formally, this framework trades off prediction loss in the future, formalized as cross-entropy, with the cost of representing the past, formalized as the mutual information between the past observations and the compressed representations of the past.
 Due to its information-theoretic nature, this framework is extremely general and applies to processes across vastly different domains.
 It has been applied to linear dynamical systems \citep{creutzig-past-future-2009,amir2015past}, but is equally meaningful for discrete dynamical systems~\citep{marzen-predictive-2016}.
 For biological systems that make predictions about their environment, this corresponds to placing an information-theoretic constraint on the computational cost used for conditioning actions on past observations~\citep{genewein2015bounded}.
 
 The problem of determining encodings that optimize the Predictive Rate Distortion tradeoff has been solved for certain specific kinds of dynamics, namely for linear dynamic systems~\citep{creutzig-past-future-2009} and for processes whose predictive dynamic is represented exactly by a known, finite Hidden Markov Model~\citep{marzen-predictive-2016}.
 However, real-world processes are often more complicated.
-When the dynamic is known, a representing Hidden Markov Model may still be extremely large or even infinite, making general-purpose automated computation difficult.
-Even more importantly, the underlying dynamic is often not known exactly.
-An organism typically does not have access to the exact dynamic of its surroundings.
+When the dynamics are known, a representing Hidden Markov Model may still be extremely large or even infinite, making general-purpose automated computation difficult.
+Even more importantly, the underlying dynamics are often not known exactly.
+An organism typically does not have access to the exact dynamics of its surroundings.
 Similarly, the exact distribution of sentences in a natural language is not known exactly, precluding the application of methods that require an exact model.
 Such processes are typically only available implicitly, through a finite sample of trajectories.
 
@@ -257,7 +257,7 @@ The problem of predictive rate-distortion has been formalized by a range of stud
 A principled and general formalization is provided by applying the Information Bottleneck idea \citep{tishby-information-1999, still-optimal-2010, marzen-predictive-2016}:
 We will write $\overleftarrow{X}$ for the past $X_{\leq 0}$, and $\overrightarrow{X}$ for the future $X_{> 0}$, following \cite{marzen-predictive-2016}.
 We consider random variables $Z$, called \emph{codes}, that summarise the past and are used by the observer to predict the future.
-Formally, $Z$ needs to be independent pf the future $\overrightarrow{X}$ conditional on the past $\overleftarrow{X}$. Symbolically, 
+Formally, $Z$ needs to be independent of the future $\overrightarrow{X}$ conditional on the past $\overleftarrow{X}$. Symbolically, 
 \begin{equation}\label{eq:markov}
 	Z \bot \overrightarrow{X} | \overleftarrow{X}
 \end{equation}
@@ -425,14 +425,14 @@ From this, one can obtain the conditional distribution over future observations 
 \begin{equation}
 	\label{eq:cond-fut}
 	\begin{split}
-	P(X_{0\dots M-1}|Z) &= \frac{p(X_{0\dots M-1}, Z)}{p(Z)} \\
+	P(X_{0\dots M-1}|Z) &= \frac{P(X_{0\dots M-1}, Z)}{P(Z)} \\
 	&= \frac{\E_{X_{-M \dots -1}} P_\phi(X_{0\dots M-1}, Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
 	&=^{(*)} \frac{\E_{X_{-M \dots -1}}   P(X_{0\dots M-1}|X_{-M\dots-1})     P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
 	&= \frac{\E_{X_{-M \dots M-1}} P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})}
 	\end{split}
 \end{equation}
 where $(*)$ uses the Markov condition.
-However, neither of the two expectations is tractable,  as they require summation over exponentially many sequences.
+However, neither of the two expectations is tractable, as they require summation over exponentially many sequences.
 If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, algorithms (e.g., dynamic programming) to compute this sum efficiently are not available.
 
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
@@ -444,12 +444,13 @@ If we fix a stochastic process $(X_t)_t$ and an encoder $\phi$, then---for \emph
 \begin{proposition}
 The loss incurred when predicting the future from $Z$ via $\psi$ upper-bounds the true conditional entropy of the future given $Z$, when predicting using the exact conditional (\ref{eq:cond-fut}):
 \begin{equation}\label{ineq1}
-	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | z)\right] \geq \operatorname{H}[X_{1\dots M-1}|Z]
+	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] \geq \operatorname{H}[X_{1\dots M-1}|Z]
 \end{equation}
-Furthermore, equality is attained if and only if $\psi(X_{0\dots M-1}|Z) = P(X_{0\dots M-1}|Z)$.
+Furthermore, equality is attained if and only if $P_\psi(X_{0\dots M-1}|Z) = P(X_{0\dots M-1}|Z)$. % (as defined in~(\ref{eq:cond-fut})).
 \end{proposition}
 
 \begin{proof}
+By Gibbs' inequality:
 \begin{align*}
 	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | z)\right] & \geq -	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P(X_{0\dots M-1} | z)\right]\\
 	&= \operatorname{H}[X_{1\dots M-1}|Z].
@@ -460,7 +461,7 @@ Furthermore, equality is attained if and only if $\psi(X_{0\dots M-1}|Z) = P(X_{
 The KL Divergence between $P(Z|X)$ and $q(Z)$, averaged over $X$, upper-bounds the mutual information between $Z$ and the past observations:
 \begin{equation}\label{ineq2}
 \begin{aligned}
-	\mathbb{E}_{X}\left[ \operatorname{D_{KL}}(\infdiv{P(Z|X)}{q(Z)})\right] &=   \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P_\phi(Z|X_{-M\dots -1})}{q(Z)}  \\
+	\mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right] &=   \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P_\phi(Z|X_{-M\dots -1})}{q(Z)}  \\
 	& \geq  \mathbb{E}_{X} \mathbb{E}_{Z|X} \log \frac{P(Z|X_{-M\dots -1})}{P(Z)}  \\
 	& = \operatorname{I}[X_{-M\dots 0},Z].
 \end{aligned}
@@ -470,8 +471,8 @@ Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) =
 
 Therefore, the predictive rate-distortion objective is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P(X_{0\dots M} | z)\right] + \lambda \cdot \operatorname{D_{KL}}(\infdiv{\phi(X_{-M\dots-1})}{q})\right],
-\end{equation}
+	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{\phi(X_{-M\dots-1})}{q}\right],
+\end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
 To carry out this optimization, we will restrict to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
 The values obtained for the resulting $\phi, \psi, q$ satisfy the bounds in (\ref{ineq1}-\ref{ineq2}), and---if the family of approximators is sufficiently rich---can come close to turning these into equalities.
@@ -484,14 +485,14 @@ We will choose the approximating families for the encoder $\phi$, the decoder $\
 \paragraph{Encoder and Decoder}
 For $\phi$ and $\psi$, we used recurrent neural networks with LSTM cells \citep{hochreiter-long-1997}, widely used for modeling sequential data across different domains.
 We parameterize the distribution $\phi(X_{-M\dots-1})$ as a Gaussian whose mean and variance are computed from the past $X_{-M\dots-1}$:
-We use a recurrent LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past $X_{-M\dots-1}$, and then compute
+We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past $X_{-M\dots-1}$, and then compute
 \begin{equation}
 	Z \sim \mathcal{N}(W_\mu h, (W_\sigma h)^2 I_{k\times k})
 \end{equation}
 where $W_\mu, W_\sigma \in \mathbb{R}^{k\times k}$ are parameters.
-While we found Gaussians sufficiently flexible for $\phi$, more powerful encoders could be constructed using using more flexible parametric families, such as normalizing flows \citep{rezende-variational-2015, kingma-improving-2016}.
+While we found Gaussians sufficiently flexible for $\phi$, more powerful encoders could be constructed using more flexible parametric families, such as normalizing flows \citep{rezende-variational-2015, kingma-improving-2016}.
 
-For the decoder $\psi$, we use a recurrent LSTM network to compute a sequence of vector representations $g_t$ from the code $z$ and the prefix $X_{1\dots t-1}$ for $t = 1, \dots T$, and set
+For the decoder $\psi$, we use a second LSTM network to compute a sequence of vector representations $g_t$ from the code $z$ and the prefix $X_{1\dots t-1}$ for $t = 1, \dots T$, and set
 \begin{equation}
 	\psi(x_t = s_i|x_{1...t-1}, z) \propto \exp((W_o g_t)_i)
 \end{equation}
@@ -541,7 +542,7 @@ In the neural networks literature, the most commonly used method using variation
 
 \subsection{Discusion}
 
-NPRD provably provides \emph{upper bounds} on the predictive rate-distortion curve, up to sampling error.
+NPRD \emph{provably} provides \emph{upper bounds} on the predictive rate-distortion curve, up to sampling error.
 This makes it possible to objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve (up to sampling error).
 
@@ -555,8 +556,9 @@ As discussed above, OCE overestimates structure in the process due to overfittin
 To address this, and to enable fair comparison between OCE and our neural method, we follow the evaluation method used for NPRD, evaluating rate and distortion on held-out data:
 We estimate rate using the variational bound that we stated in Proposition~\ref{ineq2}:
 \begin{equation}
-\frac{1}{N} \sum_{i=1}^N \operatorname{D_{KL}}(\infdiv{q(\cdot|x_i)}{s(\cdot)})
+\frac{1}{N} \sum_{i=1}^N \operatorname{D_{KL}}\infdivx{q(\cdot|x_i)}{s(\cdot)}
 \end{equation}
+\textbf{Is $s$ defined anywhere? same for $r$?}
 We estimate the prediction loss on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
 \begin{equation}
 \frac{1}{N} \sum_{i=1}^N \E_{z \sim q(\cdot|x_i)} \log r(y_i|z).
@@ -636,10 +638,10 @@ Bounding the tradeoff curve using the sets of runs of NPRD results in a close fi
 \end{figure*}
 
 \paragraph{Recovering Causal States}
-Does NPRD lead to inpretable codes $Z$?
+Does NPRD lead to interpretable codes $Z$?
 To answer this, we further investigated the NPRD approximation to the Random Insertion Process (RIP), obtained in the previous paragraph.
 The $\epsilon$-machine was computed by  \cite{marzen-predictive-2016} and is given in Figure~\ref{fig:rip-machine} (right).
-The process has three caual states:
+The process has three causal states:
 A represents those pasts where the future starts with $1^{2k}0$ ($k = 0, 1, 2, \dots$) -- these are the pasts ending in either $001$ or $10111^m$ ($m= 0, 1, 2, \dots$). % but cannot go in with 10
 B represents those pasts ending in 10 -- the future has to start with 01 or 11.
 C represents those pasts ending in either 00 or 01 -- the future has to start with $1^{2k+1}0$ ($k = 0, 1, 2, \dots$).
@@ -665,7 +667,7 @@ The three causal states are represented by the three different modes of $Z$, and
 \begin{figure*}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_2.png}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3.png}
-	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.25$ and $\lambda = 0.6$. Samples are colored according to the states in the $\epsilon$ machine. Black samples belong to sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C).}\label{fig:latent}
+	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.25$ and $\lambda = 0.6$. We show the first two principal components. Samples are colored according to the states in the $\epsilon$ machine. There is a small number of samples from sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C); these are indicated in black.}\label{fig:latent}
 \end{figure*}
 % colors = [{"A" : "red", "B" : "green", "C" : "blue", "U" : "black"}[x] for x in states]
 
