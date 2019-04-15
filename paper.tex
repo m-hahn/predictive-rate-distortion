@@ -64,7 +64,7 @@
 
 \author{Michael Hahn, Richard Futrell}
 
-\title{Estimating Predictive Rate-Distortion via Neural Variational Inference}
+\title{Estimating Predictive Rate-Distortion Curves via Neural Variational Inference}
 \date{2018}
 
 \begin{document}
@@ -79,13 +79,14 @@
 
 
 \begin{abstract}
-Predictive rate-distortion quantifies the tradeoff between compressing information about the past of a process and predicting its future well.
-Existing estimation methods cluster finite sequences of observations or utilize the causal states, when they are analytically known.
+The predictive rate-distortion curve quantifies the tradeoff between compressing information about the past of a stochastic process and predicting its future accurately.
+Existing estimation methods for this curve work by clustering finite sequences of observations or by utilizing analytically known causal states.
 Neither type of approach scales to processes such as natural languages, which have large alphabets and long dependencies, and where the causal states are not known analytically.
-	We describe Neural Predictive Rate Distortion (NPRD), an estimation method that scales to such processes, leveraging the universal approximation capabilities of neural networks.
+We describe Neural Predictive Rate Distortion (NPRD), an estimation method that scales to such processes, leveraging the universal approximation capabilities of neural networks.
 Taking only time series data as input, the method computes a variational bound on the predictive rate-distortion curve.
 We validate the method on processes where predictive rate-distortion is analytically known.
 As an application, we provide bounds on the predictive rate-distortion of natural language, improving on bounds provided by clustering sequences.
+Based on the results, we argue that the predictive rate-distortion curve is a useful complexity metric for highly complex processes such as natural language.
 \end{abstract}
 
 
@@ -241,7 +242,6 @@ In Section~\ref{sec:language}, we apply NPRD to data from five languages, provid
 
 \section{Predictive Rate-Distortion}\label{sec:background}
 
-
 We consider stationary stochastic processes $(X_t)_t$, taking values in a state space $S$.
 Given a reference point in time, say $T=0$, we are interested in the problem of predicting the future of $X_{t>0} = (X_1, X_2, ...)$ from the past $X_{t\leq 0} = (..., X_{-1}, X_0)$.
 In general -- unless the observations $X_t$ are independent -- predicting the future of the process accuractely will require taking into account the past observations.
@@ -254,7 +254,7 @@ The term \emph{rate} refers to the amount of past information being taken into a
 
 
 The problem of predictive rate-distortion has been formalized by a range of studies.
-A principled and general formalization is provided by applying the Information Bottleneck idea \citep{tishby-information-1999, still-optimal-2010, marzen-predictive-2016}:
+A principled and general formalization is provided by applying the Information Bottleneck idea \citep{tishby-information-1999, still-optimal-2010,marzen-predictive-2016}:
 We will write $\overleftarrow{X}$ for the past $X_{\leq 0}$, and $\overrightarrow{X}$ for the future $X_{> 0}$, following \cite{marzen-predictive-2016}.
 We consider random variables $Z$, called \emph{codes}, that summarise the past and are used by the observer to predict the future.
 Formally, $Z$ needs to be independent of the future $\overrightarrow{X}$ conditional on the past $\overleftarrow{X}$. Symbolically, 
@@ -344,10 +344,11 @@ Note that this definition is not measure-theoretically rigorous; such a treatmen
 
 The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \emph{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
 The \emph{Statistical Complexity} of a process is the state entropy of the $\epsilon$ machine.
-Statistical complexity can be computed easiy if the $\epsilon$-machine is given, but estimating statistical complexity from time series is challenging~\citep{clarke2003application}.
+Statistical complexity can be computed easiy if the $\epsilon$-machine is analytically known, but estimating statistical complexity from time series is very challenging and appears to at least require additional assumptions about the process~\citep{clarke2003application}.
 
-The problem of estimating statistical complexity, and the $\epsilon$-machine, is related to Predictive Rate-Distortion.
-\citet{marzen-predictive-2016} show that predictive rate-distortion is equivalent to the problem of compressing causal states, i.e. equivalence classes of pasts, to predict causal states of the backwards process, i.e., equivalence classes of futures.
+%There are mor relations between the $\epsilon$-machine and Predictive Rate-Distortion:
+%The problem of estimating statistical complexity, and the $\epsilon$-machine, is related to Predictive Rate-Distortion.
+\citet{marzen-predictive-2016} show that predictive rate-distortion can be computed when the $\epsilon$-machine is analytically known, by proving that it is equivalent to the problem of compressing causal states, i.e. equivalence classes of pasts, to predict causal states of the backwards process, i.e., equivalence classes of futures.
 Further, \cite{still-optimal-2010} show that, in the limit of $\lambda \rightarrow 0$, the code $Z$ that optimizes Predictive Rate-Distortion turns into the causal states.
 
 %The most generally applicable method for estimating statistical complexity and predictive rate distortion from time series data is Optima Causal Estimation.
@@ -412,16 +413,26 @@ Second, the cost of storing and evaluating the function approximators will scale
 This is crucial for modeling long dependencies.
 
 \subsection{Bound on Predictive Rate-Distortion}
-We will first describe the general method, without comitting to a specific framework for function approximation yet.
+We will first describe the general method, without committing to a specific framework for function approximation yet.
 The idea will be to construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
 
-Let us assume that an \emph{encoder} $\phi$ is given, expressed in a family of function approximators. 
-The encoder stochastically transforms observation sequences $x_{-M\dots -1}$ into a random code $Z \in \mathbb{R}^N$: 
+As in OCE (Section~\ref{sec:oce}), we assume that sample trajectories of length $2M$ are available and we aim to compress pasts of length $M$ to predict futures of length $M$:
+\begin{equation}\label{eq:ib-oce-repeat}
+	\max_{Z} \left( \operatorname{I}[X_{-M\dots -1}, Z] - \lambda \cdot \operatorname{I}[Z, X_{0\dots M-1}] \right)
+\end{equation}
+where $Z$ ranges over all random variables such that the Markov condition (REF) holds:
+\begin{equation}
+    Z\bot X_{0\dots M-1} | X_{-M\dots -1}
+\end{equation}
+
+When deploying such a predictive code $Z$, two components are required: a distribution $P(Z|X_{-M\dots -1})$ that \emph{encodes} past observations into a code $Z$, and a distribution $P(X_{0\dots M-1}|Z)$ that \emph{decodes} the code $Z$ into predictions about the future.
+
+Let us assume that an \emph{encoder} $\phi$ is given, expressed in some family of function approximators, which stochastically transforms observation sequences $x_{-M\dots -1}$ into a random code $Z \in \mathbb{R}^N$: 
 \begin{equation}
 Z = \phi(x_{-M\dots -1})
 \end{equation}
 distributed according to $Z \sim P_\phi(Z|x_{-M\dots -1})$.
-From this, one can obtain the conditional distribution over future observations via Bayes' rule: %, using the Markov condition: 
+From this, one can obtain the decoding distribution over future observations via Bayes' rule: %, using the Markov condition: 
 \begin{equation}
 	\label{eq:cond-fut}
 	\begin{split}
@@ -432,14 +443,21 @@ From this, one can obtain the conditional distribution over future observations 
 	\end{split}
 \end{equation}
 where $(*)$ uses the Markov condition.
-However, neither of the two expectations is tractable, as they require summation over exponentially many sequences.
+However, neither of the two expectations in the last line of~(\ref{eq:cond-fut}) is tractable, as they require summation over exponentially many sequences.
 If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, algorithms (e.g., dynamic programming) to compute this sum efficiently are not available.
 
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
-First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$.
-Second, to approximate $P(X_{0\dots M-1}|Z)$, we introduce a parameterized decoder $\psi$ that maps points in $\mathbb{R}^N$  into probability distributions over sequences $x_{0\dots M-1}$.
+First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$:
+\begin{equation}
+q(Z) \text{ approximates } P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})
+\end{equation}
+Second, to approximate the decoding distribution $P(X_{0\dots M-1}|Z)$, we introduce a parameterized decoder $\psi$ that maps points $Z \in \mathbb{R}^N$  into probability distributions $P_\psi(X_{0\dots M-1}|Z)$ over future observations $X_{0\dots M-1}$:
+\begin{equation}
+P_\psi(X_{0\dots M-1}|Z)  \text{ approximates }  P(X_{0\dots M-1}|Z)
+\end{equation}
+for each code $Z \in \mathbb{R}^N$.
 
-If we fix a stochastic process $(X_t)_t$ and an encoder $\phi$, then---for \emph{any} choice of these functions $\psi$ and $q$---the following two bounds hold.
+If we fix a stochastic process $(X_t)_t$ and an encoder $\phi$, then the following two bounds hold for \emph{any} choice of the decoder $\psi$ and the distribution $q$:
 
 \begin{proposition}
 The loss incurred when predicting the future from $Z$ via $\psi$ upper-bounds the true conditional entropy of the future given $Z$, when predicting using the exact conditional (\ref{eq:cond-fut}):
@@ -469,13 +487,34 @@ The KL Divergence between $P(Z|X)$ and $q(Z)$, averaged over $X$, upper-bounds t
 Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) = \E_{X_{-M \dots -1}} \phi(Z|X_{-M \dots -1})$.
 \end{proposition}
 
-Therefore, the predictive rate-distortion objective is equivalent to
+We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) in a way amenable to using function approximators.
+Note that the the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) can equivalently be written as
+\begin{equation}\label{eq:prd-recall}
+	\min_{Z : Z \bot X_{0\dots M} | X_{-M\dots-1}}	\left[H[X_{0\dots M} | Z] + \lambda I[Z, X_{-M\dots-1}]\right]
+\end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
+By the two Propositions, this objective is equivalent to
 \begin{equation}\label{eq:bound}
 	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{\phi(X_{-M\dots-1})}{q}\right],
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
-where $\phi, \psi, q$ range over all triples of the appropriate types described above.
-To carry out this optimization, we will restrict to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
-The values obtained for the resulting $\phi, \psi, q$ satisfy the bounds in (\ref{ineq1}-\ref{ineq2}), and---if the family of approximators is sufficiently rich---can come close to turning these into equalities.
+where $\phi, \psi, q$ range over all triples of the appropriate types described above. From a solution to (\ref{eq:bound}), one obtains a solution to (\ref{eq:prd-recall}) by setting $Z$ to be the code generated by the encoder $\phi$.
+The second proposition guarantees that, for a solution to  (\ref{eq:prd-recall}), the rate of this code is given as follows
+\begin{equation}\label{eq:eq1-new}
+ I[Z, X_{-M\dots-1}] =   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right]
+\end{equation}
+and the distortion is given by
+\begin{equation}\label{eq:eq2-new}
+  H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
+\end{equation}
+If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have upper bounds on rate and distortion for the code $Z$ generated by $\phi$:
+\begin{equation}\label{eq:bound1-new}
+ I[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right]
+\end{equation}
+\begin{equation}\label{eq:bound2-new}
+  H[X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
+\end{equation}
+
+To carry out the optimization~(\ref{eq:bound}), we will restrict $\phi, \psi, q$ to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
+While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and -- if the family of approximators is sufficiently rich---can come close to turning these into the equalities  (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
 
 That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the true Bayes optimal decoder and marginal. 
 
@@ -486,7 +525,7 @@ We will choose the approximating families for the encoder $\phi$, the decoder $\
 For $\phi$ and $\psi$, we used recurrent neural networks with LSTM cells \citep{hochreiter-long-1997}, widely used for modeling sequential data across different domains.
 We parameterize the distribution $\phi(X_{-M\dots-1})$ as a Gaussian whose mean and variance are computed from the past $X_{-M\dots-1}$:
 We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past $X_{-M\dots-1}$, and then compute
-\begin{equation}
+\begin{equation}\label{eq:z-gauss}
 	Z \sim \mathcal{N}(W_\mu h, (W_\sigma h)^2 I_{k\times k})
 \end{equation}
 where $W_\mu, W_\sigma \in \mathbb{R}^{k\times k}$ are parameters.
@@ -498,6 +537,7 @@ For the decoder $\psi$, we use a second LSTM network to compute a sequence of ve
 \end{equation}
 where $s_i$ is an element of the state space $S$, indexed by $i=1, ..., |S|$, and $W_o \in \mathbb{R}^{k \times |S|}$ is a parameter.
 
+TODO how is the input space encoded, embeddings
 
 \paragraph{Marginal $q$}
 For $q$, we choose the family of \emph{Neural Autoregressive Flows} \citep{huang-neural-2018}. 
@@ -505,48 +545,71 @@ This is a parametric family of distributions that allows efficient estimation of
 This method widely generalizes a family of prior methods \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
 
 
-\paragraph{Optimization}
-We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for (\ref{eq:bound}) using Backpropagation and Adam \citep{kingma-adam:-2014}, a standard and widely used method for optimizing neural networks.
-During optimization, we approximate the gradient by taking a single sample from $z$ per sample trajectory and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
+\paragraph{Optimization and Evaluation}
+We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for (\ref{eq:bound}) using Backpropagation and Adam \citep{kingma-adam:-2014}, a standard and widely used gradient descent-based method for optimizing neural networks.
+During optimization, we approximate the gradient by taking a single sample from $Z$ (\ref{eq:z-gauss}) per sample trajectory $x_{-M}, \dots, x_M$ and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
 
 Following standard practice in machine learning, we split the data into three partitions (\emph{training set}, \emph{validation set}, and \emph{test set}).
 We use the training set for optimizing the parameters.
-After every pass through the training set, the objective is evaluated on the validation set; optimization terminates once the value on the held-out set does not improve any more.
-After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
+After every pass through the training set, the objective (\ref{eq:bound}) is evaluated on the validation set using a Monte Carlo estimate with one sample $z$ per trajectory; optimization terminates once the value on the held-out set does not decrease any more.
+%After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
 
 
-\paragraph{Evaluating}
-After optimizing the parameters on a set of observed trajectories, we evaluate it on the test set to estimate (\ref{eq:bound}).
-Given parameters for $\phi, \psi, q$, we evaluate the objective~(\ref{eq:bound}) on the dataset by taking, for each timeseries $X_{-M}...X_M$, a single sample of $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing
-\begin{equation}\label{eq:bound-mc}
-	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P(X_{0\dots M} | z_{-M...-1}) + \lambda \cdot \log \frac{\mathcal{N}(\mu, \sigma^2)(z)}{q(z)}
+%\paragraph{Evaluation}
+After optimizing the parameters on a set of observed trajectories, we estimate rate and distortion on the test set.
+Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and distortion (\ref{eq:bound2-new}) on the test set by taking, for each timeseries $X_{-M}...X_M$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
+\begin{equation}\label{eq:bound-mc-rate}
+\mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right] \approx	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}  \log \frac{p_{\mathcal{N}(\mu, \sigma^2)}(z)}{q(z)}
 \end{equation}
-When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
-It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
-(\ref{eq:bound-mc}) is an \emph{unbiased} estimator of an upper bound.
-The magnitude of the estimation error can be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$---unlike overfitting affecting OCE, which \emph{biases} the values obtained.
+where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density, and distortion
+\begin{equation}\label{eq:bound-mc-distortion}
+ -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right] \approx \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P(X_{0\dots M} | z_{-M...-1})
+\end{equation}
+%and the PRD objective
+%\begin{equation}\label{eq:bound-mc}
+%	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P(X_{0\dots M} | z_{-M...-1}) + \lambda \cdot \log \frac{\mathcal{N}(\mu, \sigma^2)(z)}{q(z)}
+%\end{equation}
+%Note that one can go from distortion to predictiveness by estimating
+Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guaranteed to be \emph{upper bounds} on the true rate and distortion achieved by the code $Z  \sim \mathcal{N}(\mu, \sigma^2)$, up to sampling error introduced into the Monte Carlo estimation by sampling $z$ and the finite size of the test set.
+%The resulting value of (\ref{eq:bound-mc}) is guaranteed to be an \emph{upper bound} on the true objective (\ref{eq:prd-recall}), up to sampling error introduced by sampling $z$ and the finite size of the test set.
+%When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 
+It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
+(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators upper bounds, whereas overfitting \emph{biases} the values obtained by OCE.
+
+
+Given that NPRD \emph{provably} provides \emph{upper bounds} on the predictive rate-distortion curve (up to sampling error), one can objectively compare the quality of different estimation methods:
+Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
+
+%The magnitude of the estimation error could be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$---
+
+
+
+%\begin{equation}\label{eq:bound1-new}
+% I[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right]
+%\end{equation}
+%\begin{equation}\label{eq:bound2-new}
+%  H[X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
+%\end{equation}
 
 
 
 \subsection{Related Work}
 In (\ref{eq:bound}), we derived a variational formulation of predictive rate-distortion.
-This is equivalent to a variational formulation of the Information Bottleneck introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
-Unlike our approach, they used a fixed diagonal Gaussian instead of a parameterized distribution for $q$.
-As far as we are aware, no previous work has used this formulation in the modeling of sequences.
+This is formally equivalent to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
+Unlike our approach, they used a fixed diagonal Gaussian instead of a parametrized distribution for $q$.
+As far as we are aware, no previous work has used such a formulation in the modeling of sequences.
 
-In the neural networks literature, the most commonly used method using variational bounds similar to ours is the Variational Autoencoder \citep{kingma-auto-encoding-2014}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
+In the neural networks literature, the most commonly used method using variational bounds similar to (\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
 
 
 
-\subsection{Discusion}
+%\subsection{Discusion}
 
-NPRD \emph{provably} provides \emph{upper bounds} on the predictive rate-distortion curve, up to sampling error.
-This makes it possible to objectively compare the quality of different estimation methods:
-Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve (up to sampling error).
 
 \section{Experiments}\label{sec:experiments}
+We now test the ability of NPRD to estimate rate-distortion curves.
 
 \subsection{Setup}
 
@@ -765,7 +828,7 @@ We have seen that NPRD recovers the correct tradeoff, and the structure of the c
 How does it behave when the number of causal states is very large?
 In particular, is it capable of extrapolating to causal states that were never seen during training?
 
-We consider the following process, which we'll call \textsc{Copy3}: $X_{-15}, ..., X_{-1}$ are independent uniform draws from $\{1,2,3\}$, and $X_1 = X_{-1}, ..., X_{15} = X_{-15}$.
+We consider the following process, which we will call \textsc{Copy3}: $X_{-15}, ..., X_{-1}$ are independent uniform draws from $\{1,2,3\}$, and $X_1 = X_{-1}, ..., X_{15} = X_{-15}$.
 This process deviates a bit from our usual setup since we defined it only for $t \in \{-15, ..., 15\}$, but it is well-suited to investigating this question:
 The number of causal states is $3^{15} \approx 14$ million.
 With exactly the same setup as for the \textsc{Even} and \textsc{RIP} processes, NPRD achieved essentially zero distortion on unseen data, even though the number of training samples (3 Million) was far lower than the number of distinct causal states.
@@ -795,7 +858,7 @@ We consider the problem of estimating rate-distortion for Natural Language.
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
 Much interest has been devoted to estimating the entropy rate of natural language~\citep{shannon1951prediction,takahira2016entropy,bentz2017entropy,takahashi2018cross}.
 Indeed, the information density of language has been linked to human processing effort and to language structure.
-The word-by-word information content has been shown to impact human processing effort as measured both by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013} and by neural EEG signals~\citep{DBLP:conf/acl/FrankOGV13, kuperberg2016we}.
+The word-by-word information content has been shown to impact human processing effort as measured both by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013} and by brain signals measured through EEG~\citep{DBLP:conf/acl/FrankOGV13, kuperberg2016we}.
 Consequently, prediction is a fundamental component across theories of human language processing  \citep{kuperberg2016we}.
 Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz, genzel2002entropy, jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
@@ -819,7 +882,7 @@ The idea that predicting future words creates a need to represent the past well 
 We study prediction at the range of the words in individual sentences.
 As in the previous experiments, we limit our computations to sequences of length 30, already improving over OCE by an order of magnitude.
 One motivation is that, when directly estimating PRD, computational cost has to increase with the length of sequences considered, making the consideration of sequences of hundreds or thousands of words computationally infeasible.
-Another motivation for this is that we are ultimately interested in predictive rate distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models \citep{gibson-linguistic-1998,futrell-noisy-context-2017} and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
+Another motivation for this is that we are ultimately interested in predictive rate distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models of how humans proess individual sentences \citep{gibson-linguistic-1998,futrell-noisy-context-2017}, and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
 
 %Fenk-Oczlon, G. Familiarity, information flow, and linguistic form. In Frequency and the Emergence of Linguistic Structure; Bybee, J.L., Hopper, P.J., Eds.; John Benjamins: Amsterdam, The Netherlands, 2001; pp. 431–448.
 
@@ -829,7 +892,7 @@ Another motivation for this is that we are ultimately interested in predictive r
 \subsection{Part-of-speech-level language modeling}\label{sec:pos}
 
 We first consider the problem of predicting English on the level of Part-of-Speech (POS) tags, using the Universal POS tagset \citep{petrov-universal-2012}. 
-This is a simplified setting where the vocabulary is small (20), and one can hope that OCE will produce reasonable results.
+This is a simplified setting where the vocabulary is small (20 word types), and one can hope that OCE will produce reasonable results.
 We use the English portions of the Universal Dependencies Project~\citep{nivre-universal-2017} tagged with Universal POS Tags \citep{petrov-universal-2012}, consisting of approximately 586K words.
 We used the training portions to estimate NPRD and OCE, and the validation portions to estimate rate-distortion.
 We used NPRD to generate 350 codebooks for values of $\lambda$ sampled from [0,0.4].
@@ -938,11 +1001,11 @@ In any case, the results show that natural language shows an approximately linea
 Why might language show such behavior?
 We will describe a proposal:
 Let us assume that the causal states of natural language are the singletons $\overleftarrow{X}$, that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
-Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ achieves predictiveness \rljf{Write out what the min is doing logically: when $t$ exceeds $T$ we multiply only by $T$ (I'm not sure why). Also maybe subscript $P_T$}
+Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ achieves predictiveness %\rljf{Write out what the min is doing logically: when $t$ exceeds $T$ we multiply only by $T$ (I'm not sure why). Also maybe subscript $P_T$}
 \begin{equation}
 	P =	\operatorname{I}[X_{-T...-1}, \overrightarrow{X}]
 \end{equation}
-By writing $I_t := \operatorname{I}[X_0, X_t | X_1 ... X_{t-1}]$, and repeatedly applying the chain rule of conditional mutual infomation, we obtain
+By writing $I_t := \operatorname{I}[X_0, X_t | X_1 ... X_{t-1}]$, and repeatedly applying the chain rule of conditional mutual information, we obtain
 \begin{equation}
 	P = \sum_{t_- = -T}^{-1} \sum_{t_+ = 0}^\infty \operatorname{I}[X_{t_+},X_{t_-}|X_{t_-+1}\dots X_{t_+-1}] = \sum_{t_- = -T}^{-1} \sum_{t_+ = 0}^\infty I_{t_+-t_-}  = \sum_{t=1}^\infty \min(t,T) I_t = E_0 - \sum_{t > T} (t-T) I_t
 \end{equation}
@@ -952,44 +1015,44 @@ The code has rate
 \begin{equation}
 	R =	\operatorname{H}[X_{-T...-1}]
 \end{equation}
-which is lower bounded by $T$ times the entropy rate: $R \approx T \cdot \operatorname{H}[X_0|\overleftarrow{X}]$, and thus is unbounded (if the entropy rate is nonzero).
+which is lower bounded by $T$ times the entropy rate: $R \approx T \cdot \operatorname{H}[X_0|\overleftarrow{X}]$, and thus is unbounded, assuming that the entropy rate is nonzero.
 %TODO \rljf{A few cites on previous work arguing about whether natural language has nonzero entropy rate. A conference paper by Ryosuke Takahira has a lit review}
 
-Approximating $t$ as a continuous variable, we can write
-\begin{equation}
-	P =	E_0 - \int_{t > T} (t-T) I_t
-\end{equation}
-\begin{equation}
-	\frac{\partial P}{\partial T} =	\int_{t > T} I_t
-\end{equation}
-\begin{equation}
-	\frac{\partial R}{\partial T} \approx \operatorname{H}[X_0|\overleftarrow{X}]
-\end{equation}
-and thus
-\begin{equation}
-	\frac{\partial P}{\partial R} \approx	\frac{1}{\operatorname{H}[X_0|\overleftarrow{X}]} \int_{t > T} I_t
-\end{equation}
-Matching this with~(\ref{eq:derivatives}), we get
-\begin{equation}
-	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\overleftarrow{X}])^{1/\beta}\right) \propto \int_{t > T} I_t
-\end{equation}
-and thus
-\begin{equation}
-I_t \propto T^{1/\beta-1}	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\overleftarrow{X}])^{1/\beta}\right)
-\end{equation}
+%Approximating $t$ as a continuous variable, we can write
+%\begin{equation}
+%	P =	E_0 - \int_{t > T} (t-T) I_t
+%\end{equation}
+%\begin{equation}
+%	\frac{\partial P}{\partial T} =	\int_{t > T} I_t
+%\end{equation}
+%\begin{equation}
+%	\frac{\partial R}{\partial T} \approx \operatorname{H}[X_0|\overleftarrow{X}]
+%\end{equation}
+%and thus
+%\begin{equation}
+%	\frac{\partial P}{\partial R} \approx	\frac{1}{\operatorname{H}[X_0|\overleftarrow{X}]} \int_{t > T} I_t
+%\end{equation}
+%Matching this with~(\ref{eq:derivatives}), we get
+%\begin{equation}
+%	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\overleftarrow{X}])^{1/\beta}\right) \propto \int_{t > T} I_t
+%\end{equation}
+%and thus
+%\begin{equation}
+%I_t \propto T^{1/\beta-1}	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\overleftarrow{X}])^{1/\beta}\right)
+%\end{equation}
 
 
 \subsection{Word-level language modeling}
 
 
-We have applied NPRD to the problem of predicting English on the level of parts of speech in Section~\ref{sec:pos}.
+We have applied NPRD to the problem of predicting English on the level of part-of-speech tags in Section~\ref{sec:pos}.
 %We verified that NPRD matches OCE in the low-rate regime where OCE is still applicable, and we fitted 
 We found that the resulting curves were described well by Equation~\ref{eq:derivatives}.
 %\begin{equation}\label{eq:derivatives}
 %	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
 %\end{equation}
 We now consider the more realistic problem of prediction at the level of words, using data from multiple languages.
-This problem is much closer to the task faced by a human in the process of comprehending text, having to encode prior observations so as to minimize surprisal on the upcoming words.
+This problem is much closer to the task faced by a human in the process of comprehending text, having to encode prior observations so as to minimize prediction error on the upcoming words.
 We will examine whether Equation~\ref{eq:derivatives} describes the resulting tradeoff in this more realistic setting, and whether it holds across languages.
 
 For the setup, we followed standard setup for recurrent neural language modeling.
@@ -1001,21 +1064,22 @@ We do this for simplicity and to stay close to standard practice in natural lang
 We used data from five diverse languages.
 For English, we turn to the Wall Street Journal portion of the Penn Treebank \citep{marcus-building-1993}, a standard benchmark for language modeling, containing about 1,2 Million tokens.
 For Arabic, we pooled all relevant portions of the Universal Dependencies treebanks~\citep{nivre-universal-2016,maamouri2004penn, hajic2004prague}. We obtained 1 Million tokens.
-We applied the same method to construct a Russian corpus~\citep{syntagrus}, obtaining 1,2 Million tokens.
+We applied the same method to construct a Russian corpus~\citep{syntagrus}, obtaining 1.2 Million tokens.
 For Chinese, we use the Chinese Dependency Treebank~\citep{che2012chinese}, containing 0.9 Million tokens.
 For Japanese, we use the first 2 Million words from a large processed corpus of Japanese business text~\citep{graff1995japanese}.
 For all these languages, we used the predefined splits into training, validation, and test sets.
 
-For each language, we sampled about 120 values of $\log \lambda$ from $[-6, 0]$ and applied NPRD to these.
+For each language, we sampled about 120 values of $\log \frac{1}{\lambda}$ from $[-6, 0]$ and applied NPRD to these.
 The resulting curves are shown in Figures~\ref{fig:wordlevel-fit-1}-\ref{fig:wordlevel-fit-2}, together with fitted curves resulting from Equation~\ref{eq:derivatives}.
-As can be seen, the curves are qualitatively very similar across languages:
+As can be seen, the curves are qualitatively very similar across languages to what we observed in Figure~\ref{fig:eng-pos-fitted}:
 In all languages, rate initially scales linearly with predictiveness, but diverges as the predictiveness approaches its supremum $E_0$.
 As a function of $\log \frac{1}{\lambda}$, rate grows at slightly superlinear speed, confirming our ansatz (\ref{eq:r-alpha-beta}).
 
 These results confirm our results from Section~\ref{sec:pos}:
 NPRD reports rates up to $\approx$ 60 nats, more than ten times the largest values of predictiveness.
 On the other hand, the growth of rate with predictiveness is relatively gentle in the low-rate regime.
-At the level of individual sentences, prediction can be approximated with small memory capacity, but more accurate prediction requires very fine-grained memory representations.
+%At the level of individual sentences, prediction
+We conclude that predicting words in natural language can be approximated with small memory capacity, but more accurate prediction requires very fine-grained memory representations.
 
 %
 %\begin{table}
@@ -1165,6 +1229,7 @@ Unlike OCE, the most general prior method, NPRD scales to long sequences and lar
 On analytically tractable processes, we show that it closely fits the analytical rate-distortion curve and recovers the causal states of the process.
 On POS-level modeling of natural language, it agrees with OCE in the setting of low rate and short sequences; outside these settings, OCE fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
 Finally, we use NPRD to provide the first estimates of predictive rate-distortion for modeling natural language.
+%Results suggest that prediction can be approximated with sim, but more accurate prediction requires very fine-grained memory representations.
 
 
 \bibliographystyle{apalike}
