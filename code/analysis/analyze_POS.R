@@ -1,24 +1,14 @@
+library(tidyr)
+library(dplyr)
+library(ggplot2)
 
 
 
-    data = read.csv("~/CS_SCR/results-en-upos-neuralflow.tsv", sep="\t")
-    library(tidyr)
-    library(dplyr)
-    library(ggplot2)
+data = read.csv("~/CS_SCR/results-en-upos-neuralflow.tsv", sep="\t")
+dataD = read.csv("~/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
+
 data$Horizon = 15
-
 data = data %>% filter(Memories < UpperBound)
-
-plot = ggplot(data, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
-
-plot = ggplot(data, aes(x=avg16, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
-
-    dataD = read.csv("~/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
-    library(tidyr)
-    library(dplyr)
-    library(ggplot2)
-
-
 
 
 dataU = data %>% filter(Language == "English")
@@ -115,14 +105,16 @@ ggsave("figures/english-nlogbeta-mem-fitted.pdf", plot=plot)
 
 
 
+library(tidyr)
+library(dplyr)
+library(ggplot2)
 
 
 
 
-    data = read.csv("~/CS_SCR/results-en-upos-neuralflow.tsv", sep="\t")
-    library(tidyr)
-    library(dplyr)
-    library(ggplot2)
+data = read.csv("~/CS_SCR/results-en-upos-neuralflow.tsv", sep="\t")
+dataD = read.csv("~/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
+
 data$Horizon = 15
 
 data = data %>% filter(Memories < UpperBound)
@@ -130,11 +122,6 @@ data = data %>% filter(Memories < UpperBound)
 plot = ggplot(data, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
 
 plot = ggplot(data, aes(x=avg16, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
-
-    dataD = read.csv("~/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
-    library(tidyr)
-    library(dplyr)
-    library(ggplot2)
 
 
 

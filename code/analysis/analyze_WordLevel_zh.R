@@ -1,15 +1,17 @@
 
-data = read.csv("~/CS_SCR/results-en-upos-neuralflow-test.tsv", sep="\t")
-    library(tidyr)
-    library(dplyr)
-    library(ggplot2)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+
+
+data = read.csv("../../results-en-upos-neuralflow-test.tsv", sep="\t")
 data$Horizon = 15
 
 data$PastSurp = 15*data$FutureSurp+data$EE
 
 data = data %>% filter(Memories < UpperBound) #can also take UpperBound2
 data = data %>% mutate(Objective = Horizon * FutureSurp + Beta * Memories)
-
 data = data %>% filter(model != "REVERSE")
 
 
@@ -19,38 +21,10 @@ data = data %>% filter(model != "REVERSE")
 
 
 dataU = data %>% filter(Language == "LDC2012T05")
-plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-surp-mem.pdf")
-
-plot = ggplot(dataU, aes(x=avg16, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-16-mem.pdf")
-
-plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()   + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-ee-mem.pdf")
-
-plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-beta-mem.pdf")
-
-plot = ggplot(dataU, aes(x=log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()    + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-logbeta-mem.pdf")
-
-
-plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA)  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-logbeta-ee.pdf")
-
-plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-ee-mem.pdf")
-
-plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-beta-mem.pdf")
-
-plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-logbeta-mem.pdf")
 
 
 
-plot = ggplot(dataU, aes(x=log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + theme(legend.position="none") + ylim(0, NA) + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-logbeta-ee.pdf")
+####################################
 
 
 x = 6*(10:100)/100

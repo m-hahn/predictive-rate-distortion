@@ -1,15 +1,17 @@
 
-data = read.csv("~/CS_SCR/results-en-upos-neuralflow-test.tsv", sep="\t")
-    library(tidyr)
-    library(dplyr)
-    library(ggplot2)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+
+
+data = read.csv("../../results-en-upos-neuralflow-test.tsv", sep="\t")
 data$Horizon = 15
 
 data$PastSurp = 15*data$FutureSurp+data$EE
 
 data = data %>% filter(Memories < UpperBound) #can also take UpperBound2
 data = data %>% mutate(Objective = Horizon * FutureSurp + Beta * Memories)
-
 data = data %>% filter(model != "REVERSE")
 
 
@@ -17,23 +19,6 @@ data = data %>% filter(model != "REVERSE")
 #####################################################3
 
 dataU = data %>% filter(Language == "PTB")
-plot = ggplot(dataU, aes(x=FutureSurp, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/en-words-surp-mem.pdf")
-
-plot = ggplot(dataU, aes(x=avg16, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/en-words-16-mem.pdf")
-plot = ggplot(dataU, aes(x=avg17, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
-plot = ggplot(dataU, aes(x=avg18, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
-plot = ggplot(dataU, aes(x=avg19, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() 
-
-plot = ggplot(dataU, aes(x=EE, y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/en-words-ee-mem.pdf")
-
-plot = ggplot(dataU, aes(x=Beta, y=Memories, alpha=0.5)) + geom_point()+ theme_classic() + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/en-words-beta-mem.pdf")
-
-plot = ggplot(dataU, aes(x=-log(Beta), y=Memories, alpha=0.5)) + geom_point()+ theme_classic()  + theme(text = element_text(size=20), axis.text.x = element_text(angle=90, hjust=1))  + theme(legend.position="none")
-ggsave(plot, file="figures/en-words-logbeta-mem.pdf")
 
 # a=2.0
 # b=1.9
