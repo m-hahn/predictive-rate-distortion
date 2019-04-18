@@ -121,7 +121,7 @@
 % Affiliations / Addresses (Add [1] after \address if there is only one affiliation.)
 \address{%
 $^{1}$ \quad Stanford University; mhahn2@stanford.edu\\
-$^{2}$ \quad UC Irvine; futrell@uci.edu}
+$^{2}$ \quad UC Irvine; rfutrell@uci.edu}
 
 % Contact information of the corresponding author
 \corres{Correspondence: mhahn2@stanford.edu}
@@ -140,7 +140,7 @@ We describe Neural Predictive Rate Distortion (NPRD), an estimation method that 
 Taking only time series data as input, the method computes a variational bound on the predictive rate-distortion curve.
 We validate the method on processes where predictive rate-distortion is analytically known.
 As an application, we provide bounds on the predictive rate-distortion of natural language, improving on bounds provided by clustering sequences.
-Based on the results, we argue that the predictive rate-distortion curve is a useful complexity metric for highly complex processes such as natural language.}
+Based on the results, we argue that the predictive rate-distortion curve is more useful than the usual notion of statistical complexity for characterizing highly complex processes such as natural language.}
 
 % Keywords
 \keyword{Predictive rate-distortion; Natural language; Information bottleneck; Neural variational inference (list three to ten pertinent keywords specific to the article, yet reasonably common within the subject discipline.)}
@@ -152,7 +152,6 @@ Based on the results, we argue that the predictive rate-distortion curve is a us
 
 
 \begin{document}
-
 
 
 
@@ -200,16 +199,16 @@ However, this method faces a series of challenges~\citep{marzen-predictive-2016}
 One is the curse of dimensionality:
 Modeling long dependencies requires storing an exponential number of observations, which quickly becomes intractable for current computation methods.
 This exponential growth is particularly problematic when dealing with processes with a large state space.
-For instance, the number of words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
+For instance, the number of distinct words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
 A second challenge is that of overfitting:
 When deploying a predictive model constructed via OCE on new data to predict upcoming observations, such a model can only succeed when the past sequences occurred in the sample that OCE was applied to.
 This is because OCE relies on counts of full past and future observation sequences; it has no means to generalize to unseen past sequences.
 
-Traditional time series models representing processes taking continuous values are equipped to extrapolating to unseen pasts; however, such methods are less easily applied to discrete sequences such as natural language.
+Extrapolating to unseen past sequences is possible in traditional time series models representing processes that take continuous values; however, such methods are less easily applied to discrete sequences such as natural language.
 Recent research has seen a flurry of interest in using flexible nonlinear function approximators, and in particular recurrent neural networks, which can handle sequences with discrete observations.
 Such machine learning methods provide generic models of sequence data.
 They are the basis of the state of the art by a clear and significant margin for prediction in natural language \citep{DBLP:journals/corr/JozefowiczVSSW16, merity2018analysis, dai2019transformer,takahashi2018cross}.
-They also have been successfully applied to modeling many other kinds of time series found across discipline~\citep{ogunmolu2016nonlinear,laptev2017time,meyer2018survey,hundman2018detecting,white2018forecasting,woo2018dynamic,sirignano2018universal,mohajerin2019multistep}. %TODO more details
+They also have been successfully applied to modeling many other kinds of time series found across disciplines~\citep{ogunmolu2016nonlinear,laptev2017time,meyer2018survey,hundman2018detecting,white2018forecasting,woo2018dynamic,sirignano2018universal,mohajerin2019multistep}. %TODO more details
 % ,sirignano2018universal,hagge2017solving
 %, such as financial time series~\cite{} and purely theoretical chaotic dynamical systems
 
@@ -358,7 +357,7 @@ Two pasts $\overleftarrow{x}, \overleftarrow{x}'$ belong to the same causal stat
 Note that this definition is not measure-theoretically rigorous; such a treatment is provided by~\citet{lohr-properties-2009}.
 
 The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \emph{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
-The \emph{Statistical Complexity} of a process is the state entropy of the $\epsilon$ machine.
+The \emph{Statistical Complexity} of a process is the state entropy of the $\epsilon$-machine.
 Statistical complexity can be computed easily if the $\epsilon$-machine is analytically known, but estimating statistical complexity empirically from time series data is very challenging and seems to at least require additional assumptions about the process~\citep{clarke2003application}.
 
 %There are mor relations between the $\epsilon$-machine and Predictive Rate-Distortion:
@@ -523,7 +522,7 @@ The two equalities follow from the definition of KL Divergence and Mutual Inform
 Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
 \end{proof}
 
-We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) in a way amenable to using function approximators.
+We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:prd-loss}) in a way amenable to using function approximators.
 Recall the predictive rate-distortion objective~(\ref{eq:prd-loss})
 \begin{equation}\label{eq:prd-recall}
 	\min_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}}	\left[\operatorname{H}[X_{0\dots M-1} | Z] + \lambda \operatorname{I}[ X_{-M\dots-1}, Z]\right]
@@ -764,7 +763,7 @@ The three causal states are represented by the three different modes of $Z$, and
 \begin{figure*}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_2.png}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3.png}
-	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.6$ (left) and $\lambda = 0.25$ (right). We show the first two principal components. Samples are colored according to the states in the $\epsilon$ machine. There is a small number of samples from sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C); these are indicated in black.}\label{fig:latent}
+	\caption{Applying PCA to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.6$ (left) and $\lambda = 0.25$ (right). We show the first two principal components. Samples are colored according to the states in the $\epsilon$-machine. There is a small number of samples from sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C); these are indicated in black.}\label{fig:latent}
 \end{figure*}
 % colors = [{"A" : "red", "B" : "green", "C" : "blue", "U" : "black"}[x] for x in states]
 
@@ -790,7 +789,7 @@ The three causal states are represented by the three different modes of $Z$, and
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3_machine.png}
 
 
-	\caption{Recovering the $\epsilon$ machine from NPRD. Left: The $\epsilon$-machine of the Random Insertion Process, as described by~\cite{marzen-predictive-2016}. Right: After computing a code $Z$ from a past $x_{-15\dots-1}$, we recorded which of the three clusters the code moves to when appending the symbol $0$ or $1$ to the past sequence. The resulting transitions mirror those in the $\epsilon$-machine. }\label{fig:rip-machine}
+	\caption{Recovering the $\epsilon$-machine from NPRD. Left: The $\epsilon$-machine of the Random Insertion Process, as described by~\cite{marzen-predictive-2016}. Right: After computing a code $Z$ from a past $x_{-15\dots-1}$, we recorded which of the three clusters the code moves to when appending the symbol $0$ or $1$ to the past sequence. The resulting transitions mirror those in the $\epsilon$-machine. }\label{fig:rip-machine}
 \end{figure*}
 
 
@@ -1007,7 +1006,7 @@ Qualitatively, this says that $P$ asymptotes to a finite value, whereas $R$ is u
 %\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem-fitted.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-logbeta-mem-fitted.pdf}
 	\includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee-fitted.pdf}
-	\caption{Interpolated values for POS-level prediction of English (compare Figure~\ref{fig:eng-pos}) \textbf{[TODO sign of center figure]}}\label{fig:eng-pos-fitted}
+	\caption{Interpolated values for POS-level prediction of English (compare Figure~\ref{fig:eng-pos}) }\label{fig:eng-pos-fitted}
 \end{figure*}
 
 
@@ -1107,7 +1106,7 @@ In all languages, rate initially scales linearly with predictiveness, but diverg
 As a function of $\log \frac{1}{\lambda}$, rate grows at slightly superlinear speed, confirming our ansatz (\ref{eq:r-alpha-beta}).
 
 These results confirm our results from Section~\ref{sec:pos}.
-At the time scale of individual sentences, predictive rate-distortion of natural language is quantitatively described by Equation~\ref{eq:derivatives}.
+At the time scale of individual sentences, predictive rate-distortion of natural language appears to quantitatively follow Equation~\ref{eq:derivatives}.
 NPRD reports rates up to $\approx$ 60 nats, more than ten times the largest values of predictiveness.
 On the other hand, the growth of rate with predictiveness is relatively gentle in the low-rate regime.
 %At the level of individual sentences, prediction
