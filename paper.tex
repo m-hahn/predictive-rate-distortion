@@ -54,7 +54,7 @@
 \newcommand{\Ff}[0]{\mathcal{F}}
 
 \newif \ifcomment
-\commentfalse
+\commenttrue
 
 \newcommand{\soft}[1]{}
 \newcommand{\nopreview}[1]{}
@@ -97,9 +97,12 @@
   #1\;\delimsize\|\;#2%
 }
 \newcommand{\infdiv}{D\infdivx}
+\newcommand{\future}{\overrightarrow{X}}
+\newcommand{\past}{\overleftarrow{X}}
+\newcommand{\key}{\textbf}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
-
-
+\newcommand{\finitefuture}{X_{0\dots M-1}}
+\newcommand{\finitepast}{X_{-M\dots -1}}
 
 
 \Title{Estimating Predictive Rate-Distortion Curves via Neural Variational Inference}
@@ -153,6 +156,13 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 
 \begin{document}
 
+
+\rljf{Small formatting changes I made: \\
+* I prefer bold over italics when introducing terms, because when someone is visually scanning the paper looking for a definition, bold stands out much better. \\
+* Punctuation should be attached to equations as if they were part of the text (so sometimes periods and commas after equations) \\
+* no spaces between m-dashes---like this \\
+Also, something crazy is going on with the line numbers!
+}
 
 
 
@@ -223,7 +233,7 @@ In Section~\ref{sec:background}, we formally introduce predictive rate distortio
 In Section~\ref{sec:oce}, we describe the prior method of Optimal Causel Estimation (OCE).
 In Section~\ref{sec:nprd}, we describe our method NPRD.
 In Section~\ref{sec:experiments}, we validate NPRD on processes whose predictive rate distortion is analytically known, showing that it finds essentially optimal predictive models.
-In Section~\ref{sec:language}, we apply NPRD to data from five languages, providing the first estimates of predictive rate distortion of natural language.
+In Section~\ref{sec:language}, we apply NPRD to data from five languages, providing the first estimates of predictive rate-distortion of natural language.
 
 
 %\paragraph{Marginal $q$}
@@ -250,113 +260,108 @@ In Section~\ref{sec:language}, we apply NPRD to data from five languages, provid
 
 \section{Predictive Rate-Distortion}\label{sec:background}
 
-We consider stationary stochastic processes $(X_t)_{t \in \mathbb{Z}}$, taking values in a state space $S$.
+We consider stationary discrete-time stochastic processes $(X_t)_{t \in \mathbb{Z}}$, taking values in a state space $S$.
 Given a reference point in time, say $T=0$, we are interested in the problem of predicting the future of $X_{t\geq 0} = (X_0, X_1, X_2, ...)$ from the past $X_{t< 0} = (..., X_{-2}, X_{-1})$.
-In general -- unless the observations $X_t$ are independent -- predicting the future of the process accuractely will require taking into account the past observations.
+In general---unless the observations $X_t$ are independent--- predicting the future of the process accurately will require taking into account the past observations.
 There is a tradeoff between the accuracy of prediction, and how much information about the past is being taken into account.
 On one extreme, not taking the past into account at all, one will not be able to take advantage of the dependencies between past and future observations.
-On the other extreme, considering the entirety of the past observations $X_{t \leq 0}$ can require storing large amounts of information.
-This tradeoff is referred to as \emph{Predictive Rate-Distortion} \citep{marzen-predictive-2016}.
-The term \emph{rate} refers to the amount of past information being taken into account, while \emph{distortion} refers to the degradation in prediction compared to optimal prediction from the full past.
+On the other extreme, considering the entirety of the past observations $X_{t \leq 0}$ can require storing large and potentially unbounded amounts of information.
+This tradeoff between information storage and prediction accuracy is referred to as \key{Predictive Rate-Distortion} (PRD) \citep{marzen-predictive-2016}.
+The term \key{rate} refers to the amount of past information being taken into account, while \key{distortion} refers to the degradation in prediction compared to optimal prediction from the full past.
 
 
 
 The problem of predictive rate-distortion has been formalized by a range of studies.
 A principled and general formalization is provided by applying the Information Bottleneck idea \citep{tishby-information-1999, still-optimal-2010,marzen-predictive-2016}:
-We will write $\overleftarrow{X}$ for the past $X_{< 0}$, and $\overrightarrow{X}$ for the future $X_{\geq 0}$, following \cite{marzen-predictive-2016}.
-We consider random variables $Z$, called \emph{codes}, that summarize the past and are used by the observer to predict the future.
-Formally, $Z$ needs to be independent of the future $\overrightarrow{X}$ conditional on the past $\overleftarrow{X}$. Symbolically, 
+We will write $\past$ for the past $X_{< 0}$, and $\future$ for the future $X_{\geq 0}$, following \cite{marzen-predictive-2016}.
+We consider random variables $Z$, called \key{codes}, that summarize the past and are used by the observer to predict the future.
+Formally, $Z$ needs to be independent of the future $\future$ conditional on the past $\past$: in other words, $Z$ does not provide any information about the future except what is contained in the past. Symbolically:
 \begin{equation}\label{eq:markov}
-	Z \bot \overrightarrow{X} | \overleftarrow{X}
+	Z \bot \future | \past.
 \end{equation}
-This is equivalent to the requirement that $Z \rightarrow \overleftarrow{X} \rightarrow\overrightarrow{X}$ be a Markov chain.
+This is equivalent to the requirement that $Z \rightarrow \past \rightarrow \future$ be a Markov chain.
 This formalizes the idea that the code is computed by an observer from the past, without having access to the future.
-Predictions are then made based only on $Z$, without additional access to the past $\overleftarrow{X}$.
+Predictions are then made based only on $Z$, without additional access to the past $\past$.
 
-
-
-The \emph{rate} of the code $Z$ is the mutual information between $Z$ and the past: $\operatorname{I}[Z, \overleftarrow{X}]$.
+The rate of the code $Z$ is the mutual information between $Z$ and the past: $\operatorname{I}[Z, \past]$.
 By the Channel Coding Theorem, this describes the channel capacity that the observer requires in order to transform past observations into the code $Z$.
 
-The \emph{distortion} is the loss in predictive accuracy when predicting from $Z$, relative to optimal prediction from the full past $\overleftarrow{X}$.
-In the Information Bottleneck formalization, this
-is equivalent to the amount of mutual information between past and future that is not captured by $Z$:
+The distortion is the loss in predictive accuracy when predicting from $Z$, relative to optimal prediction from the full past $\past$.
+In the Information Bottleneck formalization, this is equivalent to the amount of mutual information between past and future that is \emph{not} captured by $Z$ \citep{harremoes2007information}: %\rljf{Cite the paper "how to choose a good distortion measure"}
 \begin{equation}
-	\operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z]
+	\operatorname{I}[\past, \future|Z].
 \end{equation}
 Due to the Markov condition, the distortion measure satisfies the relation
 \begin{equation}
-	\operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z] = \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}] - \operatorname{I}[Z, \overrightarrow{X}]
+	\operatorname{I}[\past, \future|Z] = \operatorname{I}[\past, \future] - \operatorname{I}[Z, \future],
 \end{equation}
-i.e., it captures how much less information $Z$ carries about the future $\overrightarrow{X}$, compared to the full past $\overleftarrow{X}$.
+i.e., it captures how much less information $Z$ carries about the future $\future$ compared to the full past $\past$.
 For a fixed process $(X_t)_t$, choosing $Z$ to minimize the distortion is equivalent to maximizing the mutual information between the code and the future:
 \begin{equation}\label{eq:predictiveness}
-\operatorname{I}[Z, \overrightarrow{X}]
+\operatorname{I}[Z, \future]
 \end{equation}
-We will refer to~(\ref{eq:predictiveness}) as the \emph{predictiveness} of the code $Z$.
+We will refer to~(\ref{eq:predictiveness}) as the \key{predictiveness} of the code $Z$.
 
 The rate-distortion tradeoff then chooses $Z$ to %minimize rate at bounded distortion:
-%$$\min_{Z : \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z] \leq d} \operatorname{I}[Z, \overleftarrow{X}]$$
+%$$\min_{Z : \operatorname{I}[\past, \future|Z] \leq d} \operatorname{I}[Z, \past]$$
 %, or -- equivalently --
  minimize distortion at bounded rate:
 \begin{equation}
-\min_{Z :  \operatorname{I}[\overleftarrow{X}, Z] \leq d}  \operatorname{I}[\overleftarrow{X}, \overrightarrow{X}|Z] 
+\min_{Z :  \operatorname{I}[\past, Z] \leq d}  \operatorname{I}[\past, \future|Z] 
 \end{equation}
 or -- equivalently -- maximize predictiveness at bounded rate:
 \begin{equation}
-\max_{Z :  \operatorname{I}[\overleftarrow{X}, Z] \leq d}  \operatorname{I}[Z, \overrightarrow{X}] 
+\max_{Z :  \operatorname{I}[\past, Z] \leq d}  \operatorname{I}[Z, \future].
 \end{equation}
 Equivalently, for each  $\lambda \geq 0$, we study the problem 
 \begin{equation}\label{eq:ib}
-	\max_{Z} \left( \operatorname{I}[Z, \overrightarrow{X}] - \lambda \cdot \operatorname{I}[ \overleftarrow{X}, Z] \right)
+	\max_{Z} \left( \operatorname{I}[Z, \future] - \lambda \cdot \operatorname{I}[ \past, Z] \right),
 \end{equation}
-where the scope of the maximization is the class of all random variables $Z$ such that $Z \rightarrow \overleftarrow{X} \rightarrow \overrightarrow{X}$ is a Markov chain. %, that is, $Z$ is independent of the future given the past.
+where the scope of the maximization is the class of all random variables $Z$ such that $Z \rightarrow \past \rightarrow \future$ is a Markov chain. %, that is, $Z$ is independent of the future given the past.
 
 The objective (\ref{eq:ib}) is equivalent to the Information Bottleneck \citep{tishby-information-1999}, applied to the past and future of a stochastic process.
-The coefficient $\lambda$ indicates how strongly a high rate $\operatorname{I}[\overleftarrow{X}, Z]$ is penalized; higher values of $\lambda$ result in lower rates and thus lower values of predictiveness.
+The coefficient $\lambda$ indicates how strongly a high rate $\operatorname{I}[\past, Z]$ is penalized; higher values of $\lambda$ result in lower rates and thus lower values of predictiveness.
 
-
-The largest achievable predictiveness $\operatorname{I}[Z, \overrightarrow{X}]$ is equal to $\operatorname{I}[\overleftarrow{X}, \overrightarrow{X}]$, which is known as the \emph{excess entropy} of the process~\citep{feldman-synchronizing-2004}.
+The largest achievable predictiveness $\operatorname{I}[Z, \future]$ is equal to $\operatorname{I}[\past, \future]$, which is known as the \key{excess entropy} of the process~\citep{feldman-synchronizing-2004}.
 Due to the Markov condition~(\ref{eq:markov}) and the Data Processing Inequality, predictiveness of a code $Z$ is always upper-bounded by the rate:
 \begin{equation}
-\operatorname{I}[Z, \overrightarrow{X}] \leq \operatorname{I}[\overleftarrow{X}, Z] 
+\operatorname{I}[Z, \future] \leq \operatorname{I}[\past, Z] 
 \end{equation}
 As a consequence, when $\lambda \geq 1$, then (\ref{eq:ib}) is always optimized by a trivial $Z$ with zero rate and zero predictiveness.
 When $\lambda = 0$, any lossless code optimizes the problem.
 Therefore, we will be concerned with the situation where $\lambda \in (0,1)$.
 
-
 %
 %
 %Predictive rate-distortion describes the tradeoff between the cost of representing features of the past, and the quality of predictions in the future.
 %Let $(X_t)$ be a stationary process.
-%We consider feature representations $Z$ of the past $\overleftarrow{X}$ that are used to predict the future $\overrightarrow{X}$.
+%We consider feature representations $Z$ of the past $\past$ that are used to predict the future $\future$.
 %There is a tradeoff between the complexity of $Z$ and the success of predicting the future:
 %More complex representations of the past can reduce future prediction loss -- up to a certain limit given by the entropy rate of the process. %This limit corresponds to perfect modeling, and results in Crutchfield and colleagues' notion of complexity.
 %
-%The complexity of the representation $Z$, or the \emph{rate}, is formalized as the mutual information between the past and the representation $Z$: $\operatorname{I}[Z, \overleftarrow{X}]$.
+%The complexity of the representation $Z$, or the \emph{rate}, is formalized as the mutual information between the past and the representation $Z$: $\operatorname{I}[Z, \past]$.
 %Different distortion measures could be used as measures of prediction loss.
-%CITE maximize the entropy, or, equivalently, minimize the mutual information, between $Z$ and the future: $\operatorname{I}[Z, \overleftarrow{X}]$.
+%CITE maximize the entropy, or, equivalently, minimize the mutual information, between $Z$ and the future: $\operatorname{I}[Z, \past]$.
 %
 %Thus, for any process $(X_t)$, we obtain a rate-distortion tradeoff curve.
-%The achievable region is populated by the random variables $Z$ such that $Z \rightarrow \left(\overleftarrow{X}\right) \rightarrow \left(\overrightarrow{X}\right)$ is a Markov chain.
+%The achievable region is populated by the random variables $Z$ such that $Z \rightarrow \left(\past\right) \rightarrow \left(\future\right)$ is a Markov chain.
 %The points on the tradeoff curve are obtained by solving, for each $\beta \in [0,1]$, the problem
 %\begin{equation}\label{eq:ib}
-%	\max_{Z} \left( \operatorname{I}[\overrightarrow{X}, Z] - \beta \cdot \operatorname{I}[Z, (\overleftarrow{X})] \right)
+%	\max_{Z} \left( \operatorname{I}[\future, Z] - \beta \cdot \operatorname{I}[Z, (\past)] \right)
 %\end{equation}
-%where the scope of the maximization is the class of all random variables $Z$ such that $Z - \left(\overleftarrow{X}\right) - \left(\overrightarrow{X}\right)$ is a Markov chain, that is, $Z$ is independent of the future given the past.
+%where the scope of the maximization is the class of all random variables $Z$ such that $Z - \left(\past\right) - \left(\future\right)$ is a Markov chain, that is, $Z$ is independent of the future given the past.
 %This is exactly the Information Bottleneck \cite{tishby-information-1999}, applied to the past and future of a stochastic process.
 %
 %
 
 \subsection{Relation to Statistical Complexity}\label{sec:complexity}
 
-Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989}.
-Given a stationary process $X_t$, its \emph{causal states} are the equivalence classes of semi-infinite pasts $\overleftarrow{X}$ that induce the same conditional probability over semi-infinite futures $\overrightarrow{X}$:
-Two pasts $\overleftarrow{x}, \overleftarrow{x}'$ belong to the same causal state if and only if $P(x_{1...M}|\overleftarrow{x}) = P(x_{1...M}|\overleftarrow{x}')$ holds for all finite sequences $x_{0...M}$ ($M \in \mathbb{N}$).
+Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989,Grassberger1986}. %\rljf{cite Grassberger 1986}
+Given a stationary process $X_t$, its \key{causal states} are the equivalence classes of semi-infinite pasts $\past$ that induce the same conditional probability over semi-infinite futures $\future$:
+Two pasts $\past, \past^\prime$ belong to the same causal state if and only if $P(x_{1...M}|\past) = P(x_{1...M}|\past^\prime)$ holds for all finite sequences $x_{0...M}$ ($M \in \mathbb{N}$).
 Note that this definition is not measure-theoretically rigorous; such a treatment is provided by~\citet{lohr-properties-2009}.
 
-The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \emph{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
+The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \key{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
 The \emph{Statistical Complexity} of a process is the state entropy of the $\epsilon$-machine.
 Statistical complexity can be computed easily if the $\epsilon$-machine is analytically known, but estimating statistical complexity empirically from time series data is very challenging and seems to at least require additional assumptions about the process~\citep{clarke2003application}.
 
@@ -370,18 +375,15 @@ Further, \cite{still-optimal-2010} show that, in the limit of $\lambda \rightarr
 
 \subsection{Related Work}
 
-
-
-
 There are related models that represent past observations by extracting those features that are relevant for prediction.
 Predictive State Representations \citep{singh-learning-2003,singh-predictive-2004} and Observable Operator Models \citep{jaeger1998discrete} encode past observations as sets of predictions about future observations.
-\citet{rubin2012trading} study agents that trade the cost of representing information about the evironment against the reward they can obtain by choosing actions based on the representation.
+\citet{rubin2012trading} study agents that trade the cost of representing information about the environment against the reward they can obtain by choosing actions based on the representation.
 Relatedly, \citet{still-information-2014} introduces a Recursive Past Future Information Bottleneck where past information is compressed repeatedly, not just at one reference point in time.
 
 
 As discussed in Section~\ref{sec:complexity}, estimating predictive rate-distortion is related to the problem of estimating statistical complexity.
 \citet{clarke2003application} and \citet{still-optimal-2010} consider the problem of estimating statistical complexity from finite data.
-While statistical complexity cannot be identified from finite data in general \citep{clarke2003application}, \citet{clarke2003application} introduce certain restrictions on the underlying process that make this more feasible.
+While statistical complexity cannot be identified from finite data in general, \citet{clarke2003application} introduce certain restrictions on the underlying process that make this more feasible.
 
 
 %%It also turned up in \cite{creutzig-past-future-2009}, \cite{still-information-2014}.
@@ -394,15 +396,15 @@ The main prior method for estimating predictive rate-distortion from data is Opt
 This method approximates predictive rate-distortion using two approximations:
 First, it replaces semi-infinite pasts and futures with bounded-length contexts $(X_{-M \dots -1}), (X_{0 \dots M-1})$:
 \begin{equation}\label{eq:ib-oce}
-	\max_{Z} \left( \operatorname{I}[X_{-M\dots -1}, Z] - \lambda \cdot \operatorname{I}[Z, X_{0\dots M-1}] \right)
+	\max_{Z} \left( \operatorname{I}[X_{-M\dots -1}, Z] - \lambda \cdot \operatorname{I}[Z, \finitefuture] \right).
 \end{equation}
-Second, it estimates information measures directly from the observed counts of $(X_{-M, -1}), (X_{0, M-1})$ using the plug-in estimator of mutual information.
-With such an estimator, the problem in (\ref{eq:ib}) can be solved using a variant of the Blahut-Arimoto algorithm \citep{tishby-information-1999}, obtaining an encoder $P(Z|X_{-M...-1})$ that maps each observed past sequence $X_{-M...-1}$ to a distribution over a (finite) set of code words $Z$.
+Second, it estimates information measures directly from the observed counts of $(X_{-M\dots -1}), (\finitefuture)$ using the plug-in estimator of mutual information. %\rljf{Should be \dots instead of commas?}
+With such an estimator, the problem in (\ref{eq:ib}) can be solved using a variant of the Blahut-Arimoto algorithm \citep{tishby-information-1999}, obtaining an encoder $P(Z|X_{-M \dots -1})$ that maps each observed past sequence $X_{-M...-1}$ to a distribution over a (finite) set of code words $Z$.
 %From this, one obtains a corresponding decoder $P(X_{0...M}|Z)$ via Bayes' Rule.
 
 Two main challenges have been noted in prior work:
 First, solving the problem for a finite empirical sample leads to overfitting, overestimating the amount of structure in the process.
-\citet{still-optimal-2010} address this by subtracting an asymptotic correction term that becomes valid in the limit of large $M$ and $\lambda \rightarrow 0$, when the codebook $P(Z|\overleftarrow{X})$ becomes deterministic, and which allows them to select a deterministic codebook of an appropriate complexity.
+\citet{still-optimal-2010} address this by subtracting an asymptotic correction term that becomes valid in the limit of large $M$ and $\lambda \rightarrow 0$, when the codebook $P(Z|\past)$ becomes deterministic, and which allows them to select a deterministic codebook of an appropriate complexity.
 This leaves open how to obtain estimates outside of this regime, when the codebook can be far from deterministic.
 
 The second challenge is that OCE requires the construction of a matrix whose rows and columns are indexed by the observed past and future sequences \citep{marzen-predictive-2016}.
@@ -411,11 +413,11 @@ Drastically, in the case of natural language, $A$ contains thousands of words.
 We will see that this makes applying OCE infeasible even with $M=1$.
 
 A further challenge is that OCE is infeasible if the number of required codewords is too large, again because OCE requires constructing a matrix whose rows and columns are indexed by the codewords and observed sequences.
-Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $\operatorname{I}[\overleftarrow{X}, Z] > log(10^5) \approx 11.5$ cannot be captured with OCE.
+Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $\operatorname{I}[\past, Z] > \log 10^5 \approx 11.5$ cannot be captured with OCE.
 
 \section{Neural Estimation via Variational Upper Bound}\label{sec:nprd}
 
-We now introduce our method, Neural Predictive Rate Distortion (NPRD), to address the shortcomings of OCE, by using parametric function approximation:
+We now introduce our method, Neural Predictive Rate Distortion (NPRD), to address the limitations of OCE, by using parametric function approximation:
 Whereas OCE constructs a codebook mapping between observed sequences and codes, we use general-purpose function approximation estimation methods to compute the representation $Z$ from the past and to estimate a distribution over future sequences from $Z$.
 In particular, we will use recurrent neural networks, which are known to provide good models of sequences from a wide range of domains; our method will be applicable to other types of function approximators also.
 %The parameters of the function approximators are optimized on the observed pairs of pasts and futures.
@@ -431,35 +433,35 @@ This is crucial for modeling long dependencies.
 We will first describe the general method, without committing to a specific framework for function approximation yet.
 We will construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
 
-As in OCE (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures:
+As in OCE (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: \rljf{I think it would be a lot clearer to use the notation from other papers where it's like $\past$ except the arrow points to $M$. It's hard visually looking at the equations to distinguish $-M\dots-1$ from $0\dots M-1$, and that makes it harder to read.}
 \begin{equation}\label{eq:ib-oce-repeat}
-	\max_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}} \left( \operatorname{I}[Z, X_{0\dots M-1}] - \lambda \cdot \operatorname{I}[X_{-M\dots -1}, Z] \right)
+	\max_{Z : Z \bot \finitefuture | X_{-M\dots-1}} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[X_{-M\dots -1}, Z] \right).
 \end{equation}
-%where $Z$ ranges over all random variables such that the Markov condition~(\ref{eq:markov}) holds:
+%where $Z$ ranges over all random variables such that the Markovcondition~(\ref{eq:markov}) holds:
 %\begin{equation}
-%    Z\bot X_{0\dots M-1} | X_{-M\dots -1}
+%    Z\bot \finitefuture | X_{-M\dots -1}
 %\end{equation}
-It will be convenient to equivalently rewrite this as
+It will be convenient to equivalently rewrite (\ref{eq:ib-oce-repeat}) as
 \begin{equation}\label{eq:prd-loss}
-	\min_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}}	\left[\operatorname{H}[X_{0\dots M-1} | Z] + \lambda \cdot\operatorname{I}[ X_{-M\dots-1}, Z]\right]
+	\min_{Z : Z \bot \finitefuture | X_{-M\dots-1}}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \cdot\operatorname{I}[ X_{-M\dots-1}, Z]\right],
 \end{equation}
-where $\operatorname{H}[X_{0\dots M-1} | Z]$ is the \emph{prediction loss}. Note that minimizing prediction loss is equivalent to maximizing predictiveness $\operatorname{I}[X_{0\dots M-1} | Z]$. % is the reduction in prediction loss when predicting
+where $\operatorname{H}[\finitefuture | Z]$ is the \key{prediction loss}. Note that minimizing prediction loss is equivalent to maximizing predictiveness $\operatorname{I}[\finitefuture | Z]$. % is the reduction in prediction loss when predicting
 
 
-When deploying such a predictive code $Z$, two components have to be computed: a distribution $P(Z|X_{-M\dots -1})$ that \emph{encodes} past observations into a code $Z$, and a distribution $P(X_{0\dots M-1}|Z)$ that \emph{decodes} the code $Z$ into predictions about the future.
+When deploying such a predictive code $Z$, two components have to be computed: a distribution $P(Z|X_{-M\dots -1})$ that \key{encodes} past observations into a code $Z$, and a distribution $P(\finitefuture|Z)$ that \key{decodes} the code $Z$ into predictions about the future.
 
 Let us assume that we already have some encoding distribution
 \begin{equation}
-Z \sim P_\phi(Z|X_{-M\dots -1})
+Z \sim P_\phi(Z|X_{-M\dots -1}),
 \end{equation}
-defined using an \emph{encoder} $\phi$, which is expressed in some family of function approximators that transduces an observation sequence $X_{-M\dots -1}$ into the parameters of the distribution $P_\phi(\cdot|X_{-M\dots -1})$.
+where $\phi$ is the encoder, expressed in some family of function approximators. The encoder transduces an observation sequence $X_{-M\dots -1}$ into the parameters of the distribution $P_\phi(\cdot|X_{-M\dots -1})$.
 From this encoding distribution, one can obtain the optimal decoding distribution over future observations via Bayes' rule: %, using the Markov condition: 
 \begin{equation}
 	\label{eq:cond-fut}
 	\begin{split}
-	P(X_{0\dots M-1}|Z) &= \frac{P(X_{0\dots M-1}, Z)}{P(Z)} \\
-	&= \frac{\E_{X_{-M \dots -1}} P_\phi(X_{0\dots M-1}, Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
-	&=^{(*)} \frac{\E_{X_{-M \dots -1}}   P(X_{0\dots M-1}|X_{-M\dots-1})     P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
+	P(\finitefuture|Z) &= \frac{P(\finitefuture, Z)}{P(Z)} \\
+	&= \frac{\E_{X_{-M \dots -1}} P(\finitefuture, Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
+	&=^{(*)} \frac{\E_{X_{-M \dots -1}}   P(\finitefuture|X_{-M\dots-1})     P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
 %	&= \frac{\E_{X_{-M \dots M-1}} P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})}
 	\end{split}
 \end{equation}
@@ -475,30 +477,29 @@ For a similar reason, the rate $\operatorname{I}[X_{-M\dots -1}, Z]$ of the code
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
 First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})$:
 \begin{equation}
-q(Z) \text{ approximates } P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})
+q(Z) \text{ approximates } P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1}).
 \end{equation}
-Second, to approximate the decoding distribution $P(X_{0\dots M-1}|Z)$, we introduce a parameterized decoder $\psi$ that maps points $Z \in \mathbb{R}^N$  into probability distributions $P_\psi(X_{0\dots M-1}|Z)$ over future observations $X_{0\dots M-1}$:
+Second, to approximate the decoding distribution $P(\finitefuture|Z)$, we introduce a parameterized decoder $\psi$ that maps points $Z \in \mathbb{R}^N$  into probability distributions $P_\psi(\finitefuture|Z)$ over future observations $\finitefuture$:
 \begin{equation}
-P_\psi(X_{0\dots M-1}|Z)  \text{ approximates }  P(X_{0\dots M-1}|Z)
+P_\psi(\finitefuture|Z)  \text{ approximates }  P(\finitefuture|Z)
 \end{equation}
-for each code $Z \in \mathbb{R}^N$. Crucially, $P_\psi(X_{0\dots M-1}|Z)$ will be easy to compute efficiently, unlike the exact decoding distribution $P(X_{0\dots M-1}|Z)$.
-
+for each code $Z \in \mathbb{R}^N$. Crucially, $P_\psi(\finitefuture|Z)$ will be easy to compute efficiently, unlike the exact decoding distribution $P(\finitefuture|Z)$.
 
 If we fix a stochastic process $(X_t)_{t \in \mathbb{Z}}$ and an encoder $\phi$, then the following two bounds hold for \emph{any} choice of the decoder $\psi$ and the distribution $q$:
 
 \begin{proposition}
 The loss incurred when predicting the future from $Z$ via $\psi$ upper-bounds the true conditional entropy of the future given $Z$, when predicting using the exact decoding distribution (\ref{eq:cond-fut}):
 \begin{equation}\label{ineq1}
-	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] \geq \operatorname{H}[X_{0\dots M-1}|Z]
+	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(\finitefuture | Z)\right] \geq \operatorname{H}[\finitefuture|Z].
 \end{equation}
-Furthermore, equality is attained if and only if $P_\psi(X_{0\dots M-1}|Z) = P(X_{0\dots M-1}|Z)$. % (as defined in~(\ref{eq:cond-fut})).
+Furthermore, equality is attained if and only if $P_\psi(\finitefuture|Z) = P(\finitefuture|Z)$. % (as defined in~(\ref{eq:cond-fut})).
 \end{proposition}
 
 \begin{proof}
 By Gibbs' inequality:
 \begin{align*}
-	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] & \geq -	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P(X_{0\dots M-1} | Z)\right]\\
-	&= \operatorname{H}[X_{0\dots M-1}|Z].
+	-	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P_\psi(\finitefuture | Z)\right] & \geq -	\mathbb{E}_{X}\mathbb{E}_{Z \sim \phi(X)}\left[\log P(\finitefuture | Z)\right]\\
+	&= \operatorname{H}[\finitefuture|Z].
 \end{align*}
 \end{proof}
 
@@ -517,30 +518,30 @@ Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) =
 \begin{proof}
 The two equalities follow from the definition of KL Divergence and Mutual Information. To show the inequality, we again use Gibbs' inequality:
 \begin{align*}
-    -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log q(Z) = - \mathbb{E}_Z \log q(Z) \geq - \mathbb{E}_Z \log P(Z) = -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log P(Z) 
+    -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log q(Z) = - \mathbb{E}_Z \log q(Z) \geq - \mathbb{E}_Z \log P(Z) = -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log P(Z).
 \end{align*}
 Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
 \end{proof}
 
 We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:prd-loss}) in a way amenable to using function approximators.
 Recall the predictive rate-distortion objective~(\ref{eq:prd-loss})
-\begin{equation}\label{eq:prd-recall}
-	\min_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}}	\left[\operatorname{H}[X_{0\dots M-1} | Z] + \lambda \operatorname{I}[ X_{-M\dots-1}, Z]\right]
+\begin{equation}\tag{\ref{eq:prd-loss}}
+	\min_{Z : Z \bot \finitefuture | X_{-M\dots-1}}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \operatorname{I}[ X_{-M\dots-1}, Z]\right]
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 By the two Propositions, this objective is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{P_\phi(\cdot|X_{-M\dots-1})}{q}\right],
+	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{P_\phi(\cdot|X_{-M\dots-1})}{q}\right],
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
-From a solution to (\ref{eq:bound}), one obtains a solution to (\ref{eq:prd-recall}) by setting $Z$ to be the code generated by the encoder $\phi$.
-The second proposition guarantees that, for a solution to  (\ref{eq:prd-recall}), the rate of this code is given as follows
+From a solution to (\ref{eq:bound}), one obtains a solution to (\ref{eq:prd-loss}) by setting $Z$ to be the code generated by the encoder $\phi$.
+The second proposition guarantees that, for a solution to  (\ref{eq:prd-loss}), the rate of this code is given as follows
 \begin{equation}\label{eq:eq1-new}
  \operatorname{I}[Z, X_{-M\dots-1}] =   \mathbb{E}_{X_{-M\dots-1}}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots-1})}{q(Z)}\right]
 \end{equation}
 and the prediction loss is given by
 \begin{equation}\label{eq:eq2-new}
   %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
-  \operatorname{H}[X_{0\dots M-1}|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] %H[X_{0\dots M-1}|X_{-M\dots-1}] % \operatorname{H}[X_{0\dots M-1}]
+  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|X_{-M\dots-1}] % \operatorname{H}[\finitefuture]
 \end{equation}
 Note that the right-hand-sides of (\ref{eq:eq1-new}-\ref{eq:eq2-new}) can both be estimated efficiently using Monte Carlo samples from $Z \sim P_\phi(X_{-M\dots-1})$.
 
@@ -549,11 +550,11 @@ If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two proposit
  \operatorname{I}[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots -1})}{q(Z)}\right]
 \end{equation}
 \begin{equation}\label{eq:bound2-new}
-  %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[X_{0\dots M-1}|X_{-M\dots-1}]
-  \operatorname{H}[X_{0\dots M-1}|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] % \operatorname{H}[X_{0\dots M-1}]
+  %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[\finitefuture|X_{-M\dots-1}]
+  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
 \end{equation}
 To carry out the optimization~(\ref{eq:bound}), we will restrict $\phi, \psi, q$ to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
-While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and -- if the family of approximators is sufficiently rich---can come close to turning these into the equalities  (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
+While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and---if the family of approximators is sufficiently rich---can come close to turning these into the equalities (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
  
 
 
@@ -565,7 +566,7 @@ For $\phi$ and $\psi$, we use recurrent neural networks with Long Short Term Mem
 We parameterize the distribution $P_\phi(Z|X_{-M\dots-1})$ as a Gaussian whose mean and variance are computed from the past $X_{-M\dots-1}$:
 We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past observations $X_{-M\dots-1}$, and then compute
 \begin{equation}\label{eq:z-gauss}
-	Z \sim \mathcal{N}(W_\mu h, (W_\sigma h)^2 I_{k\times k})
+	Z \sim \mathcal{N}(W_\mu h, (W_\sigma h)^2 I_{k\times k}),
 \end{equation}
 where $W_\mu, W_\sigma \in \mathbb{R}^{k\times k}$ are parameters.
 While we found Gaussians sufficiently flexible for $\phi$, more powerful encoders could be constructed using more flexible parametric families, such as normalizing flows \citep{rezende-variational-2015, kingma-improving-2016}.
@@ -588,7 +589,7 @@ We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for
 During optimization, we approximate the gradient by taking a single sample from $Z$ (\ref{eq:z-gauss}) per sample trajectory $X_{-M}, \dots, X_{M-1}$ and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
 
-Following standard practice in machine learning, we split the data set of sample time series into three partitions (\emph{training set}, \emph{validation set}, and \emph{test set}).
+Following standard practice in machine learning, we split the data set of sample time series into three partitions (\emph{training set}, \emph{validation set}, and \emph{test set}). \rljf{what proportions}
 We use the training set for optimizing the parameters as described above.
 After every pass through the training set, the objective (\ref{eq:bound}) is evaluated on the validation set using a Monte Carlo estimate with one sample $Z$ per trajectory; optimization terminates once the value on the held-out set does not decrease any more.
 %After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
@@ -598,11 +599,11 @@ After every pass through the training set, the objective (\ref{eq:bound}) is eva
 After optimizing the parameters on a set of observed trajectories, we estimate rate and prediction loss on the test set.
 Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and the prediction loss (\ref{eq:bound2-new}) on the test set by taking, for each time series $X_{-M}...X_{M-1}$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
 \begin{equation}\label{eq:bound-mc-rate}
-\mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots -1})}{q(Z)}\right] \approx	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}  \log \frac{p_{\mathcal{N}(\mu, \sigma^2)}(z)}{q(z)}
+\mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots -1})}{q(Z)}\right] \approx	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}  \log \frac{p_{\mathcal{N}(\mu, \sigma^2)}(z)}{q(z)},
 \end{equation}
 where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density with $\mu, \sigma^2$ computed from $X_{-M\dots -1}$ as in (\ref{eq:z-gauss}), and prediction loss 
 \begin{equation}\label{eq:bound-mc-distortion}
- -	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] \approx - \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(X_{0\dots M-1} | Z)
+ -	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right] \approx - \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(\finitefuture | Z).
 \end{equation}
 %and the PRD objective
 %\begin{equation}\label{eq:bound-mc}
@@ -616,16 +617,16 @@ Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guarant
 %When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 
 It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
-(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators upper bounds, whereas overfitting \emph{biases} the values obtained by OCE.
-Given that NPRD \emph{provably} provides \emph{upper bounds} on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
+(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCE.
+Given that NPRD provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
-Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, X_{0\dots M-1}]$ with the following method.
-%by estimating $\operatorname{H}[X_{0\dots M-1}]$ 
-Together with $\psi$, we also create an LSTM network that estimates the marginal probability of future observation sequences $P(X_{0\dots M-1})$. Let $P_\eta$ this estimated distribution; we then estimate the predictiveness $\operatorname{I}[Z, X_{0\dots M-1}] = \operatorname{H}[X_{0\dots M-1}] - \operatorname{H}[X_{0\dots M-1}|Z]$ by the difference between the corresponding cross-entropies on the test set~(\cite{mcallester2018formal}):
-%$\operatorname{H}[X_{0\dots M-1}]$ by the cross-entropy of $P_\eta$ on the test data:
+Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
+%by estimating $\operatorname{H}[\finitefuture]$ 
+Together with $\psi$, we also create an LSTM network that estimates the marginal probability of future observation sequences $P(\finitefuture)$. Let $P_\eta$ be this estimated distribution; we then estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~(\cite{mcallester2018formal}):
+%$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
-- \mathbb{E}_{X_{-M\dotsM-1}}\left[\log P_\eta(X_{0\dots M-1}) - P_\psi(X_{0\dots M-1} | Z)\right]
+- \mathbb{E}_{X_{-M\dotsM-1}}\left[\log P_\eta(\finitefuture) - P_\psi(\finitefuture | Z)\right]
 \end{equation}
 which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}).
 
@@ -684,9 +685,9 @@ In the limit of enough training data, when $s(Z)$ matches the actual population 
 %\textbf{Is $s$ defined anywhere? same for $r$?}
 We estimate the prediction loss on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
 \begin{equation}
-\frac{1}{N} \sum_{X_{-M}\dots X_{M-1} \in \text{Test Data}} \E_{Z \sim P(\cdot|X_{-M \dots -1})} \log P(X_{0\dots M-1}|Z).
+\frac{1}{N} \sum_{X_{-M}\dots X_{M-1} \in \text{Test Data}} \E_{Z \sim P(\cdot|X_{-M \dots -1})} \log P(\finitefuture|Z).
 \end{equation}
-where $P(X_{0\dots M-1}|Z)$ is the decoder obtained from the Blahut-Arimoto algorithm on the training set.
+where $P(\finitefuture|Z)$ is the decoder obtained from the Blahut-Arimoto algorithm on the training set.
 Thanks to (\ref{ineq1}-\ref{ineq2}), these quantities provide upper bounds, up to sampling error introduced by finiteness of the held-out data.
 Again, sampling error does not bias the results in either direction, unlike overfitting, which introduces a systematic bias.
 
@@ -934,7 +935,7 @@ We were only able to run OCE for $M \leq 3$, as the number of sequences exceeds 
 
 The information curve is shown in Figure~\ref{fig:eng-pos} (left).
 In the setting of low rate and high distortion, NPRD and OCE (blue, $M=1,2,3$) show essentially identical results.
-This holds true until $\operatorname{I}[Z, \overrightarrow{X}] \approx 0.7$, at which point the bounds provided by OCE deteriorate, showing the effects of overfitting.
+This holds true until $\operatorname{I}[Z, \future] \approx 0.7$, at which point the bounds provided by OCE deteriorate, showing the effects of overfitting.
 NPRD continues to provide estimates at greater rates.
 
 Figure~\ref{fig:eng-pos} (center) shows rate as a function of $\log \frac{1}{\lambda}$.
@@ -975,7 +976,7 @@ This is in qualitative agreement with the picture gained from the rate-predictiv
 
 Let us consider this more quantitatively.
 Based on Figure~\ref{fig:eng-pos} (center), we make the ansatz that the map from $\log\frac{1}{\lambda}$ to the rate $R := \operatorname{I}[X_{-M\dots -1}, Z]$ is superlinear:
-\rljf{Was there a change of variables between $\beta$ and $\lambda$ here?}
+%\rljf{Was there a change of variables between $\beta$ and $\lambda$ here?}
 \begin{equation}\label{eq:r-alpha-beta}
 	R = \alpha \left(\log\frac{1}{\lambda}\right)^\beta
 \end{equation}
@@ -1031,7 +1032,7 @@ Note that there are other possible ways of fitting these curves; we have describ
 In any case, the results show that natural language shows an approximately linear growth of predictiveness with rate at small rates, and exploding rates at diminishing returns in predictiveness later.
 Why might language show such behavior?
 %We will describe a proposal:
-One natural idea is that the causal states of natural language are the singletons $\overleftarrow{X}$, that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
+One natural idea is that the causal states of natural language are the singletons $\past$, that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
 Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Theta(T)$, but its predictiveness $P_T =	\operatorname{I}[X_{-T...-1}, X_{0,...M-1}]$ asymptotes to $E_0$.
 
 %By writing $I_t := \operatorname{I}[X_0, X_t | X_1 ... X_{t-1}]$, and repeatedly applying the chain rule of conditional mutual information, we obtain
@@ -1044,7 +1045,7 @@ Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Th
 %\begin{equation}
 %	R =	\operatorname{H}[X_{-T...-1}]
 %\end{equation}
-%which is lower bounded by $T$ times the entropy rate: $R \geq T \cdot \operatorname{H}[X_0|\overleftarrow{X}]$, and thus is unbounded, assuming that the entropy rate is nonzero.
+%which is lower bounded by $T$ times the entropy rate: $R \geq T \cdot \operatorname{H}[X_0|\past]$, and thus is unbounded, assuming that the entropy rate is nonzero.
 %As $T$ grows, this code thus shows diminishing returns in predictiveness $P$ at linear growth in rate $R$.
 %TODO \rljf{A few cites on previous work arguing about whether natural language has nonzero entropy rate. A conference paper by Ryosuke Takahira has a lit review}
 
@@ -1056,19 +1057,19 @@ Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Th
 %	\frac{\partial P}{\partial T} =	\int_{t > T} I_t
 %\end{equation}
 %\begin{equation}
-%	\frac{\partial R}{\partial T} \approx \operatorname{H}[X_0|\overleftarrow{X}]
+%	\frac{\partial R}{\partial T} \approx \operatorname{H}[X_0|\past]
 %\end{equation}
 %and thus
 %\begin{equation}
-%	\frac{\partial P}{\partial R} \approx	\frac{1}{\operatorname{H}[X_0|\overleftarrow{X}]} \int_{t > T} I_t
+%	\frac{\partial P}{\partial R} \approx	\frac{1}{\operatorname{H}[X_0|\past]} \int_{t > T} I_t
 %\end{equation}
 %Matching this with~(\ref{eq:derivatives}), we get
 %\begin{equation}
-%	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\overleftarrow{X}])^{1/\beta}\right) \propto \int_{t > T} I_t
+%	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\past])^{1/\beta}\right) \propto \int_{t > T} I_t
 %\end{equation}
 %and thus
 %\begin{equation}
-%I_t \propto T^{1/\beta-1}	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\overleftarrow{X}])^{1/\beta}\right)
+%I_t \propto T^{1/\beta-1}	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\past])^{1/\beta}\right)
 %\end{equation}
 
 
@@ -1622,12 +1623,12 @@ Unlike statistical complexity, the PRD curve will not differ much between proces
 %	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ (distributed according to $P$) in KL Divergence in the following sense: For all $M \in \mathbb{N}$,
 %	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1\dots X_{M}|X_{-\infty}...X_0)}{Q(X_1\dots X_{M}|X_{-\infty}...X_0)}\right] < \epsilon$$
 %%	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1|X_{-\infty}...X_0)}{Q(X_1|X_{-\infty}...X_0)}\right] < \epsilon$$
-	%$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
+	%$D_{KL}((X_{1...M}) || Y_{1...M} | \past) < \epsilon \operatorname{H}[S_0]$.
 %	Then the predictive rate-distortion curve of $(Y_t)_t$ is, up to $\epsilon$, a (pessimistic) upper bound on the curve of $(X_t)_t$.
 %\end{proposition}
 
 
-%$$\sup_{f : \|f\|_\infty = 1}  \sum_(f(\overrightarrow{X}, X_1))   $$
+%$$\sup_{f : \|f\|_\infty = 1}  \sum_(f(\future, X_1))   $$
 
 
 The total variation distance between two probability measures $P, Q$ on a discrete space is defined as
@@ -1755,7 +1756,7 @@ The PRD curves don't converge.
 %	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1\dots X_{M}|X_{-\infty}...X_0)}{Q(X_1\dots X_{M}|X_{-\infty}...X_0)}\right] < \epsilon_1$$
 %	Further, assume $\operatorname{I}[X_{>M}, X_{<0}|X_{1...M}] < \epsilon_2$.
 %	$$\E_{X_{-\infty}...X_0} \left[\log \frac{P(X_1|X_{-\infty}...X_0)}{Q(X_1|X_{-\infty}...X_0)}\right] < \epsilon$$
-	%$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
+	%$D_{KL}((X_{1...M}) || Y_{1...M} | \past) < \epsilon \operatorname{H}[S_0]$.
 %	Then the predictive rate-distortion curve of $(Y_t)_t$ is, up to $\epsilon_1 + \epsilon_2$, a (pessimistic) upper bound on the curve of $(X_t)_t$:
 %	For a given level of rate, the achieved predictivity of $(X_t)_t$ at this rate is at least the predictivity of $(Y_t)_t$ at this rate minus $\epsilon_1+\epsilon_2$.
 	
@@ -1923,10 +1924,10 @@ Assume that
 Let $Z$ be $S'_0$ if $S_0$ is identifiable and some uniformly random state otherwise.
 	Then
 	\begin{equation}
-		\operatorname{I}[S'_0, \overleftarrow{X}] - \epsilon \operatorname{H}[S'_0]\leq	\operatorname{I}[Z, X_{-M, ..., 0}] \leq \operatorname{I}[S'_0, \overleftarrow{X}]
+		\operatorname{I}[S'_0, \past] - \epsilon \operatorname{H}[S'_0]\leq	\operatorname{I}[Z, X_{-M, ..., 0}] \leq \operatorname{I}[S'_0, \past]
 	\end{equation}
 	\begin{equation}
-		\operatorname{I}[S'_0,\overrightarrow{X}] \geq 	\operatorname{I}[Z, X_{1...M}] \geq \operatorname{I}[S'_0, X_{1...M}] - \epsilon \operatorname{H}[S'_0] \geq \operatorname{I}[S'_0, \overrightarrow{X}] - \operatorname{I}[S'_0, X_{M+1...\infty}|X_{1...M}] - \epsilon \operatorname{H}[S'_0] \geq \operatorname{I}[S'_0, \overrightarrow{X}] _ 2\epsilon \operatorname{H}[S'_0]
+		\operatorname{I}[S'_0,\future] \geq 	\operatorname{I}[Z, X_{1...M}] \geq \operatorname{I}[S'_0, X_{1...M}] - \epsilon \operatorname{H}[S'_0] \geq \operatorname{I}[S'_0, \future] - \operatorname{I}[S'_0, X_{M+1...\infty}|X_{1...M}] - \epsilon \operatorname{H}[S'_0] \geq \operatorname{I}[S'_0, \future] _ 2\epsilon \operatorname{H}[S'_0]
 	\end{equation}
 \end{proof}
 
@@ -1936,7 +1937,7 @@ Unlike statistical complexity, the tradeoff will not differ much between process
 	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
 	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ in KL Divergence in the following sense:
 	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon$$
-%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
+%	$D_{KL}((X_{1...M}) || Y_{1...M} | \past) < \epsilon \operatorname{H}[S_0]$.
 	Then the predictive rate-distortion curve of $(X_t)_t$ is, up to $\epsilon$, a (pessimistic) bound on the curve of $(Y_t)_t$.
 
 \end{proposition}
@@ -1951,7 +1952,7 @@ In particular, if we can find a process $Y_t$ for which the conditions in the pr
 %	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
 %	Let $(Y_t)_t$ be a process satisfying the conditions of the previous proposition, distributed according to $Q$, and assume that
 %	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon \operatorname{H}[S_0]$$
-%%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
+%%	$D_{KL}((X_{1...M}) || Y_{1...M} | \past) < \epsilon \operatorname{H}[S_0]$.
 %	Then the predictive rate-distortion curve of the $2M$-order Markov approximation of $(Y_t)_t$ is $5\epsilon \operatorname{H}[S_0]$-close to the curve of $(X_t)_t$.
 %
 %\end{proposition}
@@ -2066,7 +2067,7 @@ L := \sum_{t=1}^\infty\ t \cdot \operatorname{I}[X_t, X_0 | X_1, ..., X_{t-1}]
 
 Ambiguity Cost:
 \begin{equation}\label{eq:ambiguity-cost}
-A := \operatorname{H}[M_0|\overrightarrow{X}]
+A := \operatorname{H}[M_0|\future]
 \end{equation}
 
 
@@ -2076,10 +2077,10 @@ Note that both terms are nonnegative.
 
 \begin{proof}
 By the definitions of conditional entropy and mutual information,
-$\operatorname{H}[M_0] = \operatorname{H}[M_0 | \overrightarrow{X}] + \operatorname{I}[M_0, \overrightarrow{X}]$
+$\operatorname{H}[M_0] = \operatorname{H}[M_0 | \future] + \operatorname{I}[M_0, \future]$
 The first part is Ambiguity cost.
 Now we show that the second part is equal to Locality cost.
-As we assume that the listeners predictions are optimal, $\operatorname{I}[M_0, \overrightarrow{X}] = \operatorname{I}[X_{\leq 0}, \overrightarrow{X}]$.
+As we assume that the listeners predictions are optimal, $\operatorname{I}[M_0, \future] = \operatorname{I}[X_{\leq 0}, \future]$.
 Then the formula is a consequence of the chain rule for mutual information:
 \begin{align*}
 \operatorname{I}[(X_i)_{i > 0}, (X_i)_{i \leq 0}] &= \sum_{i=1}^\infty I(X_i, (X_i)_{i \leq 0}|X_1, ..., X_{i-1}) \\
@@ -2672,7 +2673,7 @@ By definition, the difference between the model's surprisal and optimal surprisa
 \begin{align*}
 %& - \E_{X} \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t})\ \ \ \ \ \ \text{(for any $t$, due to stationarity)} \\
 %& = - \frac{1}{T} \E_{X} \sum_{t=1}^T \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t}) \\
-%& \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(\overleftarrow{X})) - \log P(X_{1\dots T} | \overleftarrow{X})  \\
+%& \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(\past)) - \log P(X_{1\dots T} | \past)  \\
 & \operatorname{H}[X_t | f(X_{<t})] - \operatorname{H}[X_t | X_{<t}] =  \frac{1}{T} \sum_{t=1}^{T} \left(\operatorname{H}[X_t | f(X_{<t})] - \operatorname{H}[X_t | X_{<t}]\right) \\
 & \geq   \frac{1}{T} \left(\operatorname{H}[X_{1\dots T} | f(X_{\leq 0})] - \operatorname{H}[X_{1\dots T} | X_{\leq 0}]\right)  = \frac{1}{T} \left(\operatorname{I}[X_{1\dots T}|X_{\leq 0}] - \operatorname{I}[X_{1\dots T}|f(X_{\leq 0})]\right) \\
 & = \frac{1}{T} \left(\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{\leq 0})]\right) = \frac{1}{T} \left(M - \sum_{t > T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{\leq 0})]\right) \\
@@ -3363,7 +3364,7 @@ We could define the actual information content in $Mem(X)$ that is relevant to $
 \begin{align*}
 & - \E_{X} \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t})\ \ \ \ \ \ \text{(for any $t$, due to stationarity)} \\
 & = - \frac{1}{T} \E_{X} \sum_{t=1}^T \log P(X_t | f(X_{<t})) - \log P(X_t | X_{<t}) \\
-& \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(\overleftarrow{X})) - \log P(X_{1\dots T} | \overleftarrow{X})  \\
+& \geq  - \frac{1}{T} \E_{X} \log P(X_{1\dots T} | f(\past)) - \log P(X_{1\dots T} | \past)  \\
 & = \frac{1}{T} \left(\operatorname{H}[X_{1\dots T}|f(X_{<0})] -  \operatorname{H}[X_{1\dots T}|X_{<0}]\right) \\
 & = \frac{1}{T} (\operatorname{I}[X_{1\dots T}|X_{<0}] - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
 & = \frac{1}{T} (\sum_{t \leq T} t I_t + T \sum_{t > T} I_t - \operatorname{I}[X_{1\dots T}|f(X_{<0})]) \\
@@ -3446,9 +3447,9 @@ There is a tradeoff between the surprisal the listener experiences in the future
 Thus, for any process $(X_t)$, we obtain a memory-surprisal tradeoff curve.
 The points on the tradeoff curve are obtained by solving, for each $\beta \in \mathbb{R}_+$, the problem
 \begin{equation}\label{eq:ib}
-	\max_{Z} \left( \operatorname{I}[\overrightarrow{X}, Z] - \beta \cdot \operatorname{I}[Z, (X_{<0})] \right)
+	\max_{Z} \left( \operatorname{I}[\future, Z] - \beta \cdot \operatorname{I}[Z, (X_{<0})] \right)
 \end{equation}
-where the scope of the maximization is the class of all random variables $Z$ such that $Z - \left(X_{<0}\right) - \left(\overrightarrow{X}\right)$ is a Markov chain, that is, $Z$ is independent of the future given the past.
+where the scope of the maximization is the class of all random variables $Z$ such that $Z - \left(X_{<0}\right) - \left(\future\right)$ is a Markov chain, that is, $Z$ is independent of the future given the past.
 %\footnote{This requirement should hold if $Z$ models the memory of a listener, whose internal state must be independent of the future conditioned on the past.} (TODO From a speaker perspective, this wouldn't need to hold. It seems that the `Ambiguity cost' part of memory could be much lower for a speaker than for a listener, while the locality part is the same for both.)
 This tradeoff is called predictive rate-distortion in \cite{marzen-predictive-2016}.
 It also turned up in \cite{creutzig-past-future-2009}, \cite{still-information-2014}.
@@ -3468,7 +3469,7 @@ Unlike statistical complexity, the tradeoff will not differ much between process
 	Fix $\epsilon > 0$ and $M \in \mathbb{N}$.
 	Let $(Y_t)_t$ be a process distributed according to $Q$, and assume that it is close to $X_t$ in KL Divergence in the following sense:
 	$$\E_{X_{-\infty}...X_M} \left[\log \frac{P(X_1...X_M|X_{-\infty}...X_0)}{Q(X_1...X_M|X_{-\infty}...X_0)}\right] < \epsilon$$
-%	$D_{KL}((X_{1...M}) || Y_{1...M} | \overleftarrow{X}) < \epsilon \operatorname{H}[S_0]$.
+%	$D_{KL}((X_{1...M}) || Y_{1...M} | \past) < \epsilon \operatorname{H}[S_0]$.
 	Then the predictive rate-distortion curve of $(X_t)_t$ is, up to $\epsilon$, a (pessimistic) bound on the curve of $(Y_t)_t$.
 
 \end{proposition}
