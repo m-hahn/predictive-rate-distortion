@@ -1,4 +1,35 @@
-\documentclass[11pt,letterpaper]{article}
+%  LaTeX support: latex@mdpi.com 
+%  In case you need support, please attach all files that are necessary for compiling as well as the log file, and specify the details of your LaTeX setup (which operating system and LaTeX version / tools you are using).
+
+% You need to save the "mdpi.cls" and "mdpi.bst" files into the same folder as this template file.
+
+%=================================================================
+\documentclass[entropy,article,submit,moreauthors,pdftex,10pt,a4paper]{Definitions/mdpi} 
+
+% If you would like to post an early version of this manuscript as a preprint, you may use preprint as the journal and change 'submit' to 'accept'. The document class line would be, e.g., \documentclass[preprints,article,accept,moreauthors,pdftex,10pt,a4paper]{mdpi}. This is especially recommended for submission to arXiv, where line numbers should be removed before posting. For preprints.org, the editorial staff will make this change immediately prior to posting.
+
+
+%---------
+% pdftex
+%---------
+% The option pdftex is for use with pdfLaTeX. If eps figures are used, remove the option pdftex and use LaTeX and dvi2pdf.
+
+
+
+\firstpage{1} 
+\makeatletter 
+\setcounter{page}{\@firstpage} 
+\makeatother
+\pubvolume{xx}
+\issuenum{1}
+\articlenumber{5}
+\pubyear{2018}
+\copyrightyear{2018}
+%\externaleditor{Academic Editor: name}
+\history{Received: date; Accepted: date; Published: date}
+
+
+
 
 
 \usepackage[T1]{fontenc}
@@ -36,6 +67,15 @@
 \newcommand{\thetad}[0]{{\theta_d}}
 \newcommand{\thetal}[0]{{\theta_{LM}}}
 
+
+%=================================================================
+% Add packages and commands here. The following packages are loaded in our class file: fontenc, calc, indentfirst, fancyhdr, graphicx, lastpage, ifthen, lineno, float, amsmath, setspace, enumitem, mathpazo, booktabs, titlesec, etoolbox, amsthm, hyphenat, natbib, hyperref, footmisc, geometry, caption, url, mdframed, tabto, soul, multirow, microtype, tikz
+
+%=================================================================
+%% Please use the following mathematics environments: Theorem, Lemma, Corollary, Proposition, Characterization, Property, Problem, Example, ExamplesandDefinitions, Hypothesis, Remark, Definition
+%% For proofs, please use the proof environment (the amsthm package is loaded by the MDPI class).
+
+
 \newcounter{theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
@@ -59,91 +99,61 @@
 \newcommand{\infdiv}{D\infdivx}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 
-\frenchspacing
-%\def\baselinestretch{0.975}
+
+
+
+\Title{Estimating Predictive Rate-Distortion Curves via Neural Variational Inference}
 
 \author{Michael Hahn, Richard Futrell}
 
-\title{Estimating Predictive Rate-Distortion Curves via Neural Variational Inference}
 \date{2018}
 
-\begin{document}
+% Author Orchid ID: enter ID or remove command
+\newcommand{\orcidauthorA}{0000-0000-000-000X} % Add \orcidA{} behind the author's name
+%\newcommand{\orcidauthorB}{0000-0000-000-000X} % Add \orcidB{} behind the author's name
 
+% Authors, for the paper (add full first names)
+\Author{Michael Hahn $^{1}$, and Richard Futrell $^{2}$}
 
+% Authors, for metadata in PDF
+\AuthorNames{Michael Hahn and Richard Futrell}
 
-\maketitle
+% Affiliations / Addresses (Add [1] after \address if there is only one affiliation.)
+\address{%
+$^{1}$ \quad Stanford University; mhahn2@stanford.edu\\
+$^{2}$ \quad UC Irvine; futrell@uci.edu}
 
-% Possible venues
-% - Entropy, of course. 
-% - Also the journals that the previous PRD papers showed up in: Chaos, Journal of Statistical Physics, Physical Review Letters
+% Contact information of the corresponding author
+\corres{Correspondence: mhahn2@stanford.edu}
 
+% The commands \thirdnote{} till \eighthnote{} are available for further notes
 
-\begin{abstract}
-The predictive rate-distortion curve quantifies the tradeoff between compressing information about the past of a stochastic process and predicting its future accurately.
+%\simplesumm{} % Simple summary
+
+%\conference{} % An extended version of a conference paper
+
+% Abstract (Do not insert blank lines, i.e. \\) 
+\abstract{The predictive rate-distortion curve quantifies the tradeoff between compressing information about the past of a stochastic process and predicting its future accurately.
 Existing estimation methods for this curve work by clustering finite sequences of observations or by utilizing analytically known causal states.
 Neither type of approach scales to processes such as natural languages, which have large alphabets and long dependencies, and where the causal states are not known analytically.
 We describe Neural Predictive Rate Distortion (NPRD), an estimation method that scales to such processes, leveraging the universal approximation capabilities of neural networks.
 Taking only time series data as input, the method computes a variational bound on the predictive rate-distortion curve.
 We validate the method on processes where predictive rate-distortion is analytically known.
 As an application, we provide bounds on the predictive rate-distortion of natural language, improving on bounds provided by clustering sequences.
-Based on the results, we argue that the predictive rate-distortion curve is a useful complexity metric for highly complex processes such as natural language.
-\end{abstract}
+Based on the results, we argue that the predictive rate-distortion curve is a useful complexity metric for highly complex processes such as natural language.}
+
+% Keywords
+\keyword{Predictive rate-distortion; Natural language; Information bottleneck; Neural variational inference (list three to ten pertinent keywords specific to the article, yet reasonably common within the subject discipline.)}
+
+% The fields PACS, MSC, and JEL may be left empty or commented out if not applicable
+%\PACS{J0101}
+%\MSC{}
+%\JEL{}
 
 
-%In the modeling of stochastic processes, Predictive Rate-Distortion describes the tradeoff between the cost of encoding the past, and the benefit of predicting the future better.
-%It is formalized as the tradeoff between the mutual information of an encoding with the past and with the future of the process, an application of the Information Bottleneck to processes \citep{tishby-information-1999}.
-%For some processes, this is analytically tractable \citep{ creutzig-predictive-2008, creutzig-past-future-2009}.
-%For processes where this is not feasible, an approach is to cluster finite length strings, approximating the process by a finite-order Markov process \citep{still-optimal-2007}.
-%This approximation faces some challenges:
-%As \cite{marzen-predictive-2016} note, the approach will need to cluster a set of sequences whose size grows exponentially with their length, making it infeasible to model processes with long-range dependencies or large state spaces.
-%Their solution is to consider the causal states and apply the Information Bottleneck method there.
-%This requires explicit access to the causal states.
-%For many naturally occurring processes, this will not be available. 
-%Thus, none of the proposed methods are applicable to estimating predictive rate-distortion on real-world timeseries whose underlying process is not analytically tractable or otherwise known explicitly.
-%
-%Finally, we apply the method to full natural language, modeled as a sequence of words.
-%Whereas OCE fails even when restricting to sequences of length 2, our method easily scales to sequences of 30 words.
-
-%While previous work has studied the excess entropy of natural language (REF), our result seems to be the first estimate of predictive rate-distortion for natural language.
+\begin{document}
 
 
-%
-%\cite{clarke-application-2003}
-%%~
-%%A
-%%tolerance  parameter
-%%to  account  for  the  statistical  uncer-
-%%tainty  introduced  by  a  noninfinite  series  that  destroys  the
-%%exact equivalence of different causal states sharing the same
-%%outcome.
-%%A new expletive filter that removes signal cor-
-%%ruption by assuming that corruption creates rare causal states
-%%or words that are not in the dictionary of the true signal.
-%%The concept of effective soficity in which a data series has a
-%%finite  set  of  equivalent  causal  states  that  is  stable  to  small
-%%changes in the effective memory of those states.
-%
-%\cite{singh-learning-2003} machine-learning based method of finding predictive featurization of states
-%
-%\cite{singh-predictive-2004} also something like this
-%
-%Estimating predictive rate-distortion is related to the problem of estimating statistical complexity.
-%This is hard to estimate.
-%\cite{clarke-application-2003} estimate statistical complexity with assumptions.
-%
-%
-%Related to the statistical complexity:
-%At the limit of optimal future prediction, then -- under certain assumptions -- $I[Z, (X_{< 0})]$ equals the statistical complexity.
-%We believe that, for natural language, estimating predictive rate-distortion is more appropriate than estimating the full statistical complexity:
-%Estimating the statisical complexity would require very large corpora, similar to the problem of estimating the entropy rate.
-%Also, possibly the excess entropy of natural language is infinite, in which case the statistical complexity would also be infinite.
-%
-%%This tradeoff is called predictive rate-distortion in \cite{marzen-predictive-2016}.
-%%It also turned up in \cite{creutzig-past-future-2009}, \cite{still-information-2014}.
-%
-%
-%Further, for the problem of modeling natural language sequences, the strongest models are neural network models such as LSTMs and Transformers, far outperforming models based on finite-order Markov processes or discrete-state Hidden Markov Models.
-%We will describe a method for estimating predictive rate-distortion that leverages the strength of such models, while providing a guaranteed upper bound on the rate-distortion curve.
 
 
 
@@ -152,9 +162,6 @@ Constructing models that predict future observations is a fundamental method of 
 Understanding and predicting dynamics has been a fundamental goal of physics for centuries.
 In engineering, devices often have to predict the future of their environment to perform efficiently.
 Living organisms need to make inferences about their environment and its future for survival.
-%Prediction has been argued to permeat the behavior of organisms at all levels:
-%\textbf{TODO some more about biological systems, language, ...?}
-
 
 
 %Often the underlying process is very complicated.
@@ -423,7 +430,7 @@ This is crucial for modeling long dependencies.
 
 \subsection{Variational Bound on Predictive Rate-Distortion}
 We will first describe the general method, without committing to a specific framework for function approximation yet.
-The idea will be to construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
+We will construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
 
 As in OCE (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures:
 \begin{equation}\label{eq:ib-oce-repeat}
@@ -457,6 +464,9 @@ For a similar reason, the rate $\operatorname{I}[X_{-M\dots -1}, Z]$ of the code
 %If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, 
 
 
+% That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the optimal decoder and the true marginal of $Z$.
+
+
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
 First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})$:
 \begin{equation}
@@ -467,7 +477,7 @@ Second, to approximate the decoding distribution $P(X_{0\dots M-1}|Z)$, we intro
 P_\psi(X_{0\dots M-1}|Z)  \text{ approximates }  P(X_{0\dots M-1}|Z)
 \end{equation}
 for each code $Z \in \mathbb{R}^N$. Crucially, $P_\psi(X_{0\dots M-1}|Z)$ will be easy to compute efficiently, unlike the exact decoding distribution $P(X_{0\dots M-1}|Z)$.
-That is, we introduce $\psi$ and $q$ as \emph{variational approximations} \citep{blei-variational-2016} to the optimal decoder and the true marginal of $Z$.
+
 
 If we fix a stochastic process $(X_t)_{t \in \mathbb{Z}}$ and an encoder $\phi$, then the following two bounds hold for \emph{any} choice of the decoder $\psi$ and the distribution $q$:
 
@@ -499,8 +509,16 @@ The KL Divergence between $P_\phi(Z|X_{-M\dots-1})$ and $q(Z)$, averaged over pa
 Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})$.
 \end{proposition}
 
+\begin{proof}
+The two equalities follow from the definition of KL Divergence and Mutual Information. To show the inequality, we again use Gibbs' inequality:
+\begin{align*}
+    -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log q(Z) = - \mathbb{E}_Z \log q(Z) \geq - \mathbb{E}_Z \log P(Z) = -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log P(Z) 
+\end{align*}
+Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
+\end{proof}
+
 We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) in a way amenable to using function approximators.
-Note that the the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) can equivalently be written as
+Note that the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) can equivalently be written as
 \begin{equation}\label{eq:prd-recall}
 	\min_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}}	\left[\operatorname{H}[X_{0\dots M-1} | Z] + \lambda \operatorname{I}[ X_{-M\dots-1}, Z]\right]
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
@@ -514,31 +532,31 @@ The second proposition guarantees that, for a solution to  (\ref{eq:prd-recall})
 \begin{equation}\label{eq:eq1-new}
  \operatorname{I}[Z, X_{-M\dots-1}] =   \mathbb{E}_{X_{-M\dots-1}}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots-1})}{q(Z)}\right]
 \end{equation}
-and the predictiveness is given by
+and the prediction error is given by
 \begin{equation}\label{eq:eq2-new}
   %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
-  \operatorname{I}[Z, X_{0\dots M-1}] =  \operatorname{H}[X_{0\dots M-1}] - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] %H[X_{0\dots M-1}|X_{-M\dots-1}]
+  \operatorname{H}[X_{0\dots M-1}|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] %H[X_{0\dots M-1}|X_{-M\dots-1}] % \operatorname{H}[X_{0\dots M-1}]
 \end{equation}
 Note that the right-hand-sides of (\ref{eq:eq1-new}-\ref{eq:eq2-new}) can both be estimated efficiently using Monte Carlo samples from $Z \sim P_\phi(X_{-M\dots-1})$.
 
-If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have bounds on rate and predictiveness for the code $Z$ generated by $\phi$:
+If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have bounds on rate and prediction error for the code $Z$ generated by $\phi$:
 \begin{equation}\label{eq:bound1-new}
  \operatorname{I}[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots -1})}{q(Z)}\right]
 \end{equation}
 \begin{equation}\label{eq:bound2-new}
   %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[X_{0\dots M-1}|X_{-M\dots-1}]
-  \operatorname{I}[Z, X_{0\dots M-1}] \geq  \operatorname{H}[X_{0\dots M-1}] - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right]
+  \operatorname{H}[X_{0\dots M-1}|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] % \operatorname{H}[X_{0\dots M-1}]
 \end{equation}
 To carry out the optimization~(\ref{eq:bound}), we will restrict $\phi, \psi, q$ to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
 While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and -- if the family of approximators is sufficiently rich---can come close to turning these into the equalities  (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
  
 
 
-\subsection{Implementation}
-\paragraph{Approximating Families}
-We choose the approximating families for the encoder $\phi$, the decoder $\psi$, and the distribution $q$ to be certain types of neural networks.
 
-For $\phi$ and $\psi$, we use recurrent neural networks with LSTM cells \citep{hochreiter-long-1997}, widely used for modeling sequential data across different domains.
+\subsection{Choosing Approximating Families}
+For our method of Neural Predictive Rate Distortion (NPRD), we choose the approximating families for the encoder $\phi$, the decoder $\psi$, and the distribution $q$ to be certain types of neural networks that are known to provide strong and general models of sequences and distributions.
+
+For $\phi$ and $\psi$, we use recurrent neural networks with Long Short Term Memory (LSTM) cells \citep{hochreiter-long-1997}, widely used for modeling sequential data across different domains.
 We parameterize the distribution $P_\phi(Z|X_{-M\dots-1})$ as a Gaussian whose mean and variance are computed from the past $X_{-M\dots-1}$:
 We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past observations $X_{-M\dots-1}$, and then compute
 \begin{equation}\label{eq:z-gauss}
@@ -547,7 +565,7 @@ We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past ob
 where $W_\mu, W_\sigma \in \mathbb{R}^{k\times k}$ are parameters.
 While we found Gaussians sufficiently flexible for $\phi$, more powerful encoders could be constructed using more flexible parametric families, such as normalizing flows \citep{rezende-variational-2015, kingma-improving-2016}.
 
-For the decoder $\psi$, we use a second LSTM network to compute a sequence of vector representations $g_t = \psi(Z, X_{1\dots t-1})$ ($g_t \in \mathbb{R}^k$) for $t = 1, \dots T$.
+For the decoder $\psi$, we use a second LSTM network to compute a sequence of vector representations $g_t = \psi(Z, X_{0\dots t-1})$ ($g_t \in \mathbb{R}^k$) for $t = 0, \dots M-1$.
 We compute predictions using the softmax rule 
 \begin{equation}
 	P_\psi(X_t = s_i|X_{1...t-1}, Z) \propto \exp((W_o g_t)_i)
@@ -560,7 +578,7 @@ This is a parametric family of distributions that allows efficient estimation of
 This method widely generalizes a family of prior methods \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
 
 
-\paragraph{Optimization and Evaluation}
+\subsection{Parameter Estimation and Evaluation}
 We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for the objective (\ref{eq:bound}) using Backpropagation and Adam \citep{kingma-adam:-2014}, a standard and widely used gradient descent-based method for optimizing neural networks.
 During optimization, we approximate the gradient by taking a single sample from $Z$ (\ref{eq:z-gauss}) per sample trajectory $X_{-M}, \dots, X_{M-1}$ and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
@@ -579,7 +597,7 @@ Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bou
 \end{equation}
 where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density with $\mu, \sigma^2$ computed from $X_{-M\dots -1}$ as in (\ref{eq:z-gauss}), and prediction error 
 \begin{equation}\label{eq:bound-mc-distortion}
- -	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] \approx \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(X_{0\dots M-1} | Z)
+ -	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] \approx - \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(X_{0\dots M-1} | Z)
 \end{equation}
 %and the PRD objective
 %\begin{equation}\label{eq:bound-mc}
@@ -622,11 +640,13 @@ which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:b
 
 \subsection{Related Work}
 In (\ref{eq:bound}), we derived a variational formulation of predictive rate-distortion.
-This is formally equivalent to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
-Unlike our approach, they used a fixed diagonal Gaussian instead of a parametrized distribution for $q$.
-As far as we are aware, no previous work has used such a formulation in the modeling of sequences.
+This is formally related to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
+Unlike our approach, they used a fixed diagonal Gaussian instead of a flexible parametrized distribution for $q$.
+As far as we are aware, no previous work has used such a variational formulation in the modeling of sequences.
 
 In the neural networks literature, the most commonly used method using variational bounds similar to (\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
+
+%More broadly, our method is related to  The idea will be to use Variational Inference~\citep{blei-variational-2016}:
 
 
 
@@ -634,7 +654,8 @@ In the neural networks literature, the most commonly used method using variation
 
 
 \section{Experiments}\label{sec:experiments}
-We now test the ability of NPRD to estimate rate-distortion curves.
+%In Section~\ref{sec:nprd}, we described our method Neural Predictive Rate Distortion (NPRD) 
+We now test the ability of our new method NPRD to estimate rate-distortion curves.
 Before we apply NPRD to obtain the first estimates of predictive rate-distortion for natural language in Section~\ref{sec:language}, we validate the method on processes whose tradeoff curves are analytically known, and compare with OCE.
 
 \subsection{Implementation Details}
@@ -645,7 +666,7 @@ As discussed in Section~\ref{sec:oce}, OCE overestimates structure in the proces
 overfitting will result in an overly optimistic estimate, systematically overestimating the predictiveness achieved at a given rate.
 To address this problem, we follow the evaluation method used for NPRD, evaluating rate and distortion on held-out test data.
 We partition the available time series data into a training and test set. We use the training set to create the encoder $P(Z|X_{-M\dots -1})$ using the Blahut-Arimoto algorithm as described by~\citet{still-optimal-2010}.
-We then use the held-out test set to estimate rate and prediction loss.
+We then use the held-out test set to estimate rate and prediction error.
 This method not only enables fair comparison between OCE and NPRD, but also provides a more realistic evaluation, by focusing on the performance of the code $Z$ when deployed on new data samples.
 For rate, we use the same variational bound that we use for NPRD, stated in Proposition~\ref{ineq2}:
 \begin{equation}\label{eq:rate-oce}
@@ -655,7 +676,7 @@ where $P(Z|X_{-M}\dots X_{-1})$ is the encoder created by the Blahut-Arimoto alg
 $N$ is the number of sample time series in the test data.
 In the limit of enough training data, when $s(Z)$ matches the actual population marginal of $Z$, (\ref{eq:rate-oce}) is an unbiased estimate of the rate. %  If the training set is large enough and 
 %\textbf{Is $s$ defined anywhere? same for $r$?}
-We estimate the prediction loss on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
+We estimate the prediction error on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
 \begin{equation}
 \frac{1}{N} \sum_{X_{-M}\dots X_{M-1} \in \text{Test Data}} \E_{Z \sim P(\cdot|X_{-M \dots -1})} \log P(X_{0\dots M-1}|Z).
 \end{equation}
@@ -676,36 +697,6 @@ Given that NPRD provably provides upper bounds on the PRD objective~(\ref{eq:prd
 As a computationally more efficient method, we defined a range of plausible hyperparameters based both on experience reported in the literature, and considerations of computational efficiency.
 These parameters are shown in Table~\ref{tab:nprd-hyperparameters}.
 We then randomly sampled, for each of the processes that we experimented on, combinations of $\lambda$ and these hyperparameters to run NPRD on.
-
-The first group of parameters are the dimensions of the input embedings and the recurrent LSTM states.
-The second group of parameters are regularization parameters.
-We apply dropout~\citep{srivastava-dropout:-2014} to the input and output layers.
-The third group of parameters are related to the optimization procedure.
-We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
-We implemented the model using PyTorch \citep{paszke2017automatic}.
-Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow (1, 2, ,...), the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow (an integer), and the number of layers in the flow (1,2,...).
-Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally expensive.
-
-
-
-
-\begin{table}
-\begin{tabular}{l||lll}
-	& Section~\ref{sec:tractable} &   Section~\ref{sec:pos} & Section~\ref{sec:words}\\ \hline\hline
-	Embedding Dimension & 50, 100 &    50, 100, 200, 300   &  150      \\
-	LSTM Dimension & 32           &   64, 128, 256, 512    &    512     \\ \hline
-%	LSTM Layers & 1 \\ \hline
-	Dropout rate & 0.0, 0.1, 0.2  &   0.0, 0.1, 0.2    &      0.4     \\
-	Input Dropout & 0  &    0.0, 0.1, 0.2   &        0.2             \\ \hline
-	Adam Learning Rate & 0.0001, 0.0005, 0.001, 0.002, 0.004  &     0.0001, 0.0005, 0.001, 0.002, 0.004  &       0.00005, 0.0001, 0.0005, 0.001     \\
-	Batch Size & 16, 32, 64  &    16, 32 64   &       32          \\ \hline
-	Flow Length & 1, 2  &   1,2,3,4,5    &          4              \\
-	Flow Type & DSF, DDSF  &    DSF, DDSF   &       DSF, DDSF             \\
-	Flow Dimension & 32, 64, 128, 512  &   512    &    512        \\
-	Flow Layers & 2  &    2   &                 2         \\
-\end{tabular}
-	\caption{NPRD Hyperparameters}\label{tab:nprd-hyperparameters}
-\end{table}
 
 
 \subsection{Analytically Tractable Problems}\label{sec:tractable}
@@ -741,9 +732,9 @@ Does NPRD lead to interpretable codes $Z$?
 To answer this, we further investigated the NPRD approximation to the Random Insertion Process (RIP), obtained in the previous paragraph.
 The $\epsilon$-machine was computed by  \cite{marzen-predictive-2016} and is given in Figure~\ref{fig:rip-machine} (left).
 The process has three causal states:
-A represents those pasts where the future starts with $1^{2k}0$ ($k = 0, 1, 2, \dots$) -- these are the pasts ending in either $001$ or $10111^m$ ($m= 0, 1, 2, \dots$). % but cannot go in with 10
-B represents those pasts ending in 10 -- the future has to start with 01 or 11.
-C represents those pasts ending in either 00 or 01 -- the future has to start with $1^{2k+1}0$ ($k = 0, 1, 2, \dots$).
+State \textit{A} represents those pasts where the future starts with $1^{2k}0$ ($k = 0, 1, 2, \dots$) -- these are the pasts ending in either $001$ or $10111^m$ ($m= 0, 1, 2, \dots$). % but cannot go in with 10
+State \textit{B} represents those pasts ending in 10 -- the future has to start with 01 or 11.
+State \textit{C} represents those pasts ending in either 00 or 01 -- the future has to start with $1^{2k+1}0$ ($k = 0, 1, 2, \dots$).
 
 The analytical solution to the predictive rate-distortion problem was computed by \cite{marzen-predictive-2016}.
 At $\lambda > 0.5$, the optimal solution collapses $A$ and $B$ into a single codeword, while all three states are mapped to separate codewords for $\lambda \leq 0.5$.
@@ -963,12 +954,11 @@ Unlike discrete codebooks, the geometric structure makes it possible for neural 
 
 
 \subsection{Discussion}
-Let us now interpret the curves in Figure~\ref{fig:eng-pos}. \rljf{What is predictiveness? Excess entropy?}
+Let us now consider the curves in Figure~\ref{fig:eng-pos} in more detail.
 The rate-predictiveness curve (left) shows that, at low rates, predictiveness is approximately proportional to the rate.
 At greater degrees of predictiveness, rate grows faster and faster, whereas predictiveness seems to asymptote to $\approx 1.1$ nats.
-%(In the case of our experiment, since $T = 15$, rate would be bounded by the aggregate block-entropy of 15 words, about 28 nats.)
-The asymptote of predictiveness can be identified with the excess entropy $E_0 := \operatorname{I}[X_{-M\dots -1}, X_{0 \dots M-1}]$, whereas the rate should asymptote to the statistical complexity.
-Judging by the curve, natural language---at the level we are measuring in this experiment---has a statistical complexity much higher than its excess entropy:
+The asymptote of predictiveness can be identified with the mutual information between past and future observations, $E_0 := \operatorname{I}[X_{-M\dots -1}, X_{0 \dots M-1}]$, which is a lower bound on the excess entropy. The rate should asymptote to the statistical complexity.
+Judging by the curve, natural language---at the time scale we are measuring in this experiment---has a statistical complexity much higher than its excess entropy:
 At the highest rate measured by NPRD in our experiment, rate is about 20 nats, whereas predictiveness is about 1.1 nats.
 If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. \rljf{Wow, is this true for any other natural processes?}
 Note that this picture agrees qualitatively with the OCE results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
@@ -998,9 +988,9 @@ where $\theta$ is the codebook defining the encoding distribution $P(Z|X_{-M\dot
 \begin{equation}
 \lambda =	\frac{\partial P}{\partial R}.
 \end{equation}
-Our ansatz therefore leads to the differential equation
+Our ansatz therefore leads to the equation
 \begin{equation}\label{eq:derivatives}
-	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
+\frac{\partial P}{\partial R} = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
 \end{equation}
 Qualitatively, this says that $P$ asymptotes to a finite value, whereas $R$ is unbounded. %\rljf{Exactly the opposite of Dembowski's finding}
 
@@ -1031,7 +1021,7 @@ Using~(\ref{eq:r-alpha-beta}), this can be extended without further parameters t
 Resulting fits are shown in Figure~\ref{fig:eng-pos-fitted}.
 %$E = E_0 - \Gamma(1.6, (\log\beta))$
 
-Note that there are many possible ways of fitting these curves; we have described a simple one that requires two free parameters $\alpha >0$, $\beta > 1$, in addition to a guess for the maximal predictiveness $E_0$.
+Note that there are other possible ways of fitting these curves; we have described a simple one that requires only two parameters $\alpha >0$, $\beta > 1$, in addition to a guess for the maximal predictiveness $E_0$.
 In any case, the results show that natural language shows an approximately linear growth of predictiveness with rate at small rates, and exploding rates at diminishing returns in predictiveness later.
 Why might language show such behavior?
 %We will describe a proposal:
@@ -1262,16 +1252,128 @@ We conclude that predicting words in natural language can be approximated with s
 We introduce Neural Predictive Rate Distortion (NPRD), a method for estimating predictive rate-distortion when only sample trajectories are given.
 Unlike OCE, the most general prior method, NPRD scales to long sequences and large state spaces.
 On analytically tractable processes, we show that it closely fits the analytical rate-distortion curve and recovers the causal states of the process.
-On POS-level modeling of natural language, it agrees with OCE in the setting of low rate and short sequences; outside these settings, OCE fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
-Finally, we use NPRD to provide the first estimates of predictive rate-distortion for modeling natural language.
+On part-of-speech-level modeling of natural language, it agrees with OCE in the setting of low rate and short sequences; outside these settings, OCE fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
+Finally, we use NPRD to provide the first estimates of predictive rate-distortion for modeling natural language in five different languages, finding qualitatively very similar curves in all languages.
 %Results suggest that prediction can be approximated with sim, but more accurate prediction requires very fine-grained memory representations.
 
 
-\bibliographystyle{apalike}
+%\bibliographystyle{apalike}
 %\bibliography{extracted}
+%\bibliography{literature}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{6pt} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+%\supplementary{The following are available online at \linksupplementary{s1}, Figure S1: title, Table S1: title, Video S1: title.}
+
+% Only for the journal Methods and Protocols:
+% If you wish to submit a video article, please do so with any other supplementary material.
+% \supplementary{The following are available at \linksupplementary{s1}, Figure S1: title, Table S1: title, Video S1: title. A supporting video article is available at doi: link.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\authorcontributions{For research articles with several authors, a short paragraph specifying their individual contributions must be provided. The following statements should be used “conceptualization, X.X. and Y.Y.; methodology, X.X.; software, X.X.; validation, X.X., Y.Y. and Z.Z.; formal analysis, X.X.; investigation, X.X.; resources, X.X.; data curation, X.X.; writing—original draft preparation, X.X.; writing—review and editing, X.X.; visualization, X.X.; supervision, X.X.; project administration, X.X.; funding acquisition, Y.Y.”, please turn to the  \href{http://img.mdpi.org/data/contributor-role-instruction.pdf}{CRediT taxonomy} for the term explanation. Authorship must be limited to those who have contributed substantially to the work reported.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\funding{This research received no external funding.} %'' or ``This research was funded by NAME OF FUNDER grant number XXX.'' and  and ``The APC was funded by XXX''. Check carefully that the details given are accurate and use the standard spelling of funding agency names at \url{https://search.crossref.org/funding}, any errors may affect your future funding.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\acknowledgments{We thank Dan Jurafsky for helpful discussion.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\conflictsofinterest{The authors declare no conflict of interest.} %Declare conflicts of interest or state ``The authors declare no conflict of interest.'' Authors must identify and declare any personal circumstances or interest that may be perceived as inappropriately influencing the representation or interpretation of reported research results. Any role of the funders in the design of the study; in the collection, analyses or interpretation of data; in the writing of the manuscript, or in the decision to publish the results must be declared in this section. If there is no role, please state ``The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript, or in the decision to publish the results''.} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+\abbreviations{The following abbreviations are used in this manuscript:\\
+
+\noindent 
+\begin{tabular}{@{}ll}
+NPRD & Neural Predictive Rate-Distortion\\
+OCE & Optimal Causal Estimation\\
+PRD & Predictive Rate-Distortion \\
+LSTM & Long Short Term Memory
+\end{tabular}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+\appendixtitles{no} %Leave argument "no" if all appendix headings stay EMPTY (then no dot is printed after "Appendix A"). If the appendix sections contain a heading then change the argument to "yes".
+\appendixsections{multiple} %Leave argument "multiple" if there are multiple sections. Then a counter is printed ("Appendix A"). If there is only one appendix section then change the argument to "one" and no counter is printed ("Appendix").
+\appendix
+\section{Hyperparameters}
+
+The first group of parameters are the dimensions of the input embedings and the recurrent LSTM states.
+The second group of parameters are regularization parameters.
+We apply dropout~\citep{srivastava-dropout:-2014} to the input and output layers.
+The third group of parameters are related to the optimization procedure.
+We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
+We implemented the model using PyTorch \citep{paszke2017automatic}.
+Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow (1, 2, ,...), the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow (an integer), and the number of layers in the flow (1,2,...).
+Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally more expensive.
+
+
+
+
+\begin{table}
+\begin{tabular}{l||lll}
+	& Section~\ref{sec:tractable} &   Section~\ref{sec:pos} & Section~\ref{sec:words}\\ \hline\hline
+	Embedding Dimension & 50, 100 &    50, 100, 200, 300   &  150      \\
+	LSTM Dimension & 32           &   64, 128, 256, 512    &    512     \\ \hline
+%	LSTM Layers & 1 \\ \hline
+	Dropout rate & 0.0, 0.1, 0.2  &   0.0, 0.1, 0.2    &      0.4     \\
+	Input Dropout & 0  &    0.0, 0.1, 0.2   &        0.2             \\ \hline
+	Adam Learning Rate & 0.0001, 0.0005, 0.001, 0.002, 0.004  &     0.0001, 0.0005, 0.001, 0.002, 0.004  &       0.00005, 0.0001, 0.0005, 0.001     \\
+	Batch Size & 16, 32, 64  &    16, 32 64   &       32          \\ \hline
+	Flow Length & 1, 2  &   1,2,3,4,5    &          4              \\
+	Flow Type & DSF, DDSF  &    DSF, DDSF   &       DSF, DDSF             \\
+	Flow Dimension & 32, 64, 128, 512  &   512    &    512        \\
+	Flow Layers & 2  &    2   &                 2         \\
+\end{tabular}
+	\caption{NPRD Hyperparameters}\label{tab:nprd-hyperparameters}
+\end{table}
+
+
+\unskip
+\subsection{}
+The appendix is an optional section that can contain details and data supplemental to the main text. For example, explanations of experimental details that would disrupt the flow of the main text, but nonetheless remain crucial to understanding and reproducing the research shown; figures of replicates for experiments of which representative data is shown in the main text can be added here if brief, or as Supplementary data. Mathematical proofs of results not central to the paper can be added as an appendix.
+
+\section{}
+All appendix sections must be cited in the main text. In the appendixes, Figures, Tables, etc. should be labeled starting with `A', e.g., Figure A1, Figure A2, etc. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Citations and References in Supplementary files are permitted provided that they also appear in the reference list here. 
+
+%=====================================
+% References, variant A: internal bibliography
+%=====================================
+\reftitle{References}
+
+% To cite two works by the same author: \citeauthor{ref-journal-1a} (\citeyear{ref-journal-1a}, \citeyear{ref-journal-1b}). This produces: Whittaker (1967, 1975)
+% To cite two works by the same author with specific pages: \citeauthor{ref-journal-3a} (\citeyear{ref-journal-3a}, p. 328; \citeyear{ref-journal-3b}, p.475). This produces: Wong (1999, p. 328; 2000, p. 475)
+
+%=====================================
+% References, variant B: external bibliography
+%=====================================
+\externalbibliography{yes}
 \bibliography{literature}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+\sampleavailability{Samples of the compounds ...... are available from the authors.}
 
+%% for journal Sci
+%\reviewreports{\\
+%Reviewer 1 comments and authors’ response\\
+%Reviewer 2 comments and authors’ response\\
+%Reviewer 3 comments and authors’ response
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
 
