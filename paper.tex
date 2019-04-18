@@ -333,10 +333,10 @@ Therefore, we will be concerned with the situation where $\lambda \in (0,1)$.
 %Let $(X_t)$ be a stationary process.
 %We consider feature representations $Z$ of the past $\overleftarrow{X}$ that are used to predict the future $\overrightarrow{X}$.
 %There is a tradeoff between the complexity of $Z$ and the success of predicting the future:
-%More complex representations of the past can reduce future prediction error -- up to a certain limit given by the entropy rate of the process. %This limit corresponds to perfect modeling, and results in Crutchfield and colleagues' notion of complexity.
+%More complex representations of the past can reduce future prediction loss -- up to a certain limit given by the entropy rate of the process. %This limit corresponds to perfect modeling, and results in Crutchfield and colleagues' notion of complexity.
 %
 %The complexity of the representation $Z$, or the \emph{rate}, is formalized as the mutual information between the past and the representation $Z$: $\operatorname{I}[Z, \overleftarrow{X}]$.
-%Different distortion measures could be used as measures of prediction error.
+%Different distortion measures could be used as measures of prediction loss.
 %CITE maximize the entropy, or, equivalently, minimize the mutual information, between $Z$ and the future: $\operatorname{I}[Z, \overleftarrow{X}]$.
 %
 %Thus, for any process $(X_t)$, we obtain a rate-distortion tradeoff curve.
@@ -434,12 +434,18 @@ We will construct a bound on predictive rate-distortion and optimize this bound 
 
 As in OCE (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures:
 \begin{equation}\label{eq:ib-oce-repeat}
-	\max_{Z} \left( \operatorname{I}[X_{-M\dots -1}, Z] - \lambda \cdot \operatorname{I}[Z, X_{0\dots M-1}] \right)
+	\max_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}} \left( \operatorname{I}[Z, X_{0\dots M-1}] - \lambda \cdot \operatorname{I}[X_{-M\dots -1}, Z] \right)
 \end{equation}
-where $Z$ ranges over all random variables such that the Markov condition~(\ref{eq:markov}) holds:
-\begin{equation}
-    Z\bot X_{0\dots M-1} | X_{-M\dots -1}
+%where $Z$ ranges over all random variables such that the Markov condition~(\ref{eq:markov}) holds:
+%\begin{equation}
+%    Z\bot X_{0\dots M-1} | X_{-M\dots -1}
+%\end{equation}
+It will be convenient to equivalently rewrite this as
+\begin{equation}\label{eq:prd-loss}
+	\min_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}}	\left[\operatorname{H}[X_{0\dots M-1} | Z] + \lambda \cdot\operatorname{I}[ X_{-M\dots-1}, Z]\right]
 \end{equation}
+where $\operatorname{H}[X_{0\dots M-1} | Z]$ is the \emph{prediction loss}. Note that minimizing prediction loss is equivalent to maximizing predictiveness $\operatorname{I}[X_{0\dots M-1} | Z]$. % is the reduction in prediction loss when predicting
+
 
 When deploying such a predictive code $Z$, two components have to be computed: a distribution $P(Z|X_{-M\dots -1})$ that \emph{encodes} past observations into a code $Z$, and a distribution $P(X_{0\dots M-1}|Z)$ that \emph{decodes} the code $Z$ into predictions about the future.
 
@@ -518,7 +524,7 @@ Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
 \end{proof}
 
 We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) in a way amenable to using function approximators.
-Note that the predictive rate-distortion objective~(\ref{eq:ib-oce-repeat}) can equivalently be written as
+Recall the predictive rate-distortion objective~(\ref{eq:prd-loss})
 \begin{equation}\label{eq:prd-recall}
 	\min_{Z : Z \bot X_{0\dots M-1} | X_{-M\dots-1}}	\left[\operatorname{H}[X_{0\dots M-1} | Z] + \lambda \operatorname{I}[ X_{-M\dots-1}, Z]\right]
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
@@ -532,14 +538,14 @@ The second proposition guarantees that, for a solution to  (\ref{eq:prd-recall})
 \begin{equation}\label{eq:eq1-new}
  \operatorname{I}[Z, X_{-M\dots-1}] =   \mathbb{E}_{X_{-M\dots-1}}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots-1})}{q(Z)}\right]
 \end{equation}
-and the prediction error is given by
+and the prediction loss is given by
 \begin{equation}\label{eq:eq2-new}
   %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
   \operatorname{H}[X_{0\dots M-1}|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] %H[X_{0\dots M-1}|X_{-M\dots-1}] % \operatorname{H}[X_{0\dots M-1}]
 \end{equation}
 Note that the right-hand-sides of (\ref{eq:eq1-new}-\ref{eq:eq2-new}) can both be estimated efficiently using Monte Carlo samples from $Z \sim P_\phi(X_{-M\dots-1})$.
 
-If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have bounds on rate and prediction error for the code $Z$ generated by $\phi$:
+If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have bounds on rate and prediction loss for the code $Z$ generated by $\phi$:
 \begin{equation}\label{eq:bound1-new}
  \operatorname{I}[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots -1})}{q(Z)}\right]
 \end{equation}
@@ -590,12 +596,12 @@ After every pass through the training set, the objective (\ref{eq:bound}) is eva
 
 
 %\paragraph{Evaluation}
-After optimizing the parameters on a set of observed trajectories, we estimate rate and prediction error on the test set.
-Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and the prediction error (\ref{eq:bound2-new}) on the test set by taking, for each time series $X_{-M}...X_{M-1}$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
+After optimizing the parameters on a set of observed trajectories, we estimate rate and prediction loss on the test set.
+Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and the prediction loss (\ref{eq:bound2-new}) on the test set by taking, for each time series $X_{-M}...X_{M-1}$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
 \begin{equation}\label{eq:bound-mc-rate}
 \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots -1})}{q(Z)}\right] \approx	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}  \log \frac{p_{\mathcal{N}(\mu, \sigma^2)}(z)}{q(z)}
 \end{equation}
-where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density with $\mu, \sigma^2$ computed from $X_{-M\dots -1}$ as in (\ref{eq:z-gauss}), and prediction error 
+where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density with $\mu, \sigma^2$ computed from $X_{-M\dots -1}$ as in (\ref{eq:z-gauss}), and prediction loss 
 \begin{equation}\label{eq:bound-mc-distortion}
  -	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M-1} | Z)\right] \approx - \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(X_{0\dots M-1} | Z)
 \end{equation}
@@ -604,7 +610,7 @@ where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density with $\mu, \si
 %	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P(X_{0\dots M} | z_{-M...-1}) + \lambda \cdot \log \frac{\mathcal{N}(\mu, \sigma^2)(z)}{q(z)}
 %\end{equation}
 %Note that one can go from distortion to predictiveness by estimating
-Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guaranteed to be \emph{upper bounds} on the true rate and prediction error achieved by the code $Z  \sim \mathcal{N}(\mu, \sigma^2)$, up to sampling error introduced into the Monte Carlo estimation by sampling $z$ and the finite size of the test set.
+Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guaranteed to be \emph{upper bounds} on the true rate and prediction loss achieved by the code $Z  \sim \mathcal{N}(\mu, \sigma^2)$, up to sampling error introduced into the Monte Carlo estimation by sampling $z$ and the finite size of the test set.
 
 
 %The resulting value of (\ref{eq:bound-mc}) is guaranteed to be an \emph{upper bound} on the true objective (\ref{eq:prd-recall}), up to sampling error introduced by sampling $z$ and the finite size of the test set.
@@ -612,10 +618,10 @@ Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guarant
 
 It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
 (\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators upper bounds, whereas overfitting \emph{biases} the values obtained by OCE.
-Given that NPRD \emph{provably} provides \emph{upper bounds} on rate and prediction error (up to sampling error), one can objectively compare the quality of different estimation methods:
+Given that NPRD \emph{provably} provides \emph{upper bounds} on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
-We estimate predictiveness $\operatorname{I}[Z, X_{0\dots M-1}]$ with the following method.
+Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, X_{0\dots M-1}]$ with the following method.
 %by estimating $\operatorname{H}[X_{0\dots M-1}]$ 
 Together with $\psi$, we also create an LSTM network that estimates the marginal probability of future observation sequences $P(X_{0\dots M-1})$. Let $P_\eta$ this estimated distribution; we then estimate the predictiveness $\operatorname{I}[Z, X_{0\dots M-1}] = \operatorname{H}[X_{0\dots M-1}] - \operatorname{H}[X_{0\dots M-1}|Z]$ by the difference between the corresponding cross-entropies on the test set~(\cite{mcallester2018formal}):
 %$\operatorname{H}[X_{0\dots M-1}]$ by the cross-entropy of $P_\eta$ on the test data:
@@ -662,11 +668,12 @@ Before we apply NPRD to obtain the first estimates of predictive rate-distortion
 
 
 \paragraph{OCE}
-As discussed in Section~\ref{sec:oce}, OCE overestimates structure in the process due to overfitting, %resulting in biased estimates of rate and distortion.More specifically, 
-overfitting will result in an overly optimistic estimate, systematically overestimating the predictiveness achieved at a given rate.
-To address this problem, we follow the evaluation method used for NPRD, evaluating rate and distortion on held-out test data.
+As discussed in Section~\ref{sec:oce}, OCE is affected by overfitting, %overestimates structure in the process due to overfitting, %resulting in biased estimates of rate and distortion.More specifically, 
+%overfitting will result in an overly optimistic estimate, 
+and will systematically overestimate the predictiveness achieved at a given rate.
+To address this problem, we follow the evaluation method used for NPRD, evaluating rate and predictiveness on held-out test data.
 We partition the available time series data into a training and test set. We use the training set to create the encoder $P(Z|X_{-M\dots -1})$ using the Blahut-Arimoto algorithm as described by~\citet{still-optimal-2010}.
-We then use the held-out test set to estimate rate and prediction error.
+We then use the held-out test set to estimate rate and prediction loss.
 This method not only enables fair comparison between OCE and NPRD, but also provides a more realistic evaluation, by focusing on the performance of the code $Z$ when deployed on new data samples.
 For rate, we use the same variational bound that we use for NPRD, stated in Proposition~\ref{ineq2}:
 \begin{equation}\label{eq:rate-oce}
@@ -676,7 +683,7 @@ where $P(Z|X_{-M}\dots X_{-1})$ is the encoder created by the Blahut-Arimoto alg
 $N$ is the number of sample time series in the test data.
 In the limit of enough training data, when $s(Z)$ matches the actual population marginal of $Z$, (\ref{eq:rate-oce}) is an unbiased estimate of the rate. %  If the training set is large enough and 
 %\textbf{Is $s$ defined anywhere? same for $r$?}
-We estimate the prediction error on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
+We estimate the prediction loss on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{ineq1}:
 \begin{equation}
 \frac{1}{N} \sum_{X_{-M}\dots X_{M-1} \in \text{Test Data}} \E_{Z \sim P(\cdot|X_{-M \dots -1})} \log P(X_{0\dots M-1}|Z).
 \end{equation}
@@ -741,7 +748,7 @@ At $\lambda > 0.5$, the optimal solution collapses $A$ and $B$ into a single cod
 
 
 Does NPRD recover this picture?
-We applied PCA to samples from $Z$ computed at two different values of $\lambda$, $\lambda = 0.25$ and $\lambda = 0.6$, corresponding to the two points marked in the rate-distortion figure (\textbf{TODO do this}).
+We applied PCA to samples from $Z$ computed at two different values of $\lambda$, $\lambda = 0.25$ and $\lambda = 0.6$. % corresponding to the two points marked in the rate-distortion figure (\textbf{TODO do this}).
 The first two principal components are shown in Figure~\ref{fig:latent}.
 Samples are colored by the causal states corresponding to the pasts of the trajectories that were encoded into the respective points by NPRD.
 On the left, obtained at $\lambda=0.6$, the states A and B are collapsed, as expected.
@@ -1076,7 +1083,7 @@ We found that the resulting curves were described well by Equation~\ref{eq:deriv
 %	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
 %\end{equation}
 We now consider the more realistic problem of prediction at the level of words, using data from multiple languages.
-This problem is much closer to the task faced by a human in the process of comprehending text, having to encode prior observations so as to minimize prediction error on the upcoming words.
+This problem is much closer to the task faced by a human in the process of comprehending text, having to encode prior observations so as to minimize prediction loss on the upcoming words.
 We will examine whether Equation~\ref{eq:derivatives} describes the resulting tradeoff in this more realistic setting, and whether it holds across languages.
 
 For the setup, we followed standard setup for recurrent neural language modeling.
@@ -2692,7 +2699,7 @@ Let $\epsilon > 0$. Then it takes at least (and possibly more than) $$\sup_{T \i
 
 
 
-\paragraph{Implication 1: Less information locality requires more memory at the same level of prediction error}
+\paragraph{Implication 1: Less information locality requires more memory at the same level of prediction loss}
 Assume $X$ and $Y$ are processes with mutual informations $I_t^X, I_t^Y$, such that they agree on the entropy rate and the unigram entropy.
 Assume that $X$ has greater information locality than $Y$ in the (quite strong) sense that, for any $T$, $$\sum_{t>T} I_t^X \leq \sum_{t>T} I_t^Y$$
 Then, when fixing $J$, the lower bound on surprisal provided by the proposition is higher in the case of $Y$ than in the case of $X$.
