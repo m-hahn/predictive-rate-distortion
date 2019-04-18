@@ -1,4 +1,35 @@
-\documentclass[11pt,letterpaper]{article}
+%  LaTeX support: latex@mdpi.com 
+%  In case you need support, please attach all files that are necessary for compiling as well as the log file, and specify the details of your LaTeX setup (which operating system and LaTeX version / tools you are using).
+
+% You need to save the "mdpi.cls" and "mdpi.bst" files into the same folder as this template file.
+
+%=================================================================
+\documentclass[entropy,article,submit,moreauthors,pdftex,10pt,a4paper]{Definitions/mdpi} 
+
+% If you would like to post an early version of this manuscript as a preprint, you may use preprint as the journal and change 'submit' to 'accept'. The document class line would be, e.g., \documentclass[preprints,article,accept,moreauthors,pdftex,10pt,a4paper]{mdpi}. This is especially recommended for submission to arXiv, where line numbers should be removed before posting. For preprints.org, the editorial staff will make this change immediately prior to posting.
+
+
+%---------
+% pdftex
+%---------
+% The option pdftex is for use with pdfLaTeX. If eps figures are used, remove the option pdftex and use LaTeX and dvi2pdf.
+
+
+
+\firstpage{1} 
+\makeatletter 
+\setcounter{page}{\@firstpage} 
+\makeatother
+\pubvolume{xx}
+\issuenum{1}
+\articlenumber{5}
+\pubyear{2018}
+\copyrightyear{2018}
+%\externaleditor{Academic Editor: name}
+\history{Received: date; Accepted: date; Published: date}
+
+
+
 
 
 \usepackage[T1]{fontenc}
@@ -36,6 +67,15 @@
 \newcommand{\thetad}[0]{{\theta_d}}
 \newcommand{\thetal}[0]{{\theta_{LM}}}
 
+
+%=================================================================
+% Add packages and commands here. The following packages are loaded in our class file: fontenc, calc, indentfirst, fancyhdr, graphicx, lastpage, ifthen, lineno, float, amsmath, setspace, enumitem, mathpazo, booktabs, titlesec, etoolbox, amsthm, hyphenat, natbib, hyperref, footmisc, geometry, caption, url, mdframed, tabto, soul, multirow, microtype, tikz
+
+%=================================================================
+%% Please use the following mathematics environments: Theorem, Lemma, Corollary, Proposition, Characterization, Property, Problem, Example, ExamplesandDefinitions, Hypothesis, Remark, Definition
+%% For proofs, please use the proof environment (the amsthm package is loaded by the MDPI class).
+
+
 \newcounter{theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
@@ -59,91 +99,61 @@
 \newcommand{\infdiv}{D\infdivx}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 
-\frenchspacing
-%\def\baselinestretch{0.975}
+
+
+
+\Title{Estimating Predictive Rate-Distortion Curves via Neural Variational Inference}
 
 \author{Michael Hahn, Richard Futrell}
 
-\title{Estimating Predictive Rate-Distortion Curves via Neural Variational Inference}
 \date{2018}
 
-\begin{document}
+% Author Orchid ID: enter ID or remove command
+\newcommand{\orcidauthorA}{0000-0000-000-000X} % Add \orcidA{} behind the author's name
+%\newcommand{\orcidauthorB}{0000-0000-000-000X} % Add \orcidB{} behind the author's name
 
+% Authors, for the paper (add full first names)
+\Author{Michael Hahn $^{1}$, and Richard Futrell $^{2}$}
 
+% Authors, for metadata in PDF
+\AuthorNames{Michael Hahn and Richard Futrell}
 
-\maketitle
+% Affiliations / Addresses (Add [1] after \address if there is only one affiliation.)
+\address{%
+$^{1}$ \quad Stanford University; mhahn2@stanford.edu\\
+$^{2}$ \quad UC Irvine; futrell@uci.edu}
 
-% Possible venues
-% - Entropy, of course. 
-% - Also the journals that the previous PRD papers showed up in: Chaos, Journal of Statistical Physics, Physical Review Letters
+% Contact information of the corresponding author
+\corres{Correspondence: mhahn2@stanford.edu}
 
+% The commands \thirdnote{} till \eighthnote{} are available for further notes
 
-\begin{abstract}
-The predictive rate-distortion curve quantifies the tradeoff between compressing information about the past of a stochastic process and predicting its future accurately.
+%\simplesumm{} % Simple summary
+
+%\conference{} % An extended version of a conference paper
+
+% Abstract (Do not insert blank lines, i.e. \\) 
+\abstract{The predictive rate-distortion curve quantifies the tradeoff between compressing information about the past of a stochastic process and predicting its future accurately.
 Existing estimation methods for this curve work by clustering finite sequences of observations or by utilizing analytically known causal states.
 Neither type of approach scales to processes such as natural languages, which have large alphabets and long dependencies, and where the causal states are not known analytically.
 We describe Neural Predictive Rate Distortion (NPRD), an estimation method that scales to such processes, leveraging the universal approximation capabilities of neural networks.
 Taking only time series data as input, the method computes a variational bound on the predictive rate-distortion curve.
 We validate the method on processes where predictive rate-distortion is analytically known.
 As an application, we provide bounds on the predictive rate-distortion of natural language, improving on bounds provided by clustering sequences.
-Based on the results, we argue that the predictive rate-distortion curve is a useful complexity metric for highly complex processes such as natural language.
-\end{abstract}
+Based on the results, we argue that the predictive rate-distortion curve is a useful complexity metric for highly complex processes such as natural language.}
+
+% Keywords
+\keyword{Predictive rate-distortion; Natural language; Information bottleneck; Neural variational inference (list three to ten pertinent keywords specific to the article, yet reasonably common within the subject discipline.)}
+
+% The fields PACS, MSC, and JEL may be left empty or commented out if not applicable
+%\PACS{J0101}
+%\MSC{}
+%\JEL{}
 
 
-%In the modeling of stochastic processes, Predictive Rate-Distortion describes the tradeoff between the cost of encoding the past, and the benefit of predicting the future better.
-%It is formalized as the tradeoff between the mutual information of an encoding with the past and with the future of the process, an application of the Information Bottleneck to processes \citep{tishby-information-1999}.
-%For some processes, this is analytically tractable \citep{ creutzig-predictive-2008, creutzig-past-future-2009}.
-%For processes where this is not feasible, an approach is to cluster finite length strings, approximating the process by a finite-order Markov process \citep{still-optimal-2007}.
-%This approximation faces some challenges:
-%As \cite{marzen-predictive-2016} note, the approach will need to cluster a set of sequences whose size grows exponentially with their length, making it infeasible to model processes with long-range dependencies or large state spaces.
-%Their solution is to consider the causal states and apply the Information Bottleneck method there.
-%This requires explicit access to the causal states.
-%For many naturally occurring processes, this will not be available. 
-%Thus, none of the proposed methods are applicable to estimating predictive rate-distortion on real-world timeseries whose underlying process is not analytically tractable or otherwise known explicitly.
-%
-%Finally, we apply the method to full natural language, modeled as a sequence of words.
-%Whereas OCE fails even when restricting to sequences of length 2, our method easily scales to sequences of 30 words.
-
-%While previous work has studied the excess entropy of natural language (REF), our result seems to be the first estimate of predictive rate-distortion for natural language.
+\begin{document}
 
 
-%
-%\cite{clarke-application-2003}
-%%~
-%%A
-%%tolerance  parameter
-%%to  account  for  the  statistical  uncer-
-%%tainty  introduced  by  a  noninfinite  series  that  destroys  the
-%%exact equivalence of different causal states sharing the same
-%%outcome.
-%%A new expletive filter that removes signal cor-
-%%ruption by assuming that corruption creates rare causal states
-%%or words that are not in the dictionary of the true signal.
-%%The concept of effective soficity in which a data series has a
-%%finite  set  of  equivalent  causal  states  that  is  stable  to  small
-%%changes in the effective memory of those states.
-%
-%\cite{singh-learning-2003} machine-learning based method of finding predictive featurization of states
-%
-%\cite{singh-predictive-2004} also something like this
-%
-%Estimating predictive rate-distortion is related to the problem of estimating statistical complexity.
-%This is hard to estimate.
-%\cite{clarke-application-2003} estimate statistical complexity with assumptions.
-%
-%
-%Related to the statistical complexity:
-%At the limit of optimal future prediction, then -- under certain assumptions -- $I[Z, (X_{< 0})]$ equals the statistical complexity.
-%We believe that, for natural language, estimating predictive rate-distortion is more appropriate than estimating the full statistical complexity:
-%Estimating the statisical complexity would require very large corpora, similar to the problem of estimating the entropy rate.
-%Also, possibly the excess entropy of natural language is infinite, in which case the statistical complexity would also be infinite.
-%
-%%This tradeoff is called predictive rate-distortion in \cite{marzen-predictive-2016}.
-%%It also turned up in \cite{creutzig-past-future-2009}, \cite{still-information-2014}.
-%
-%
-%Further, for the problem of modeling natural language sequences, the strongest models are neural network models such as LSTMs and Transformers, far outperforming models based on finite-order Markov processes or discrete-state Hidden Markov Models.
-%We will describe a method for estimating predictive rate-distortion that leverages the strength of such models, while providing a guaranteed upper bound on the rate-distortion curve.
 
 
 
@@ -152,9 +162,6 @@ Constructing models that predict future observations is a fundamental method of 
 Understanding and predicting dynamics has been a fundamental goal of physics for centuries.
 In engineering, devices often have to predict the future of their environment to perform efficiently.
 Living organisms need to make inferences about their environment and its future for survival.
-%Prediction has been argued to permeat the behavior of organisms at all levels:
-%\textbf{TODO some more about biological systems, language, ...?}
-
 
 
 %Often the underlying process is very complicated.
@@ -622,9 +629,9 @@ which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:b
 
 \subsection{Related Work}
 In (\ref{eq:bound}), we derived a variational formulation of predictive rate-distortion.
-This is formally equivalent to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
+This is formally related to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
 Unlike our approach, they used a fixed diagonal Gaussian instead of a parametrized distribution for $q$.
-As far as we are aware, no previous work has used such a formulation in the modeling of sequences.
+As far as we are aware, no previous work has used such a variational formulation in the modeling of sequences.
 
 In the neural networks literature, the most commonly used method using variational bounds similar to (\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
 
@@ -684,7 +691,7 @@ The third group of parameters are related to the optimization procedure.
 We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
 We implemented the model using PyTorch \citep{paszke2017automatic}.
 Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow (1, 2, ,...), the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow (an integer), and the number of layers in the flow (1,2,...).
-Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally expensive.
+Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally more expensive.
 
 
 
@@ -1267,11 +1274,91 @@ Finally, we use NPRD to provide the first estimates of predictive rate-distortio
 %Results suggest that prediction can be approximated with sim, but more accurate prediction requires very fine-grained memory representations.
 
 
-\bibliographystyle{apalike}
+%\bibliographystyle{apalike}
 %\bibliography{extracted}
+%\bibliography{literature}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{6pt} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+%\supplementary{The following are available online at \linksupplementary{s1}, Figure S1: title, Table S1: title, Video S1: title.}
+
+% Only for the journal Methods and Protocols:
+% If you wish to submit a video article, please do so with any other supplementary material.
+% \supplementary{The following are available at \linksupplementary{s1}, Figure S1: title, Table S1: title, Video S1: title. A supporting video article is available at doi: link.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\authorcontributions{For research articles with several authors, a short paragraph specifying their individual contributions must be provided. The following statements should be used “conceptualization, X.X. and Y.Y.; methodology, X.X.; software, X.X.; validation, X.X., Y.Y. and Z.Z.; formal analysis, X.X.; investigation, X.X.; resources, X.X.; data curation, X.X.; writing—original draft preparation, X.X.; writing—review and editing, X.X.; visualization, X.X.; supervision, X.X.; project administration, X.X.; funding acquisition, Y.Y.”, please turn to the  \href{http://img.mdpi.org/data/contributor-role-instruction.pdf}{CRediT taxonomy} for the term explanation. Authorship must be limited to those who have contributed substantially to the work reported.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\funding{This research received no external funding'' or ``This research was funded by NAME OF FUNDER grant number XXX.'' and  and ``The APC was funded by XXX''. Check carefully that the details given are accurate and use the standard spelling of funding agency names at \url{https://search.crossref.org/funding}, any errors may affect your future funding.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\acknowledgments{In this section you can acknowledge any support given which is not covered by the author contribution or funding sections. This may include administrative and technical support, or donations in kind (e.g., materials used for experiments).}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\conflictsofinterest{Declare conflicts of interest or state ``The authors declare no conflict of interest.'' Authors must identify and declare any personal circumstances or interest that may be perceived as inappropriately influencing the representation or interpretation of reported research results. Any role of the funders in the design of the study; in the collection, analyses or interpretation of data; in the writing of the manuscript, or in the decision to publish the results must be declared in this section. If there is no role, please state ``The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript, or in the decision to publish the results''.} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+\abbreviations{The following abbreviations are used in this manuscript:\\
+
+\noindent 
+\begin{tabular}{@{}ll}
+MDPI & Multidisciplinary Digital Publishing Institute\\
+DOAJ & Directory of open access journals\\
+TLA & Three letter acronym\\
+LD & linear dichroism
+\end{tabular}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+\appendixtitles{no} %Leave argument "no" if all appendix headings stay EMPTY (then no dot is printed after "Appendix A"). If the appendix sections contain a heading then change the argument to "yes".
+\appendixsections{multiple} %Leave argument "multiple" if there are multiple sections. Then a counter is printed ("Appendix A"). If there is only one appendix section then change the argument to "one" and no counter is printed ("Appendix").
+\appendix
+\section{}
+\unskip
+\subsection{}
+The appendix is an optional section that can contain details and data supplemental to the main text. For example, explanations of experimental details that would disrupt the flow of the main text, but nonetheless remain crucial to understanding and reproducing the research shown; figures of replicates for experiments of which representative data is shown in the main text can be added here if brief, or as Supplementary data. Mathematical proofs of results not central to the paper can be added as an appendix.
+
+\section{}
+All appendix sections must be cited in the main text. In the appendixes, Figures, Tables, etc. should be labeled starting with `A', e.g., Figure A1, Figure A2, etc. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Citations and References in Supplementary files are permitted provided that they also appear in the reference list here. 
+
+%=====================================
+% References, variant A: internal bibliography
+%=====================================
+\reftitle{References}
+
+% To cite two works by the same author: \citeauthor{ref-journal-1a} (\citeyear{ref-journal-1a}, \citeyear{ref-journal-1b}). This produces: Whittaker (1967, 1975)
+% To cite two works by the same author with specific pages: \citeauthor{ref-journal-3a} (\citeyear{ref-journal-3a}, p. 328; \citeyear{ref-journal-3b}, p.475). This produces: Wong (1999, p. 328; 2000, p. 475)
+
+%=====================================
+% References, variant B: external bibliography
+%=====================================
+\externalbibliography{yes}
 \bibliography{literature}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% optional
+\sampleavailability{Samples of the compounds ...... are available from the authors.}
 
+%% for journal Sci
+%\reviewreports{\\
+%Reviewer 1 comments and authors’ response\\
+%Reviewer 2 comments and authors’ response\\
+%Reviewer 3 comments and authors’ response
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
 
