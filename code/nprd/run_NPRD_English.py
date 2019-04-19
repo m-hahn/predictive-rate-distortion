@@ -1,7 +1,7 @@
+# Was called runMemoryManyConfigs_NeuralFlow_Words_English.py
+
+
 import subprocess
-
-
-
 import random
 
 while True:

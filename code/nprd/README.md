@@ -1,4 +1,7 @@
 
+`nprd_...` files run a single run of NPRD.
+
+`runNPRD...` files run a batch of NPRD on a given process.
 
 Prerequisites:
 
