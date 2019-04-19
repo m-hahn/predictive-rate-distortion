@@ -32,7 +32,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("Predictiveness")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave("figures/english-info-fitted.pdf", plot=plot) 
+ggsave("../figures/english-info-fitted.pdf", plot=plot) 
 
 x = 6*(1:500)/500
 a=1.65
@@ -44,7 +44,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Predictiveness")
 plot = plot + theme(legend.position="none")
-ggsave("figures/english-nlogbeta-ee-fitted.pdf", plot=plot) 
+ggsave("../figures/english-nlogbeta-ee-fitted.pdf", plot=plot) 
 
 x = (1:100)/100
 plot = ggplot(dataU, aes(x=Beta, y=Memory)) + geom_point()+ theme_classic()  + xlim(0, 0.4) + ylim(0, NA) + geom_point(data=data.frame(x=x), aes(x=x, y=(-log(x))^1.6), color="red")
@@ -55,7 +55,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("Beta")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave("figures/english-beta-mem-fitted.pdf", plot=plot)
+ggsave("../figures/english-beta-mem-fitted.pdf", plot=plot)
 
 
 dataU = dataU[order(dataU$Beta),]
@@ -70,7 +70,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave("figures/english-logbeta-mem-fitted.pdf", plot=plot) 
+ggsave("../figures/english-logbeta-mem-fitted.pdf", plot=plot) 
 
 x = -6*(1:500)/500
 plot = ggplot(dataU, aes(x=-log(Beta), y=Memory)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + theme(legend.position="none") + geom_point(data=data.frame(x=x), aes(x=-x, y=(-x)^1.6), color="red") + ylim(0, NA)
@@ -82,7 +82,7 @@ plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 
-ggsave("figures/english-nlogbeta-mem-fitted.pdf", plot=plot) 
+ggsave("../figures/english-nlogbeta-mem-fitted.pdf", plot=plot) 
 
 
 
@@ -147,7 +147,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("Predictiveness")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave("figures/english-info.pdf", plot=plot) 
+ggsave("../figures/english-info.pdf", plot=plot) 
 plot = ggplot(dataU, aes(x=Surprisal, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() 
 plot = ggplot(dataU, aes(x=Memory, y=Surprisal, group=Type, color=Type)) + geom_point()+ theme_classic() 
 plot = ggplot(dataU, aes(x=Beta, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(0, 0.4) + ylim(0, NA)
@@ -158,9 +158,9 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("Beta")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave("figures/english-beta-mem.pdf", plot=plot)
+ggsave("../figures/english-beta-mem.pdf", plot=plot)
 #plot = ggplot(dataU, aes(x=log(Beta), y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + ylim(0, NA) + theme(legend.position="none")
-#ggsave("figures/english-logbeta-mem.pdf", plot=plot)
+#ggsave("../figures/english-logbeta-mem.pdf", plot=plot)
 plot = ggplot(dataU, aes(x=-log(Beta), y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + ylim(0, NA) + theme(legend.position="none")
 plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
@@ -168,9 +168,9 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.title.y = element_text(size=25))
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
-ggsave("figures/english-nlogbeta-mem.pdf", plot=plot)
+ggsave("../figures/english-nlogbeta-mem.pdf", plot=plot)
 #plot = ggplot(dataU, aes(x=log(Beta), y=MiWithFut, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + ylim(0, NA) + theme(legend.position="none")
-#ggsave("figures/english-logbeta-ee.pdf", plot=plot)
+#ggsave("../figures/english-logbeta-ee.pdf", plot=plot)
 plot = ggplot(dataU, aes(x=-log(Beta), y=MiWithFut, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + ylim(0, NA) + theme(legend.position="none")
 plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
@@ -178,7 +178,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.title.y = element_text(size=25))
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Predictiveness")
-ggsave("figures/english-nlogbeta-ee.pdf", plot=plot)
+ggsave("../figures/english-nlogbeta-ee.pdf", plot=plot)
 
 
 
