@@ -4,11 +4,7 @@
 
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
-
-
 import numpy as np
-
-
 import random
 import sys
 
@@ -20,11 +16,7 @@ dropout_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 0.33
 emb_dim = int(sys.argv[4]) if len(sys.argv) > 4 else 100
 rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
-
-# NOTE lr ends up being ignored
-lr_lm = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
-lr = lr_lm # 
-
+lr = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
 model = sys.argv[8]
 assert model == "REAL_REAL"
 input_dropoutRate = float(sys.argv[9]) # 0.33
@@ -57,20 +49,10 @@ else:
 
 posUni = set() #[ "ADJ", "ADP", "ADV", "AUX", "CONJ", "DET", "INTJ", "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", "SYM", "VERB", "X"] 
 
-posFine = set() #[ "``", ",", ":", ".", "''", "$", "ADD", "AFX", "CC",  "CD", "DT", "EX", "FW", "GW", "HYPH", "IN", "JJ", "JJR",  "JJS", "-LRB-", "LS", "MD", "NFP", "NN", "NNP", "NNPS", "NNS",  "PDT", "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "-RRB-", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ",  "WDT", "WP", "WP$", "WRB", "XX" ]
-
-
-
-deps = ["acl", "acl:relcl", "advcl", "advmod", "amod", "appos", "aux", "auxpass", "case", "cc", "ccomp", "compound", "compound:prt", "conj", "conj:preconj", "cop", "csubj", "csubjpass", "dep", "det", "det:predet", "discourse", "dobj", "expl", "foreign", "goeswith", "iobj", "list", "mark", "mwe", "neg", "nmod", "nmod:npmod", "nmod:poss", "nmod:tmod", "nsubj", "nsubjpass", "nummod", "parataxis", "punct", "remnant", "reparandum", "root", "vocative", "xcomp"] 
-
-#deps = ["acl", " advcl", " advmod", " amod", " appos", " aux", " case cc", " ccompclf", " compound", " conj", " cop", " csubjdep", " det", " discourse", " dislocated", " expl", " fixed", " flat", " goeswith", " iobj", " list", " mark", " nmod", " nsubj", " nummod", " obj", " obl", " orphan", " parataxis", " punct", " reparandum", " root", " vocative", " xcomp"]
 
 import math
 from math import log, exp
 from random import random, shuffle, randint
-
-header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
-
 from corpusIterator import CorpusIterator
 
 
@@ -80,51 +62,18 @@ corporaCached["test"] = CorpusIterator(language,"test", storeMorph=True)
 corporaCached["dev"] = CorpusIterator(language,"dev", storeMorph=True)
 
 
-originalDistanceWeights = {}
 
 morphKeyValuePairs = set()
 
-vocab_lemmas = {}
 
 def initializeOrderTable():
-   orderTable = {}
-   keys = set()
    vocab = {}
-   distanceSum = {}
-   distanceCounts = {}
-   depsVocab = set()
    for partition in ["train", "dev", "test"]:
      for sentence in corporaCached[partition].iterator():
       for line in sentence:
           vocab[line["word"]] = vocab.get(line["word"], 0) + 1
-          vocab_lemmas[line["lemma"]] = vocab_lemmas.get(line["lemma"], 0) + 1
-
-          depsVocab.add(line["dep"])
-          posFine.add(line["posFine"])
           posUni.add(line["posUni"])
-
-          if line["dep"] == "root":
-             continue
-
-          posHere = line["posUni"]
-          posHead = sentence[line["head"]-1]["posUni"]
-          dep = line["dep"]
-          direction = "HD" if line["head"] < line["index"] else "DH"
-          key = (posHead, dep, posHere)
-          keyWithDir = (posHead, dep, posHere, direction)
-          orderTable[keyWithDir] = orderTable.get(keyWithDir, 0) + 1
-          keys.add(key)
-          distanceCounts[key] = distanceCounts.get(key,0.0) + 1.0
-          distanceSum[key] = distanceSum.get(key,0.0) + abs(line["index"] - line["head"])
-   #print orderTable
-   dhLogits = {}
-   for key in keys:
-      hd = orderTable.get((key[0], key[1], key[2], "HD"), 0) + 1.0
-      dh = orderTable.get((key[0], key[1], key[2], "DH"), 0) + 1.0
-      dhLogit = log(dh) - log(hd)
-      dhLogits[key] = dhLogit
-      originalDistanceWeights[key] = (distanceSum[key] / distanceCounts[key])
-   return dhLogits, vocab, keys, depsVocab
+   return None, vocab, None, None 
 
 #import torch.distributions
 import torch.nn as nn
@@ -139,49 +88,37 @@ logsoftmax = torch.nn.LogSoftmax()
 
 
 
-def orderChildrenRelative(sentence, remainingChildren, reverseSoftmax):
-       global model
-       if model == "REAL":
-          return remainingChildren
-       logits = [(x, distanceWeights[stoi_deps[sentence[x-1]["dependency_key"]]]) for x in remainingChildren]
-       logits = sorted(logits, key=lambda x:x[1], reverse=(not reverseSoftmax))
-       childrenLinearized = map(lambda x:x[0], logits)
-       return childrenLinearized           
-
-
 
 def orderSentence(sentence, dhLogits, printThings):
    global model
    root = None
    logits = [None]*len(sentence)
    logProbabilityGradient = 0
-   if model == "REAL_REAL":
-      eliminated = []
+   eliminated = []
    for line in sentence:
-      if line["dep"] == "root":
-          root = line["index"]
-          continue
-      if line["dep"].startswith("punct"):
-         eliminated.append(line)
+     if line["dep"] == "root":
+         root = line["index"]
          continue
-      direction = "DH"
-      headIndex = line["head"]-1
-      sentence[headIndex]["children_"+direction] = (sentence[headIndex].get("children_"+direction, []) + [line["index"]])
+     if line["dep"].startswith("punct"):
+        eliminated.append(line)
+        continue
+     direction = "DH"
+     headIndex = line["head"]-1
+     sentence[headIndex]["children_"+direction] = (sentence[headIndex].get("children_"+direction, []) + [line["index"]])
 
 
-   if model == "REAL_REAL":
-       while len(eliminated) > 0:
-          line = eliminated[0]
-          del eliminated[0]
-          if "removed" in line:
-             continue
-          line["removed"] = True
-          if "children_DH" in line:
-            assert 0 not in line["children_DH"]
-            eliminated = eliminated + [sentence[x-1] for x in line["children_DH"]]
-          if "children_HD" in line:
-            assert 0 not in line["children_HD"]
-            eliminated = eliminated + [sentence[x-1] for x in line["children_HD"]]
+   while len(eliminated) > 0:
+      line = eliminated[0]
+      del eliminated[0]
+      if "removed" in line:
+         continue
+      line["removed"] = True
+      if "children_DH" in line:
+        assert 0 not in line["children_DH"]
+        eliminated = eliminated + [sentence[x-1] for x in line["children_DH"]]
+      if "children_HD" in line:
+        assert 0 not in line["children_HD"]
+        eliminated = eliminated + [sentence[x-1] for x in line["children_HD"]]
    
    linearized = filter(lambda x:"removed" not in x, sentence)
    return linearized, logits
@@ -198,33 +135,19 @@ posUni = list(posUni)
 itos_pos_uni = posUni
 stoi_pos_uni = dict(zip(posUni, range(len(posUni))))
 
-posFine = list(posFine)
-itos_pos_ptb = posFine
-stoi_pos_ptb = dict(zip(posFine, range(len(posFine))))
 
 
 
-itos_pure_deps = sorted(list(depsVocab)) 
-stoi_pure_deps = dict(zip(itos_pure_deps, range(len(itos_pure_deps))))
    
 
 itos_deps = sorted(vocab_deps)
 stoi_deps = dict(zip(itos_deps, range(len(itos_deps))))
 
-#print itos_deps
-
-dhWeights = [0.0] * len(itos_deps)
-distanceWeights = [0.0] * len(itos_deps)
 
 
 import os
 
 originalCounter = "NA"
-
-lemmas = list(vocab_lemmas.iteritems())
-lemmas = sorted(lemmas, key = lambda x:x[1], reverse=True)
-itos_lemmas = map(lambda x:x[0], lemmas)
-stoi_lemmas = dict(zip(itos_lemmas, range(len(itos_lemmas))))
 
 words = list(vocab.iteritems())
 words = sorted(words, key = lambda x:x[1], reverse=True)
@@ -389,15 +312,9 @@ elif flowtype == 'ddsf':
 
 
 components = components + [hiddenToLogSDHidden, cellToMean, sampleToHidden, sampleToCell]
-
 context_dim = 1
 flows = [flow(dim=rnn_dim, hid_dim=512, context_dim=context_dim, num_layers=2, activation=torch.nn.ELU()).cuda() for _ in range(flow_length)]
-
-
 components = components + flows
-
-
-
 
 def parameters():
  for c in components:
@@ -414,34 +331,20 @@ decoder.weight.data.uniform_(-initrange, initrange)
 
 
 crossEntropy = 10.0
-
-
 optimizer = torch.optim.Adam(parameters(), lr=lr, betas=(0.9, 0.999) , weight_decay=weight_decay)
-
 
 import torch.cuda
 import torch.nn.functional
 
 inputDropout = torch.nn.Dropout2d(p=input_dropoutRate)
-
-
 counter = 0
-
-
 lastDevLoss = None
 failedDevRuns = 0
 devLosses = [] 
 devMemories = []
 
-
 lossModule = nn.NLLLoss()
 lossModuleTest = nn.NLLLoss(size_average=False, reduce=False, ignore_index=2)
-
-
-mask1 = torch.FloatTensor([[1 if k > d else 0 for d in range(rnn_dim)] for k in range(rnn_dim)]).cuda()
-mask2 = torch.FloatTensor([[1 if k < d else 0 for d in range(rnn_dim)] for k in range(rnn_dim)]).cuda()
-
-
 
 
 standardNormal = torch.distributions.Normal(loc=torch.FloatTensor([[0.0 for _ in range(rnn_dim)] for _ in range(batchSize)]).cuda(), scale=torch.FloatTensor([[1.0 for _ in range(rnn_dim)] for _ in range(batchSize)]).cuda())

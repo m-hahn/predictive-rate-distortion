@@ -1,11 +1,27 @@
+# Was called runMemoryManyConfigs_NeuralFlow_Toy_Repeat.py
+
+
 import subprocess
 
 
+# This is one of the most successful configurations:
+# Beta = 0.00268427
+# dropout1 0
+# emb_dim 50
+# rnn_dim 256
+# rnn_layers 1
+# lr 0.003
+# dropout2 0
+# batchSize 128
+# flow_layers 1
+# flow_type ddsf
+# flow_hid_dim 512
+# in_flow_layers 2
 
 import random
 
 while True:
-   language = random.choice(["repeat"]) # , "forget2_0_5b"
+   language = random.choice(["repeat"]) 
    languageCode = "toy"
    dropout_rate = random.choice([0.0,0.0,0.1,0.2])
    emb_dim = random.choice([50]) # ,100
@@ -17,19 +33,7 @@ while True:
 
    batchSize = random.choice([16, 32,64, 128])
    horizon = 30
-   if True:
-      #beta = random.random() * 0.5
-      beta = random.random() * 0.005
-   else:
-      broadRange = random.choice([0.001, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1])
-      if broadRange < 0.09:
-        beta = random.choice(range(1,10)) * broadRange
-      elif broadRange == 0.1:
-        beta = random.choice(range(1,7)) * broadRange + random.choice(range(1,10)) * 0.01
-      else:
-        assert False
-      if beta > 0.7 or beta < 0.005:
-         continue
+   beta = random.random() * 0.005
    print(beta)
    flow_length = 1 #random.choice([1,2,3,4]) #,4,5]) #,6,7,8,9,10,15,20])
    flowtype = random.choice(["dsf", "ddsf"])

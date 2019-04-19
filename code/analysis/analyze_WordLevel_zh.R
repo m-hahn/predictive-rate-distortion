@@ -38,7 +38,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave(plot, file="figures/LDC2012T05-words-nlogbeta-mem-fitted.pdf")
+ggsave(plot, file="../figures/LDC2012T05-words-nlogbeta-mem-fitted.pdf")
 
 
 
@@ -55,7 +55,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("Predictiveness")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
-ggsave("figures/LDC2012T05-words-info-fitted.pdf", plot=plot) 
+ggsave("../figures/LDC2012T05-words-info-fitted.pdf", plot=plot) 
 
 x = 6*(1:500)/500 # this is for log(lambda)
 plot = ggplot(dataU, aes(x=-log(Beta), y=EE)) + geom_point()+ theme_classic()  + xlim(-log(.4), -log(0.001)) + theme(legend.position="none") + geom_point(data=data.frame(x=x, rate=alpha*x^beta), aes(x=x, y=E0-1.6*alpha*beta * gammainc(beta, (rate/alpha)^(1/beta))), color="red") + ylim(0, NA)
@@ -66,7 +66,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Predictiveness")
 plot = plot + theme(legend.position="none")
-ggsave("figures/LDC2012T05-words-nlogbeta-ee-fitted.pdf", plot=plot) 
+ggsave("../figures/LDC2012T05-words-nlogbeta-ee-fitted.pdf", plot=plot) 
 
 
 

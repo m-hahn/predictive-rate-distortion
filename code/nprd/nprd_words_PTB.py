@@ -5,11 +5,7 @@
 
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
-
-
 import numpy as np
-
-
 import random
 import sys
 
@@ -21,11 +17,7 @@ dropout_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 0.33
 emb_dim = int(sys.argv[4]) if len(sys.argv) > 4 else 100
 rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
-
-# NOTE lr ends up being ignored
-lr_lm = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
-lr = lr_lm # 
-
+lr = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
 model = sys.argv[8]
 input_dropoutRate = float(sys.argv[9]) # 0.33
 batchSize = int(sys.argv[10])
@@ -86,44 +78,18 @@ def removeNonWords(leaves):
 
 
 def initializeOrderTable():
-   orderTable = {}
-   keys = set()
    vocab = {}
-   distanceSum = {}
-   distanceCounts = {}
-   depsVocab = set()
    for partition in ["train", "dev", "test"]:
      for sentence in corporaCached[partition].iterator():
       for line in removeNonWords(sentence.leaves()):
           vocab[line] = vocab.get(line, 0) + 1
-   dhLogits = {}
-   for key in keys:
-      hd = orderTable.get((key[0], key[1], key[2], "HD"), 0) + 1.0
-      dh = orderTable.get((key[0], key[1], key[2], "DH"), 0) + 1.0
-      dhLogit = log(dh) - log(hd)
-      dhLogits[key] = dhLogit
-      originalDistanceWeights[key] = (distanceSum[key] / distanceCounts[key])
-   return dhLogits, vocab, keys, depsVocab
+   return None, vocab, None, None 
 
+#import torch.distributions
 import torch.nn as nn
 import torch
 from torch.autograd import Variable
 
-
-def recursivelyLinearize(sentence, position, result, gradients_from_the_left_sum):
-   line = sentence[position-1]
-   allGradients = gradients_from_the_left_sum #+ sum(line.get("children_decisions_logprobs",[]))
-   # there are the gradients of its children
-   if "children_DH" in line:
-      for child in line["children_DH"]:
-         allGradients = recursivelyLinearize(sentence, child, result, allGradients)
-   result.append(line)
-#   print ["DECISIONS_PREPARED", line["index"], line["word"], line["dep"], line["head"], allGradients.data.numpy()[0]]
-   line["relevant_logprob_sum"] = allGradients
-   if "children_HD" in line:
-      for child in line["children_HD"]:
-         allGradients = recursivelyLinearize(sentence, child, result, allGradients)
-   return allGradients
 
 import numpy.random
 
@@ -132,18 +98,10 @@ logsoftmax = torch.nn.LogSoftmax()
 
 
 
-def orderChildrenRelative(sentence, remainingChildren, reverseSoftmax):
-       return remainingChildren
-
 
 def orderSentence(sentence, dhLogits, printThings):
    global model
-   if model == "REAL":
-      return removeNonWords(sentence.leaves()),  _
-   elif model == "REVERSE":
-      return removeNonWords(sentence.leaves())[::-1],  _
-   else:
-      assert False
+   return removeNonWords(sentence.leaves()),  _
 
 
 dhLogits, vocab, vocab_deps, depsVocab = initializeOrderTable()
@@ -160,8 +118,6 @@ assert u'the' in stoi_word
 
 itos_deps = [1]
 
-dhWeights = [0.0] * len(itos_deps)
-distanceWeights = [0.0] * len(itos_deps)
 
 
 import os
@@ -201,7 +157,8 @@ decoder = nn.Linear(rnn_dim,outVocabSize).cuda()
 
 components = [rnn_past, rnn_future, decoder, word_pos_morph_embeddings]
 
- 
+
+
 
 
 hiddenToLogSDHidden = nn.Linear(rnn_dim, rnn_dim).cuda()
@@ -316,23 +273,16 @@ elif flowtype == 'ddsf':
 
 
 
-components = components + [hiddenToLogSDHidden, cellToMean, sampleToHidden, sampleToCell]
 
+components = components + [hiddenToLogSDHidden, cellToMean, sampleToHidden, sampleToCell]
 context_dim = 1
 flows = [flow(dim=rnn_dim, hid_dim=512, context_dim=context_dim, num_layers=2, activation=torch.nn.ELU()).cuda() for _ in range(flow_length)]
-
-
 components = components + flows
-
-
-
 
 def parameters():
  for c in components:
    for param in c.parameters():
       yield param
-
-
 
 initrange = 0.1
 word_pos_morph_embeddings.weight.data.uniform_(-initrange, initrange)
@@ -344,34 +294,20 @@ decoder.weight.data.uniform_(-initrange, initrange)
 
 
 crossEntropy = 10.0
-
-
 optimizer = torch.optim.Adam(parameters(), lr=lr, betas=(0.9, 0.999) , weight_decay=weight_decay)
-
 
 import torch.cuda
 import torch.nn.functional
 
 inputDropout = torch.nn.Dropout2d(p=input_dropoutRate)
-
-
 counter = 0
-
-
 lastDevLoss = None
 failedDevRuns = 0
 devLosses = [] 
 devMemories = []
 
-
 lossModule = nn.NLLLoss()
 lossModuleTest = nn.NLLLoss(size_average=False, reduce=False, ignore_index=2)
-
-
-mask1 = torch.FloatTensor([[1 if k > d else 0 for d in range(rnn_dim)] for k in range(rnn_dim)]).cuda()
-mask2 = torch.FloatTensor([[1 if k < d else 0 for d in range(rnn_dim)] for k in range(rnn_dim)]).cuda()
-
-
 
 
 standardNormal = torch.distributions.Normal(loc=torch.FloatTensor([[0.0 for _ in range(rnn_dim)] for _ in range(batchSize)]).cuda(), scale=torch.FloatTensor([[1.0 for _ in range(rnn_dim)] for _ in range(batchSize)]).cuda())
@@ -603,7 +539,6 @@ def computeDevLoss(test=False):
      except StopIteration:
         break
      devCounter += 1
-#     counter += 1
      printHere = (devCounter % 50 == 0)
      _, _, _, newLoss, newWords, devMemoryHere = doForwardPass(input_indices_list, wordStartIndices_list, surprisalTable = surprisalTable, doDropout=False, batchSizeHere=batchSize)
      devMemory += devMemoryHere.data.cpu().numpy()
@@ -614,7 +549,6 @@ def computeDevLoss(test=False):
    devSurprisalTableHere = [surp/(devCounter*batchSize) for surp in surprisalTable]
    return devLoss/devWords, devSurprisalTableHere, devMemory/devCounter
 
-#DEV_PERIOD = 5000
 epochCount = 0
 corpusBase = corporaCached["train"]
 while failedDevRuns == 0:

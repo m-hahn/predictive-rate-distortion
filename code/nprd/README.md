@@ -1,3 +1,4 @@
+# Code for running NPRD
 
 `nprd_...` files run a single run of NPRD.
 

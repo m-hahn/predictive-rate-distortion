@@ -4,17 +4,9 @@
 
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
-
-
 import numpy as np
-
-
-
-
 import random
 import sys
-
-objectiveName = "LM"
 
 language = sys.argv[1]
 assert language.startswith("repeat")
@@ -23,11 +15,7 @@ dropout_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 0.33
 emb_dim = int(sys.argv[4]) if len(sys.argv) > 4 else 100
 rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
-
-# NOTE: lr_lm ends up being ignored
-lr_lm = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
 lr = 0.0001
-
 model = sys.argv[8]
 input_dropoutRate = float(sys.argv[9]) # 0.33
 batchSize = int(sys.argv[10])
@@ -37,15 +25,11 @@ flow_length = int(sys.argv[13]) if len(sys.argv) > 13 else 5
 flowtype = sys.argv[14] if len(sys.argv) > 14 else "ddsf"
 flow_hid_dim = int(sys.argv[15]) if len(sys.argv) > 15 else 512
 flow_num_layers = int(sys.argv[16]) if len(sys.argv) > 16 else 2
-
 weight_decay=float(sys.argv[17]) if len(sys.argv) > 17 else 1e-5
 klAnnealing = (True if sys.argv[18] == "True" else False) if len(sys.argv) > 18 else False
 prescripedID = None #sys.argv[19] if len(sys.argv)> 19 else None
 klIncrease = (0 if not klAnnealing else random.choice([0.01, 0.005]))
 sys.argv.append(klIncrease)
-
-#assert len(sys.argv) in [18,19]
-
 
 assert dropout_rate <= 0.5
 assert input_dropoutRate <= 0.5
@@ -62,132 +46,52 @@ else:
 
 posUni = set() #[ "ADJ", "ADP", "ADV", "AUX", "CONJ", "DET", "INTJ", "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", "SYM", "VERB", "X"] 
 
-posFine = set() #[ "``", ",", ":", ".", "''", "$", "ADD", "AFX", "CC",  "CD", "DT", "EX", "FW", "GW", "HYPH", "IN", "JJ", "JJR",  "JJS", "-LRB-", "LS", "MD", "NFP", "NN", "NNP", "NNPS", "NNS",  "PDT", "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "-RRB-", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ",  "WDT", "WP", "WP$", "WRB", "XX" ]
-
-
-
-deps = ["acl", "acl:relcl", "advcl", "advmod", "amod", "appos", "aux", "auxpass", "case", "cc", "ccomp", "compound", "compound:prt", "conj", "conj:preconj", "cop", "csubj", "csubjpass", "dep", "det", "det:predet", "discourse", "dobj", "expl", "foreign", "goeswith", "iobj", "list", "mark", "mwe", "neg", "nmod", "nmod:npmod", "nmod:poss", "nmod:tmod", "nsubj", "nsubjpass", "nummod", "parataxis", "punct", "remnant", "reparandum", "root", "vocative", "xcomp"] 
 
 
 import math
 from math import log, exp
 from random import random, shuffle
-
-header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
-
 from corpusIteratorToy import CorpusIteratorToy
 
-originalDistanceWeights = {}
 
-morphKeyValuePairs = set()
 
-vocab_lemmas = {}
 
 def initializeOrderTable():
-   orderTable = {}
-   keys = set()
-   vocab = {}
-   distanceSum = {}
-   distanceCounts = {}
-   depsVocab = set()
    for partition in ["train", "dev"]:
      for sentence in CorpusIteratorToy(language,partition, storeMorph=True).iterator():
       for line in sentence:
           posUni.add(line["posUni"])
-  
-   dhLogits = {}
-   for key in keys:
-      hd = orderTable.get((key[0], key[1], key[2], "HD"), 0) + 1.0
-      dh = orderTable.get((key[0], key[1], key[2], "DH"), 0) + 1.0
-      dhLogit = log(dh) - log(hd)
-      dhLogits[key] = dhLogit
-      originalDistanceWeights[key] = (distanceSum[key] / distanceCounts[key])
-   return dhLogits, vocab, keys, depsVocab
 
-#import torch.distributions
 import torch.nn as nn
 import torch
 from torch.autograd import Variable
-
-
-
 import numpy.random
 
 softmax_layer = torch.nn.Softmax()
 logsoftmax = torch.nn.LogSoftmax()
 
+initializeOrderTable()
 
-
-
-
-
-dhLogits, vocab, vocab_deps, depsVocab = initializeOrderTable()
-#print morphKeyValuePairs
-#quit()
-
-morphKeyValuePairs = list(morphKeyValuePairs)
-itos_morph = morphKeyValuePairs
-stoi_morph = dict(zip(itos_morph, range(len(itos_morph))))
 
 
 posUni = list(posUni)
 itos_pos_uni = posUni
 stoi_pos_uni = dict(zip(posUni, range(len(posUni))))
 
-posFine = list(posFine)
-itos_pos_ptb = posFine
-stoi_pos_ptb = dict(zip(posFine, range(len(posFine))))
-
-
-
-itos_pure_deps = sorted(list(depsVocab)) 
-stoi_pure_deps = dict(zip(itos_pure_deps, range(len(itos_pure_deps))))
-   
-
-itos_deps = sorted(vocab_deps)
-stoi_deps = dict(zip(itos_deps, range(len(itos_deps))))
-
-#print itos_deps
-
-dhWeights = [0.0] * len(itos_deps)
-distanceWeights = [0.0] * len(itos_deps)
 
 
 import os
 
 originalCounter = "NA"
 
-
-lemmas = list(vocab_lemmas.iteritems())
-lemmas = sorted(lemmas, key = lambda x:x[1], reverse=True)
-itos_lemmas = map(lambda x:x[0], lemmas)
-stoi_lemmas = dict(zip(itos_lemmas, range(len(itos_lemmas))))
-
-words = list(vocab.iteritems())
-words = sorted(words, key = lambda x:x[1], reverse=True)
-itos = map(lambda x:x[0], words)
-stoi = dict(zip(itos, range(len(itos))))
-
-if len(itos) > 6:
-   assert stoi[itos[5]] == 5
-
-
-vocab_size = 50
-vocab_size = min(len(itos_lemmas),vocab_size)
-
-
-word_pos_morph_embeddings = torch.nn.Embedding(num_embeddings = len(posUni)+vocab_size+len(morphKeyValuePairs)+3, embedding_dim=emb_dim).cuda()
+vocab_size = 0
+input_embeddings = torch.nn.Embedding(num_embeddings = len(posUni)+0+3, embedding_dim=emb_dim).cuda()
 print posUni
-print morphKeyValuePairs
-print itos_lemmas[:vocab_size]
-print "VOCABULARY "+str(len(posUni)+vocab_size+len(morphKeyValuePairs)+3)
-outVocabSize = 3+len(posUni) #+vocab_size+len(morphKeyValuePairs)+3
-assert len(posUni)+vocab_size+len(morphKeyValuePairs)+3 < 200
-
-
-itos_total = ["EOS", "EOW", "SOS"] + itos_pos_uni #+ itos_lemmas[:vocab_size] + itos_morph
+print "VOCABULARY "+str(len(posUni)+0+3)
+outVocabSize = 3+len(posUni) #+0+len(morphKeyValuePairs)+3
+assert len(posUni)+0+3 < 200
+itos_total = ["EOS", "EOW", "SOS"] + itos_pos_uni #+ itos_lemmas[:0] + itos_morph
 assert len(itos_total) == outVocabSize
-# could also provide per-word subcategorization frames from the treebank as input???
 
 
 
@@ -207,10 +111,9 @@ for name, param in rnn_future.named_parameters():
      nn.init.xavier_normal(param)
 
 decoder = nn.Linear(rnn_dim,outVocabSize).cuda()
-#pos_ptb_decoder = nn.Linear(128,len(posFine)+3).cuda()
 
 
-components = [rnn_past, rnn_future, decoder, word_pos_morph_embeddings]
+components = [rnn_past, rnn_future, decoder, input_embeddings]
 
 
 
@@ -350,29 +253,20 @@ def parameters():
 
 
 initrange = 0.1
-word_pos_morph_embeddings.weight.data.uniform_(-initrange, initrange)
+input_embeddings.weight.data.uniform_(-initrange, initrange)
 
 decoder.bias.data.fill_(0)
 decoder.weight.data.uniform_(-initrange, initrange)
 
-
-
-
 crossEntropy = 10.0
 
-
 optimizer = torch.optim.Adam(parameters(), lr=lr, betas=(0.9, 0.999) , weight_decay=weight_decay)
-
 
 import torch.cuda
 import torch.nn.functional
 
 inputDropout = torch.nn.Dropout2d(p=input_dropoutRate)
-
-
 counter = 0
-
-
 lastDevLoss = None
 failedDevRuns = 0
 devLosses = [] 
@@ -381,12 +275,6 @@ devMemories = []
 
 lossModule = nn.NLLLoss()
 lossModuleTest = nn.NLLLoss(size_average=False, reduce=False, ignore_index=2)
-
-
-mask1 = torch.FloatTensor([[1 if k > d else 0 for d in range(rnn_dim)] for k in range(rnn_dim)]).cuda()
-mask2 = torch.FloatTensor([[1 if k < d else 0 for d in range(rnn_dim)] for k in range(rnn_dim)]).cuda()
-
-
 
 
 standardNormal = torch.distributions.Normal(loc=torch.FloatTensor([[0.0 for _ in range(rnn_dim)] for _ in range(batchSize)]).cuda(), scale=torch.FloatTensor([[1.0 for _ in range(rnn_dim)] for _ in range(batchSize)]).cuda())
@@ -416,7 +304,6 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
        totalQuality = 0.0
 
        if True:
-           
            sequenceLength = max(map(len, input_indices))
            for i in range(batchSizeHere):
               input_indices[i] = input_indices[i][:]
@@ -428,12 +315,11 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
            inputTensorIn = inputTensor[:-1]
            inputTensorOut = inputTensor[1:]
 
-           inputEmbeddings = word_pos_morph_embeddings(inputTensorIn.view(sequenceLength-1, batchSizeHere))
+           inputEmbeddings = input_embeddings(inputTensorIn.view(sequenceLength-1, batchSizeHere))
            if doDropout:
               inputEmbeddings = inputDropout(inputEmbeddings)
               if dropout_rate > 0:
                  inputEmbeddings = dropout(inputEmbeddings)
-
 
            halfSeqLen = int(sequenceLength/2)
 
@@ -448,13 +334,9 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
 
            encodedEpsilon = standardNormal.sample()
            sampled = meanHidden + torch.exp(logStandardDeviationHidden) * encodedEpsilon
-
            logProbConditional = memoryDistribution.log_prob(sampled).sum(dim=1)  # TODO not clear whether back-prob through sampled?
 
            if True:
-   
-
-           
               adjustment = []
               epsilon = sampled
               logdet = torch.autograd.Variable(torch.from_numpy(np.zeros(batchSize).astype('float32')).cuda())
@@ -471,7 +353,7 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
            klLoss = logProbConditional - logProbMarginal
            hiddenNew = sampleToHidden(sampled).unsqueeze(0)
            cellNew = sampleToCell(sampled).unsqueeze(0)
-           output, _ = rnn_future(torch.cat([word_pos_morph_embeddings(torch.cuda.LongTensor([[2 for _ in range(batchSizeHere)]])), inputEmbeddings[halfSeqLen+1:]], dim=0), (hiddenNew, cellNew))
+           output, _ = rnn_future(torch.cat([input_embeddings(torch.cuda.LongTensor([[2 for _ in range(batchSizeHere)]])), inputEmbeddings[halfSeqLen+1:]], dim=0), (hiddenNew, cellNew))
            output = torch.cat([output1[:halfSeqLen], output], dim=0)
            if doDropout:
               output = dropout(output)
@@ -553,7 +435,6 @@ def createStream(corpus):
     sentCount = 0
     for sentence in corpus:
        sentCount += 1
-       #printHere = (sentCount % 10 == 0)
        ordered = sentence
 
        for line in ordered+["EOS"]:
@@ -577,15 +458,12 @@ def createStreamContinuous(corpus):
 
     input_indices = [2] # Start of Segment
     wordStartIndices = []
-#    sentenceStartIndices = []
     sentCount = 0
     for sentence in corpus:
        sentCount += 1
        if sentCount % 10 == 0:
          print ["DEV SENTENCES", sentCount]
-
        ordered = sentence
-
        for line in ordered+["EOS"]:
           wordStartIndices.append(len(input_indices))
           if line == "EOS":
@@ -602,12 +480,9 @@ def createStreamContinuous(corpus):
 
 def computeDevLoss():
    global printHere
-#   global counter
-#   global devSurprisalTable
    global horizon
    devLoss = 0.0
    devWords = 0
-#   corpusDev = getNextSentence("dev")
 
    surprisalTable = [0 for _ in range(horizon)]
    devCounter = 0
