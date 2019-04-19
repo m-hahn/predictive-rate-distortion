@@ -1,14 +1,12 @@
-# Runs NPRD on analytically known processes.
+# Runs NPRD on UD corpus on word level (used for Russian and Arabic)
 
-
+# Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_WordsUD.py
 
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
 
 
 import numpy as np
-
-
 
 
 import random
@@ -23,26 +21,26 @@ emb_dim = int(sys.argv[4]) if len(sys.argv) > 4 else 100
 rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
 
-# NOTE: lr_lm ends up being ignored
+# NOTE lr ends up being ignored
 lr_lm = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
-lr = 0.0001
+lr = lr_lm # 
 
 model = sys.argv[8]
+assert model == "REAL_REAL"
 input_dropoutRate = float(sys.argv[9]) # 0.33
 batchSize = int(sys.argv[10])
-horizon = int(sys.argv[11]) if len(sys.argv) > 11 else 10
-beta = float(sys.argv[12]) if len(sys.argv) > 12 else 0.01
-flow_length = int(sys.argv[13]) if len(sys.argv) > 13 else 5
-flowtype = sys.argv[14] if len(sys.argv) > 14 else "ddsf"
-flow_hid_dim = int(sys.argv[15]) if len(sys.argv) > 15 else 512
-flow_num_layers = int(sys.argv[16]) if len(sys.argv) > 16 else 2
-prescripedID = sys.argv[17] if len(sys.argv)> 17 else None
+replaceWordsProbability = float(sys.argv[11])
+horizon = int(sys.argv[12]) if len(sys.argv) > 12 else 11
+beta = float(sys.argv[13]) if len(sys.argv) > 13 else 0.01
+flow_length = int(sys.argv[14]) if len(sys.argv) > 14 else 5
+flowtype = sys.argv[15]
+prescripedID = sys.argv[16] if len(sys.argv)> 16 else None
 
 weight_decay=1e-5
 
-if len(sys.argv) == 16:
-  del sys.argv[15]
-assert len(sys.argv) in [17,18]
+if len(sys.argv) == 17:
+  del sys.argv[16]
+assert len(sys.argv) in [15,16,17]
 
 
 assert dropout_rate <= 0.5
@@ -57,7 +55,6 @@ else:
 
 
 
-
 posUni = set() #[ "ADJ", "ADP", "ADV", "AUX", "CONJ", "DET", "INTJ", "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", "SYM", "VERB", "X"] 
 
 posFine = set() #[ "``", ",", ":", ".", "''", "$", "ADD", "AFX", "CC",  "CD", "DT", "EX", "FW", "GW", "HYPH", "IN", "JJ", "JJR",  "JJS", "-LRB-", "LS", "MD", "NFP", "NN", "NNP", "NNPS", "NNS",  "PDT", "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "-RRB-", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ",  "WDT", "WP", "WP$", "WRB", "XX" ]
@@ -66,14 +63,22 @@ posFine = set() #[ "``", ",", ":", ".", "''", "$", "ADD", "AFX", "CC",  "CD", "D
 
 deps = ["acl", "acl:relcl", "advcl", "advmod", "amod", "appos", "aux", "auxpass", "case", "cc", "ccomp", "compound", "compound:prt", "conj", "conj:preconj", "cop", "csubj", "csubjpass", "dep", "det", "det:predet", "discourse", "dobj", "expl", "foreign", "goeswith", "iobj", "list", "mark", "mwe", "neg", "nmod", "nmod:npmod", "nmod:poss", "nmod:tmod", "nsubj", "nsubjpass", "nummod", "parataxis", "punct", "remnant", "reparandum", "root", "vocative", "xcomp"] 
 
+#deps = ["acl", " advcl", " advmod", " amod", " appos", " aux", " case cc", " ccompclf", " compound", " conj", " cop", " csubjdep", " det", " discourse", " dislocated", " expl", " fixed", " flat", " goeswith", " iobj", " list", " mark", " nmod", " nsubj", " nummod", " obj", " obl", " orphan", " parataxis", " punct", " reparandum", " root", " vocative", " xcomp"]
 
 import math
 from math import log, exp
-from random import random, shuffle
+from random import random, shuffle, randint
 
 header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
 
-from corpusIteratorToy import CorpusIteratorToy
+from corpusIterator import CorpusIterator
+
+
+corporaCached = {}
+corporaCached["train"] = CorpusIterator(language,"train", storeMorph=True)
+corporaCached["test"] = CorpusIterator(language,"test", storeMorph=True)
+corporaCached["dev"] = CorpusIterator(language,"dev", storeMorph=True)
+
 
 originalDistanceWeights = {}
 
@@ -88,11 +93,30 @@ def initializeOrderTable():
    distanceSum = {}
    distanceCounts = {}
    depsVocab = set()
-   for partition in ["train", "dev"]:
-     for sentence in CorpusIteratorToy(language,partition, storeMorph=True).iterator():
+   for partition in ["train", "dev", "test"]:
+     for sentence in corporaCached[partition].iterator():
       for line in sentence:
+          vocab[line["word"]] = vocab.get(line["word"], 0) + 1
+          vocab_lemmas[line["lemma"]] = vocab_lemmas.get(line["lemma"], 0) + 1
+
+          depsVocab.add(line["dep"])
+          posFine.add(line["posFine"])
           posUni.add(line["posUni"])
-  
+
+          if line["dep"] == "root":
+             continue
+
+          posHere = line["posUni"]
+          posHead = sentence[line["head"]-1]["posUni"]
+          dep = line["dep"]
+          direction = "HD" if line["head"] < line["index"] else "DH"
+          key = (posHead, dep, posHere)
+          keyWithDir = (posHead, dep, posHere, direction)
+          orderTable[keyWithDir] = orderTable.get(keyWithDir, 0) + 1
+          keys.add(key)
+          distanceCounts[key] = distanceCounts.get(key,0.0) + 1.0
+          distanceSum[key] = distanceSum.get(key,0.0) + abs(line["index"] - line["head"])
+   #print orderTable
    dhLogits = {}
    for key in keys:
       hd = orderTable.get((key[0], key[1], key[2], "HD"), 0) + 1.0
@@ -108,7 +132,6 @@ import torch
 from torch.autograd import Variable
 
 
-
 import numpy.random
 
 softmax_layer = torch.nn.Softmax()
@@ -116,12 +139,55 @@ logsoftmax = torch.nn.LogSoftmax()
 
 
 
+def orderChildrenRelative(sentence, remainingChildren, reverseSoftmax):
+       global model
+       if model == "REAL":
+          return remainingChildren
+       logits = [(x, distanceWeights[stoi_deps[sentence[x-1]["dependency_key"]]]) for x in remainingChildren]
+       logits = sorted(logits, key=lambda x:x[1], reverse=(not reverseSoftmax))
+       childrenLinearized = map(lambda x:x[0], logits)
+       return childrenLinearized           
 
+
+
+def orderSentence(sentence, dhLogits, printThings):
+   global model
+   root = None
+   logits = [None]*len(sentence)
+   logProbabilityGradient = 0
+   if model == "REAL_REAL":
+      eliminated = []
+   for line in sentence:
+      if line["dep"] == "root":
+          root = line["index"]
+          continue
+      if line["dep"].startswith("punct"):
+         eliminated.append(line)
+         continue
+      direction = "DH"
+      headIndex = line["head"]-1
+      sentence[headIndex]["children_"+direction] = (sentence[headIndex].get("children_"+direction, []) + [line["index"]])
+
+
+   if model == "REAL_REAL":
+       while len(eliminated) > 0:
+          line = eliminated[0]
+          del eliminated[0]
+          if "removed" in line:
+             continue
+          line["removed"] = True
+          if "children_DH" in line:
+            assert 0 not in line["children_DH"]
+            eliminated = eliminated + [sentence[x-1] for x in line["children_DH"]]
+          if "children_HD" in line:
+            assert 0 not in line["children_HD"]
+            eliminated = eliminated + [sentence[x-1] for x in line["children_HD"]]
+   
+   linearized = filter(lambda x:"removed" not in x, sentence)
+   return linearized, logits
 
 
 dhLogits, vocab, vocab_deps, depsVocab = initializeOrderTable()
-#print morphKeyValuePairs
-#quit()
 
 morphKeyValuePairs = list(morphKeyValuePairs)
 itos_morph = morphKeyValuePairs
@@ -155,7 +221,6 @@ import os
 
 originalCounter = "NA"
 
-
 lemmas = list(vocab_lemmas.iteritems())
 lemmas = sorted(lemmas, key = lambda x:x[1], reverse=True)
 itos_lemmas = map(lambda x:x[0], lemmas)
@@ -170,22 +235,19 @@ if len(itos) > 6:
    assert stoi[itos[5]] == 5
 
 
-vocab_size = 50
-vocab_size = min(len(itos_lemmas),vocab_size)
+vocab_size = 10000
+vocab_size = min(len(itos),vocab_size)
 
 
-word_pos_morph_embeddings = torch.nn.Embedding(num_embeddings = len(posUni)+vocab_size+len(morphKeyValuePairs)+3, embedding_dim=emb_dim).cuda()
+
+word_pos_morph_embeddings = torch.nn.Embedding(num_embeddings = len(itos_pos_uni)+vocab_size+3, embedding_dim=emb_dim).cuda()
 print posUni
-print morphKeyValuePairs
-print itos_lemmas[:vocab_size]
-print "VOCABULARY "+str(len(posUni)+vocab_size+len(morphKeyValuePairs)+3)
-outVocabSize = 3+len(posUni) #+vocab_size+len(morphKeyValuePairs)+3
-assert len(posUni)+vocab_size+len(morphKeyValuePairs)+3 < 200
+print "VOCABULARY "+str(vocab_size+3)
+outVocabSize = len(itos_pos_uni)+vocab_size+3
 
 
-itos_total = ["EOS", "EOW", "SOS"] + itos_pos_uni #+ itos_lemmas[:vocab_size] + itos_morph
+itos_total = ["EOS", "EOW", "SOS"] + itos_pos_uni + itos[:vocab_size]
 assert len(itos_total) == outVocabSize
-# could also provide per-word subcategorization frames from the treebank as input???
 
 
 
@@ -205,7 +267,6 @@ for name, param in rnn_future.named_parameters():
      nn.init.xavier_normal(param)
 
 decoder = nn.Linear(rnn_dim,outVocabSize).cuda()
-#pos_ptb_decoder = nn.Linear(128,len(posFine)+3).cuda()
 
 
 components = [rnn_past, rnn_future, decoder, word_pos_morph_embeddings]
@@ -228,6 +289,7 @@ hiddenToLogSDHidden.weight.data.fill_(0)
 cellToMean.weight.data.fill_(0)
 sampleToHidden.weight.data.fill_(0)
 sampleToCell.weight.data.fill_(0)
+
 
 
 
@@ -326,13 +388,10 @@ elif flowtype == 'ddsf':
 
 
 
-
 components = components + [hiddenToLogSDHidden, cellToMean, sampleToHidden, sampleToCell]
 
 context_dim = 1
-# flow_hid_dim used to be 512
-# flow_num_layers used to be 2
-flows = [flow(dim=rnn_dim, hid_dim=flow_hid_dim, context_dim=context_dim, num_layers=flow_num_layers, activation=torch.nn.ELU()).cuda() for _ in range(flow_length)]
+flows = [flow(dim=rnn_dim, hid_dim=512, context_dim=context_dim, num_layers=2, activation=torch.nn.ELU()).cuda() for _ in range(flow_length)]
 
 
 components = components + flows
@@ -344,8 +403,6 @@ def parameters():
  for c in components:
    for param in c.parameters():
       yield param
-
-
 
 initrange = 0.1
 word_pos_morph_embeddings.weight.data.uniform_(-initrange, initrange)
@@ -450,9 +507,6 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
            logProbConditional = memoryDistribution.log_prob(sampled).sum(dim=1)  # TODO not clear whether back-prob through sampled?
 
            if True:
-   
-
-           
               adjustment = []
               epsilon = sampled
               logdet = torch.autograd.Variable(torch.from_numpy(np.zeros(batchSize).astype('float32')).cuda())
@@ -490,7 +544,7 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
              if printHere:
                 for i in range(0,len(input_indices[0])-1): #range(1,maxLength+1): # don't include i==0
                          j = 0
-                         print (i, itos_total[input_indices[j][i+1]], lossesCPU[i][j])
+                         print "\t".join(map(str,[i, itos_total[input_indices[j][i+1]], lossesCPU[i][j]]))
 
              if surprisalTable is not None: 
                 if printHere:
@@ -519,7 +573,6 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
        crossEntropy = 0.99 * crossEntropy + 0.01 * (lossWords/wordNum).data.cpu().numpy()
        totalQuality = loss.data.cpu().numpy() # consists of lossesWord + lossesPOS
        numberOfWords = wordNum
-
        return loss, None, None, totalQuality, numberOfWords, klLoss.mean()
 
 
@@ -551,15 +604,22 @@ def createStream(corpus):
     sentCount = 0
     for sentence in corpus:
        sentCount += 1
-       #printHere = (sentCount % 10 == 0)
-       ordered = sentence
+       ordered, _ = orderSentence(sentence, dhLogits, printHere)
 
        for line in ordered+["EOS"]:
           wordStartIndices.append(len(input_indices))
           if line == "EOS":
             input_indices.append(0)
           else:
-            input_indices.append(stoi_pos_uni[line["posUni"]]+3)
+            if random() < replaceWordsProbability:
+                targetWord = randint(0,vocab_size-1)
+            else:
+                targetWord = stoi[line["word"]]
+            if targetWord >= vocab_size:
+
+               input_indices.append(stoi_pos_uni[line["posUni"]]+3)
+            else:
+               input_indices.append(targetWord+3+len(itos_pos_uni))
           if len(wordStartIndices) == horizon:
              yield input_indices, wordStartIndices+[len(input_indices)]
              input_indices = [2] # Start of Segment (makes sure that first word can be predicted from this token)
@@ -568,28 +628,31 @@ def createStream(corpus):
 
 
 def createStreamContinuous(corpus):
-#    global counter
     global crossEntropy
     global printHere
     global devLosses
 
     input_indices = [2] # Start of Segment
     wordStartIndices = []
-#    sentenceStartIndices = []
     sentCount = 0
     for sentence in corpus:
        sentCount += 1
        if sentCount % 10 == 0:
          print ["DEV SENTENCES", sentCount]
 
-       ordered = sentence
+       ordered, _ = orderSentence(sentence, dhLogits, printHere)
 
        for line in ordered+["EOS"]:
           wordStartIndices.append(len(input_indices))
           if line == "EOS":
             input_indices.append(0)
           else:
-            input_indices.append(stoi_pos_uni[line["posUni"]]+3)
+
+            targetWord = stoi[line["word"]]
+            if targetWord >= vocab_size:
+               input_indices.append(stoi_pos_uni[line["posUni"]]+3)
+            else:
+               input_indices.append(targetWord+3+len(itos_pos_uni))
           if len(wordStartIndices) == horizon:
              yield input_indices, wordStartIndices+[len(input_indices)]
              input_indices = [2]+input_indices[wordStartIndices[1]:] # Start of Segment (makes sure that first word can be predicted from this token)
@@ -599,16 +662,13 @@ def createStreamContinuous(corpus):
 
 
 
-def computeDevLoss():
+def computeDevLoss(test=False, useFull=False):
    global printHere
-#   global counter
-#   global devSurprisalTable
    global horizon
    devLoss = 0.0
    devWords = 0
-#   corpusDev = getNextSentence("dev")
-   corpusDev = CorpusIteratorToy(language,"dev", storeMorph=True).iterator(rejectShortSentences = False)
-   stream = createStreamContinuous(corpusDev)
+   corpusDev = corporaCached["test" if test else "dev"].iterator(rejectShortSentences = False)
+   stream = createStreamContinuous(corpusDev) if (test or useFull) else createStream(corpusDev)
 
    surprisalTable = [0 for _ in range(horizon)]
    devCounter = 0
@@ -624,8 +684,7 @@ def computeDevLoss():
      except StopIteration:
         break
      devCounter += 1
-#     counter += 1
-     printHere = (devCounter % 50 == 0)
+     printHere = (devCounter % 100 == 0)
      _, _, _, newLoss, newWords, devMemoryHere = doForwardPass(input_indices_list, wordStartIndices_list, surprisalTable = surprisalTable, doDropout=False, batchSizeHere=batchSize)
      devMemory += devMemoryHere.data.cpu().numpy()
      devLoss += newLoss
@@ -635,22 +694,19 @@ def computeDevLoss():
    devSurprisalTableHere = [surp/(devCounter*batchSize) for surp in surprisalTable]
    return devLoss/devWords, devSurprisalTableHere, devMemory/devCounter
 
-DEV_PERIOD = 5000
 epochCount = 0
-while failedDevRuns < 10 and len(devLosses) < 20:
+corpusBase = corporaCached["train"]
+while failedDevRuns < 1:
   epochCount += 1
   print "Starting new epoch, permuting corpus"
-  corpusBase = CorpusIteratorToy(language, storeMorph=True)
-#  corpusBase.permute()
-#  corpus = getNextSentence("train")
+  corpusBase.permute()
   corpus = corpusBase.iterator(rejectShortSentences = False)
   stream = createStream(corpus)
 
-  while True:
-       counter += 1
-       printHere = (counter % 50 == 0)
 
-       if counter % DEV_PERIOD == 0:
+  if counter > 5:
+
+       if True: #counter % DEV_PERIOD == 0:
           newDevLoss, devSurprisalTableHere, newDevMemory = computeDevLoss()
           devLosses.append(newDevLoss)
           devMemories.append(newDevMemory)
@@ -658,7 +714,6 @@ while failedDevRuns < 10 and len(devLosses) < 20:
 
           if lastDevLoss is None or newDevLoss < lastDevLoss:
               devSurprisalTable = devSurprisalTableHere
-          
 
 
           print(devSurprisalTable[horizon/2])
@@ -669,9 +724,6 @@ while failedDevRuns < 10 and len(devLosses) < 20:
               print >> outFile, " ".join(map(str,devSurprisalTable))
               print >> outFile, " ".join(map(str, devMemories))
               print >> outFile, str(sum([x-y for x, y in zip(devSurprisalTable[:horizon/2], devSurprisalTable[horizon/2:])]))
-
-
-
 
           if lastDevLoss is None or newDevLoss < lastDevLoss:
              lastDevLoss = newDevLoss
@@ -685,6 +737,12 @@ while failedDevRuns < 10 and len(devLosses) < 20:
              print "MI(Bottleneck, Future) "+str(sum([x-y for x, y in zip(devSurprisalTable[0:horizon/2], devSurprisalTable[horizon/2:])]))
              print "Memories "+str(devMemories)
              #break
+
+
+
+  while True:
+       counter += 1
+       printHere = (counter % 50 == 0)
 
        try:
           input_indices_list = []
@@ -710,10 +768,51 @@ while failedDevRuns < 10 and len(devLosses) < 20:
 
 
 
+
+newDevLoss, devSurprisalTableHere, newDevMemory = computeDevLoss(test=False, useFull=True)
+devLosses.append(newDevLoss)
+devMemories.append(newDevMemory)
+print "New dev loss "+str(newDevLoss)+". previous was: "+str(lastDevLoss)
+
+devSurprisalTable = devSurprisalTableHere
+
+
+print(devSurprisalTable[horizon/2])
+print(devMemories)
+with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/valid-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+    print >> outFile, " ".join(sys.argv)
+    print >> outFile, " ".join(map(str,devLosses))
+    print >> outFile, " ".join(map(str,devSurprisalTable))
+    print >> outFile, " ".join(map(str, devMemories))
+    print >> outFile, str(sum([x-y for x, y in zip(devSurprisalTable[:horizon/2], devSurprisalTable[horizon/2:])]))
+
+
+
 print(devSurprisalTable[int(horizon/2)])
 print(devMemories)
 
 
 
 
+newDevLoss, devSurprisalTableHere, newDevMemory = computeDevLoss(test=True)
+devLosses.append(newDevLoss)
+devMemories.append(newDevMemory)
+print "New dev loss "+str(newDevLoss)+". previous was: "+str(lastDevLoss)
+
+devSurprisalTable = devSurprisalTableHere
+
+
+print(devSurprisalTable[horizon/2])
+print(devMemories)
+with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+    print >> outFile, " ".join(sys.argv)
+    print >> outFile, " ".join(map(str,devLosses))
+    print >> outFile, " ".join(map(str,devSurprisalTable))
+    print >> outFile, " ".join(map(str, devMemories))
+    print >> outFile, str(sum([x-y for x, y in zip(devSurprisalTable[:horizon/2], devSurprisalTable[horizon/2:])]))
+
+
+
+print(devSurprisalTable[int(horizon/2)])
+print(devMemories)
 

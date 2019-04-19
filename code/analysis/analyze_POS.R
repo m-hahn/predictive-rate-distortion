@@ -4,8 +4,8 @@ library(ggplot2)
 
 
 
-data = read.csv("~/CS_SCR/results-en-upos-neuralflow.tsv", sep="\t")
-dataD = read.csv("~/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
+data = read.csv("../../results/results-en-upos-neuralflow.tsv", sep="\t")
+dataD = read.csv("../../results/results-en-upos-discrete-sgd.tsv", sep="\t")
 
 data$Horizon = 15
 data = data %>% filter(Memories < UpperBound)
@@ -13,8 +13,7 @@ data = data %>% filter(Memories < UpperBound)
 
 dataU = data %>% filter(Language == "English")
 dataU$UncondEnt = 1.895
-dataU = dataU %>% mutate(MiWithFut = EE) #Horizon*(UncondEnt-FutureSurp))
-#plot = ggplot(dataU, aes(x=Beta, y=Memories/EE)) + geom_point()+ theme_classic()  + xlim(0, 0.4)
+dataU = dataU %>% mutate(MiWithFut = EE)
 dataU = dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut, avg16) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural")
 dataU = dataU %>% filter(MiWithFut <= Memory)
 
@@ -112,8 +111,8 @@ library(ggplot2)
 
 
 
-data = read.csv("~/CS_SCR/results-en-upos-neuralflow.tsv", sep="\t")
-dataD = read.csv("~/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
+data = read.csv("../../results/results-en-upos-neuralflow.tsv", sep="\t")
+dataD = read.csv("../../results/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
 
 data$Horizon = 15
 

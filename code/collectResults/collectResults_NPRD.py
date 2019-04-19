@@ -2,11 +2,11 @@
 
 import os
 
-path = "/u/scr/mhahn/deps/memory-upper-neural-pos-only/"
+path = "../../results/outputs/nprd/"
 
 files = os.listdir(path)
 
-with open("/u/scr/mhahn/results-en-upos-neuralflow.tsv", "w") as outFile:
+with open("../../results/results-en-upos-neuralflow.tsv", "w") as outFile:
   print >> outFile, "\t".join(["Language", "Beta", "EE", "Memories", "UpperBound", "FutureSurp", "avg16", "avg17", "avg18", "avg19", " dropout1", "emb_dim", "rnn_dim", "rnn_layers", "lr", "model", "dropout2", "batchSize", "horizon", "beta", "flow_layers", "flow_type", "Iterations", "flow_hid_dim", "in_flow_layers"])
   for name in files:
      if not (name.startswith("estimates") and "Neural" in name and "SEPA" in name):

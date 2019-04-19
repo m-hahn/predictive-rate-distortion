@@ -1,6 +1,6 @@
 # Applies NPRD to part-of-speech level modeling.
 
-
+# Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE.py.
 
 
 import torchkit.optim
@@ -227,14 +227,13 @@ sampleToCell.weight.data.fill_(0)
 import torchkit.nn as nn_
 
 
-
+################################################
+################################################
+# The following block is due to Chin-Wei Huang, https://github.com/CW-Huang/NAF/
 class BaseFlow(torch.nn.Module):
     def cuda(self):
         self.gpu = True
         return super(BaseFlow, self).cuda()
-
-
-
 
 
 class IAF(BaseFlow):
@@ -313,7 +312,8 @@ elif flowtype == 'ddsf':
                                           **kwargs)
 
 
-
+########################################################
+########################################################
 
 
 
