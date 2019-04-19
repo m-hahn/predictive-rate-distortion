@@ -4,7 +4,7 @@ import subprocess
 import random
 
 while True:
-   language = random.choice(["even", "rrxor","rip"]) # , "forget2_0_5b"
+   language = random.choice(["even", "rip"]) # , "forget2_0_5b"
    languageCode = "toy"
    dropout_rate = random.choice([0.0,0.0,0.0,0.1,0.2])
    emb_dim = random.choice([50,100])
@@ -22,7 +22,7 @@ while True:
    flowtype = random.choice(["dsf", "ddsf"])
    flow_hid_dim = random.choice([32,64,128,512])
    flow_layers = random.choice([2])
-   subprocess.call(map(str,["./python27", "yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_TOY.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype, flow_hid_dim, flow_layers]))
+   subprocess.call(map(str,["./python27", "nprd_toy.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype, flow_hid_dim, flow_layers]))
   
    
     

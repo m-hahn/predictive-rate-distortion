@@ -41,7 +41,7 @@ while True:
    flow_layers = random.choice([2])
    weight_decay = random.choice([1e-8, 1e-7, 1e-6, 1e-6, 1e-6, 1e-6, 1e-5])
    klAnnealing = True #True #random.choice([True, False])
-   subprocess.call(map(str,["./python27", "yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_TOY_Repeat.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype, flow_hid_dim, flow_layers, weight_decay, klAnnealing]))
+   subprocess.call(map(str,["./python27", "nprd_Copy3.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype, flow_hid_dim, flow_layers, weight_decay, klAnnealing]))
   
    
     

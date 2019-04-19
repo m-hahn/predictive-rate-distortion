@@ -2,16 +2,10 @@
 
 # Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_TOY_Record.py
 
-
+from paths import LOG_PATH
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
-
-
 import numpy as np
-
-
-
-
 import random
 import sys
 
@@ -296,7 +290,7 @@ vocab_size = 50
 vocab_size = min(len(itos_lemmas),vocab_size)
 
 
-word_pos_morph_embeddings = torch.nn.Embedding(num_embeddings = len(posUni)+vocab_size+len(morphKeyValuePairs)+3, embedding_dim=emb_dim).cuda()
+input_embeddings = torch.nn.Embedding(num_embeddings = len(posUni)+vocab_size+len(morphKeyValuePairs)+3, embedding_dim=emb_dim).cuda()
 print posUni
 print morphKeyValuePairs
 print itos_lemmas[:vocab_size]
@@ -330,7 +324,7 @@ decoder = nn.Linear(rnn_dim,outVocabSize).cuda()
 #pos_ptb_decoder = nn.Linear(128,len(posFine)+3).cuda()
 
 
-components = [rnn_past, rnn_future, decoder, word_pos_morph_embeddings]
+components = [rnn_past, rnn_future, decoder, input_embeddings]
 
 
 
@@ -358,7 +352,9 @@ sampleToCell.weight.data.fill_(0)
 import torchkit.nn as nn_
 
 
-
+################################################
+################################################
+# The following block is due to Chin-Wei Huang, https://github.com/CW-Huang/NAF/
 class BaseFlow(torch.nn.Module):
     def cuda(self):
         self.gpu = True
@@ -444,7 +440,8 @@ elif flowtype == 'ddsf':
                                           **kwargs)
 
 
-
+########################################################
+########################################################
 
 
 
@@ -470,7 +467,7 @@ def parameters():
 
 
 initrange = 0.1
-word_pos_morph_embeddings.weight.data.uniform_(-initrange, initrange)
+input_embeddings.weight.data.uniform_(-initrange, initrange)
 
 decoder.bias.data.fill_(0)
 decoder.weight.data.uniform_(-initrange, initrange)
@@ -548,7 +545,7 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
            inputTensorIn = inputTensor[:-1]
            inputTensorOut = inputTensor[1:]
 
-           inputEmbeddings = word_pos_morph_embeddings(inputTensorIn.view(sequenceLength-1, batchSizeHere))
+           inputEmbeddings = input_embeddings(inputTensorIn.view(sequenceLength-1, batchSizeHere))
            if doDropout:
               inputEmbeddings = inputDropout(inputEmbeddings)
               if dropout_rate > 0:
@@ -597,7 +594,7 @@ def doForwardPass(input_indices, wordStartIndices, surprisalTable=None, doDropou
            klLoss = logProbConditional - logProbMarginal
            hiddenNew = sampleToHidden(sampled).unsqueeze(0)
            cellNew = sampleToCell(sampled).unsqueeze(0)
-           output, _ = rnn_future(torch.cat([word_pos_morph_embeddings(torch.cuda.LongTensor([[2 for _ in range(batchSizeHere)]])), inputEmbeddings[halfSeqLen+1:]], dim=0), (hiddenNew, cellNew))
+           output, _ = rnn_future(torch.cat([input_embeddings(torch.cuda.LongTensor([[2 for _ in range(batchSizeHere)]])), inputEmbeddings[halfSeqLen+1:]], dim=0), (hiddenNew, cellNew))
            output = torch.cat([output1[:halfSeqLen], output], dim=0)
            if doDropout:
               output = dropout(output)
@@ -791,7 +788,7 @@ while failedDevRuns < 10 and len(devLosses) < 20:
 
           print(devSurprisalTable[horizon/2])
           print(devMemories)
-          with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+          with open(LOG_PATH+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
               print >> outFile, " ".join(sys.argv)
               print >> outFile, " ".join(map(str,devLosses))
               print >> outFile, " ".join(map(str,devSurprisalTable))

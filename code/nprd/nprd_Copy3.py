@@ -1,6 +1,7 @@
 # Runs NPRD on the Copy3 process.
 
 # Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_TOY_Repeat.py.
+from paths import LOG_PATH
 
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
@@ -539,7 +540,7 @@ while failedDevRuns < 70 and len(devLosses) < 70:
 
           print(devSurprisalTable[horizon/2])
           print(devMemories)
-          with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+          with open(LOG_PATH+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
               print >> outFile, " ".join(map(str,sys.argv))
               print >> outFile, " ".join(map(str,devLosses))
               print >> outFile, " ".join(map(str,devSurprisalTable))

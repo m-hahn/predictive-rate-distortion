@@ -3,7 +3,7 @@
 # Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_WordsUD_RawText.py
 
 
-
+from paths import LOG_PATH
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
 import numpy as np
@@ -195,7 +195,9 @@ sampleToCell.weight.data.fill_(0)
 import torchkit.nn as nn_
 
 
-
+################################################
+################################################
+# The following block is due to Chin-Wei Huang, https://github.com/CW-Huang/NAF/
 class BaseFlow(torch.nn.Module):
     def cuda(self):
         self.gpu = True
@@ -281,6 +283,8 @@ elif flowtype == 'ddsf':
                                           **kwargs)
 
 
+########################################################
+########################################################
 
 
 
@@ -595,7 +599,7 @@ while failedDevRuns < 1:
 
           print(devSurprisalTable[horizon/2])
           print(devMemories)
-          with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+          with open(LOG_PATH+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
               print >> outFile, " ".join(sys.argv)
               print >> outFile, " ".join(map(str,devLosses))
               print >> outFile, " ".join(map(str,devSurprisalTable))
@@ -656,7 +660,7 @@ devSurprisalTable = devSurprisalTableHere
 
 print(devSurprisalTable[horizon/2])
 print(devMemories)
-with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/valid-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+with open(LOG_PATH+"/valid-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
     print >> outFile, " ".join(sys.argv)
     print >> outFile, " ".join(map(str,devLosses))
     print >> outFile, " ".join(map(str,devSurprisalTable))
@@ -681,7 +685,7 @@ devSurprisalTable = devSurprisalTableHere
 
 print(devSurprisalTable[horizon/2])
 print(devMemories)
-with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+with open(LOG_PATH+"/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
     print >> outFile, " ".join(sys.argv)
     print >> outFile, " ".join(map(str,devLosses))
     print >> outFile, " ".join(map(str,devSurprisalTable))
