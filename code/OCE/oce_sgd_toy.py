@@ -22,7 +22,6 @@ args = parser.parse_args()
 
 
 
-# /u/nlp/anaconda/ubuntu_16/envs/py27-mhahn/bin/python2.7
 
 import random
 import sys
@@ -52,7 +51,6 @@ for sentence in CorpusIteratorToy(language,"train", storeMorph=True).iterator():
  ngrams[ngram] = ngrams.get(ngram, 0) + 1
  lastPosUni = lastPosUni[1:]+(nextPosUni,)
 
-# /u/nlp/anaconda/ubuntu_16/envs/py27-mhahn/bin/python2.7 zNgramIB.py
 
 #import torch.distributions
 import torch.nn as nn
@@ -310,7 +308,7 @@ print(["Mi with past", miWithPast, "Future Surprisal", futureSurprisal/horizon, 
 myID = random.randint(0,10000000)
 
 
-with open("/u/scr/mhahn/deps/memory-upper-neural-pos-only-discrete/estimates-"+language+"_"+__file__+"_model_"+str(myID)+".txt", "w") as outFile:
+with open("../../results/outputs-oce/estimates-"+language+"_"+__file__+"_model_"+str(myID)+".txt", "w") as outFile:
     print >> outFile, "\t".join(x+" "+str(getattr(args,x)) for x in args_names)
     print >> outFile, float(miWithPast)
     print >> outFile, float(futureSurprisal/horizon)

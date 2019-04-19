@@ -2,17 +2,6 @@
 
 # Was called zNgramIB_5.py.
 
-import matplotlib
-matplotlib.use('Agg')
-
-
-import dit
-
-from dit.rate_distortion.information_bottleneck import InformationBottleneck
-from dit.rate_distortion.curves import IBCurve
-
-
-# /u/nlp/anaconda/ubuntu_16/envs/py27-mhahn/bin/python2.7
 
 import random
 import sys
@@ -24,7 +13,7 @@ horizon = 3
 dirichlet = 0.00001
 beta = 1/0.1
 
-code_number = 1000 # was 20 in most experiments
+code_number = 100 # was 20 in most experiments
 
 # ['Mi with future', tensor(0.8659), 'Mi with past', tensor(4.1936), 'objective', tensor(-0.7820)]
 
@@ -47,7 +36,6 @@ for sentence in CorpusIterator(language,"train", storeMorph=True).iterator():
  ngrams[ngram] = ngrams.get(ngram, 0) + 1
  lastPosUni = lastPosUni[1:]+(nextPosUni,)
 
-# /u/nlp/anaconda/ubuntu_16/envs/py27-mhahn/bin/python2.7 zNgramIB.py
 
 #import torch.distributions
 import torch.nn as nn
@@ -254,7 +242,6 @@ for sentence in CorpusIterator(language,"dev", storeMorph=True).iterator():
  ngrams[ngram] = ngrams.get(ngram, 0) + 1
  lastPosUni = lastPosUni[1:]+(nextPosUni,)
 
-# /u/nlp/anaconda/ubuntu_16/envs/py27-mhahn/bin/python2.7 zNgramIB.py
 
 #import torch.distributions
 import torch.nn as nn

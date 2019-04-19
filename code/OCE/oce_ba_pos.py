@@ -1,10 +1,8 @@
-# GD version of 5, appears to come up with better solutions than 5
-# With arguments
+# Computes estimates also from held-out data.
 
-# Was called zNgramIB_9.py.
+# Was called zNgramIB_5.py.
 
-import matplotlib
-matplotlib.use('Agg')
+
 
 
 import argparse
@@ -118,55 +116,95 @@ for i in range(len(futures)):
    marginal_future[futures_int[i]] += frequencies[i]
 marginal_future[-1] = args.dirichlet * len(itos_pasts)
 marginal_future = marginal_future.div(marginal_future.sum())
-logFutureMarginal = logWithoutNA(marginal_future)
 
 print(marginal_future)
 print(len(marginal_future))
 
-import torch.optim
 
 
 
-encoding_logits = torch.empty(len(itos_pasts), args.code_number).uniform_(0.000001, 1)
-encoding_logits.requires_grad = True
-optimizer = torch.optim.Adam([encoding_logits], lr= 0.01) # also try 0.001, 0.0001
-softmax = torch.nn.Softmax()
-logsoftmax = torch.nn.LogSoftmax()
+encoding = torch.empty(len(itos_pasts), args.code_number).uniform_(0.000001, 1)
+encoding = encoding.div(encoding.sum(1).unsqueeze(1))
+
+decoding = torch.empty(args.code_number, len(itos_futures)).uniform_(0.000001, 1)
+decoding = decoding.div(decoding.sum(1).unsqueeze(1))
+print(decoding[0].sum())
+#quit()
+
+marginal_hidden = torch.matmul(marginal_past.unsqueeze(0), encoding).squeeze(0)
 
 
 
 def runOCE():
+    global decoding
+    global encoding
+    global marginal_hidden
     objective = 10000000
-    for t in range(100000):
+    for t in range(500):
        print("Iteration", t)
-       optimizer.zero_grad()
     
-       encoding = softmax(encoding_logits)
-       marginal_hidden = torch.matmul(marginal_past.unsqueeze(0), encoding).squeeze(0)
-       log_marginal_hidden = logWithoutNA(marginal_hidden)
-       normalizedEncoding = encoding.div(marginal_hidden.unsqueeze(0))
-       decoding = torch.matmul((marginal_past.unsqueeze(1) * future_given_past).t(), normalizedEncoding).t()
+    
+       divergence_by_past = (future_given_past * torch.log(future_given_past))
+       divergence_by_past[future_given_past == 0] = 0
+       divergence_by_past = divergence_by_past.sum(1)
+    
+    
+       log_future_given_past = torch.log(future_given_past)
+       log_future_given_past[log_future_given_past == 0] = 0
+    
+       log_decoding = torch.log(decoding)
+       log_decoding[log_decoding == 0] = 0
+    
+    
+       ratios = log_future_given_past.unsqueeze(1) - log_decoding.unsqueeze(0)
+       divergence2 = (future_given_past.unsqueeze(1) * ratios).sum(2)
+    
+       print(divergence2.size())
+       assert torch.min(divergence2) >= -1e-4, torch.min(divergence2)
+    
+       total_distortion = torch.matmul(marginal_past.unsqueeze(0), divergence2 * encoding).sum()
+       print("Distortion", total_distortion)
        print(decoding[0].sum())
     
-       logEncoding = logsoftmax(encoding_logits)
-       logDecoding = logWithoutNA(decoding)
-       miWithFuture = torch.sum((decoding * (logDecoding - logFutureMarginal.unsqueeze(0))).sum(1) * marginal_hidden) # WRONG
-       miWithPast = torch.sum((encoding * (logEncoding - log_marginal_hidden.unsqueeze(0))).sum(1) * marginal_past)
-       assert miWithFuture <= miWithPast + 1e-5, (miWithFuture , miWithPast)
-       newObjective = 1/args.beta * miWithPast - miWithFuture
-       newObjective.backward()
-       optimizer.step()
+       assert total_distortion >= 0, total_distortion
      
+       newEncoding = marginal_hidden.unsqueeze(0) * torch.exp(-args.beta * divergence2)
+       norm = newEncoding.sum(1).unsqueeze(1)
+       newEncoding = newEncoding.div(norm)
+       newEncoding[norm.expand(-1, args.code_number) == 0] = 0
+       new_marginal_hidden = torch.matmul(marginal_past.unsqueeze(0), newEncoding).squeeze(0)
+       newEncodingInverted = (newEncoding * marginal_past.unsqueeze(1)).div(new_marginal_hidden.unsqueeze(0))
+       newEncodingInverted[new_marginal_hidden.unsqueeze(0).expand(len(itos_pasts), -1) == 0] = 0
+    
+       newDecoding = torch.matmul(future_given_past.t(), newEncodingInverted).t()
+       assert abs(newDecoding[0].sum()) < 0.01 or abs(newDecoding[0].sum() - 1.0) < 0.01 , newDecoding[0].sum()
+       
+       entropy = new_marginal_hidden * torch.log(new_marginal_hidden)
+       entropy[new_marginal_hidden == 0] = 0
+       entropy = -torch.sum(entropy)
+        
+       print("Entropy", entropy)
+       encoding = newEncoding
+       decoding = newDecoding
+       marginal_hidden = new_marginal_hidden
+    
+       logDecoding = logWithoutNA(decoding) 
+       logFutureMarginal = logWithoutNA(marginal_future)
+       miWithFuture = torch.sum((decoding * (logDecoding - logFutureMarginal.unsqueeze(0))).sum(1) * marginal_hidden)
+    
+       logEncoding = logWithoutNA(encoding)
+       log_marginal_hidden = logWithoutNA(marginal_hidden)
+    
+       miWithPast = torch.sum((encoding * (logEncoding - log_marginal_hidden.unsqueeze(0))).sum(1) * marginal_past)
+       assert miWithFuture <= miWithPast, (miWithFuture , miWithPast)
+       newObjective = 1/args.beta * miWithPast - miWithFuture
        print(["Mi with future", miWithFuture, "Mi with past", miWithPast])
        print(["objectives","last",objective, "new", newObjective])
-       #assert newObjective - 0.1 <= objective, (newObjective, objective)
-       if abs(newObjective - objective) < 1e-13:
+       assert newObjective - 0.1 <= objective, (newObjective, objective)
+       if newObjective == objective:
          print("Ending")
          break
        objective = newObjective
-    miWithPast = torch.sum((encoding * (logEncoding - log_marginal_hidden.unsqueeze(0))).sum(1) * marginal_past)
-    assert miWithFuture <= miWithPast + 1e-5, (miWithFuture , miWithPast)
-
     return encoding, decoding, logDecoding, miWithPast, log_marginal_hidden
 
 encoding, decoding, logDecoding, miWithPast_train, log_marginal_hidden = runOCE()
