@@ -135,8 +135,6 @@ dataDU = dataDU %>% mutate(MiWithFut = Horizon*(UncondEnt-Surprisal))
 dataU = rbind(dataDU %>% select(Language, Beta,Surprisal, Memory, Horizon, UncondEnt, MiWithFut) %>% mutate(Type="Ngrams") %>% mutate(model="REAL"), dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut, model) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural"))
 dataU = dataU %>% filter(MiWithFut <= Memory)
 
-plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + xlim(0, NA) + ylim(0, NA)
-plot = ggplot(dataU, aes(x=Memory, y=Surprisal, group=Type, color=model)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("Surprisal") + xlim(0, NA)
 
 
 plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() + xlab("I[Z, Future]") + ylab("I[Z, Past]") + theme(legend.position="none") + xlim(0, NA) + ylim(0, NA)
@@ -148,6 +146,7 @@ plot = plot + xlab("Predictiveness")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 ggsave("../figures/english-info.pdf", plot=plot) 
+
 plot = ggplot(dataU, aes(x=Surprisal, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic() 
 plot = ggplot(dataU, aes(x=Memory, y=Surprisal, group=Type, color=Type)) + geom_point()+ theme_classic() 
 plot = ggplot(dataU, aes(x=Beta, y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(0, 0.4) + ylim(0, NA)
@@ -159,8 +158,7 @@ plot = plot + xlab("Beta")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 ggsave("../figures/english-beta-mem.pdf", plot=plot)
-#plot = ggplot(dataU, aes(x=log(Beta), y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + ylim(0, NA) + theme(legend.position="none")
-#ggsave("../figures/english-logbeta-mem.pdf", plot=plot)
+
 plot = ggplot(dataU, aes(x=-log(Beta), y=Memory, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + ylim(0, NA) + theme(legend.position="none")
 plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
@@ -169,8 +167,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 plot = plot + xlab("log(1/Lambda)")
 plot = plot + ylab("Rate")
 ggsave("../figures/english-nlogbeta-mem.pdf", plot=plot)
-#plot = ggplot(dataU, aes(x=log(Beta), y=MiWithFut, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(log(0.001), log(0.4)) + ylim(0, NA) + theme(legend.position="none")
-#ggsave("../figures/english-logbeta-ee.pdf", plot=plot)
+
 plot = ggplot(dataU, aes(x=-log(Beta), y=MiWithFut, group=Type, color=Type)) + geom_point()+ theme_classic()  + xlim(-log(0.4), -log(0.001)) + ylim(0, NA) + theme(legend.position="none")
 plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),

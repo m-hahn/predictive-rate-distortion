@@ -12,13 +12,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--language", type=str, dest="language", default="RIP")
 parser.add_argument("--horizon", type=int, dest="horizon", default=1)
 parser.add_argument("--code_number", type=int, dest="code_number", default=100)
-parser.add_argument("--beta", type=float, dest="beta", default=1/0.1)
+parser.add_argument("--beta", type=float, dest="beta", default=0.1)
 parser.add_argument("--dirichlet", type=float, dest="dirichlet", default=0.00001)
 
 args_names = ["language", "horizon", "code_number", "beta", "dirichlet"]
 args = parser.parse_args()
 
 
+args.beta = 1/args.beta
+
+assert args.beta <= 1.0
 
 import random
 import sys

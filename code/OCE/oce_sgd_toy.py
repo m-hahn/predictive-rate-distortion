@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--language", type=str, dest="language")
 parser.add_argument("--horizon", type=int, dest="horizon", default=1)
 parser.add_argument("--code_number", type=int, dest="code_number", default=100)
-parser.add_argument("--beta", type=float, dest="beta", default=1/0.1)
+parser.add_argument("--beta", type=float, dest="beta", default=0.1)
 parser.add_argument("--dirichlet", type=float, dest="dirichlet", default=0.00001)
 
 args_names = ["language", "horizon", "code_number", "beta", "dirichlet"]
@@ -153,7 +153,7 @@ def runOCE():
        miWithFuture = torch.sum((decoding * (logDecoding - logFutureMarginal.unsqueeze(0))).sum(1) * marginal_hidden) # WRONG
        miWithPast = torch.sum((encoding * (logEncoding - log_marginal_hidden.unsqueeze(0))).sum(1) * marginal_past)
        assert miWithFuture <= miWithPast + 1e-5, (miWithFuture , miWithPast)
-       newObjective = 1/args.beta * miWithPast - miWithFuture
+       newObjective = args.beta * miWithPast - miWithFuture
        newObjective.backward()
        optimizer.step()
      
