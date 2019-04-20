@@ -140,8 +140,6 @@ stoi_pos_uni = dict(zip(posUni, range(len(posUni))))
 
    
 
-itos_deps = sorted(vocab_deps)
-stoi_deps = dict(zip(itos_deps, range(len(itos_deps))))
 
 
 
@@ -603,7 +601,7 @@ def computeDevLoss(test=False, useFull=False):
 
 epochCount = 0
 corpusBase = corporaCached["train"]
-while failedDevRuns < 1:
+while failedDevRuns == 0:
   epochCount += 1
   print "Starting new epoch, permuting corpus"
   corpusBase.permute()

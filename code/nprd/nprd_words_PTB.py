@@ -19,19 +19,21 @@ rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
 lr = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
 model = sys.argv[8]
+assert model == "REAL_REAL"
 input_dropoutRate = float(sys.argv[9]) # 0.33
 batchSize = int(sys.argv[10])
-horizon = int(sys.argv[11]) if len(sys.argv) > 11 else 10
-beta = float(sys.argv[12]) if len(sys.argv) > 12 else 0.01
-flow_length = int(sys.argv[13]) if len(sys.argv) > 13 else 5
-flowtype = sys.argv[14]
-prescripedID = sys.argv[15] if len(sys.argv)> 15 else None
+replaceWordsProbability = float(sys.argv[11])
+horizon = int(sys.argv[12]) if len(sys.argv) > 12 else 11
+beta = float(sys.argv[13]) if len(sys.argv) > 13 else 0.01
+flow_length = int(sys.argv[14]) if len(sys.argv) > 14 else 5
+flowtype = sys.argv[15]
+prescripedID = sys.argv[16] if len(sys.argv)> 16 else None
 
 weight_decay=1e-5
 
-if len(sys.argv) == 16:
-  del sys.argv[15]
-assert len(sys.argv) in [14,15,16]
+if len(sys.argv) == 17:
+  del sys.argv[16]
+assert len(sys.argv) in [15,16,17]
 
 
 assert dropout_rate <= 0.5
@@ -44,13 +46,9 @@ else:
   myID = random.randint(0,10000000)
 
 
-word = set() #[ "ADJ", "ADP", "ADV", "AUX", "CONJ", "DET", "INTJ", "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", "SYM", "VERB", "X"] 
-
-posFine = set() #[ "``", ",", ":", ".", "''", "$", "ADD", "AFX", "CC",  "CD", "DT", "EX", "FW", "GW", "HYPH", "IN", "JJ", "JJR",  "JJS", "-LRB-", "LS", "MD", "NFP", "NN", "NNP", "NNPS", "NNS",  "PDT", "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "-RRB-", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ",  "WDT", "WP", "WP$", "WRB", "XX" ]
 
 
 
-deps = ["acl", "acl:relcl", "advcl", "advmod", "amod", "appos", "aux", "auxpass", "case", "cc", "ccomp", "compound", "compound:prt", "conj", "conj:preconj", "cop", "csubj", "csubjpass", "dep", "det", "det:predet", "discourse", "dobj", "expl", "foreign", "goeswith", "iobj", "list", "mark", "mwe", "neg", "nmod", "nmod:npmod", "nmod:poss", "nmod:tmod", "nsubj", "nsubjpass", "nummod", "parataxis", "punct", "remnant", "reparandum", "root", "vocative", "xcomp"] 
 
 #deps = ["acl", " advcl", " advmod", " amod", " appos", " aux", " case cc", " ccompclf", " compound", " conj", " cop", " csubjdep", " det", " discourse", " dislocated", " expl", " fixed", " flat", " goeswith", " iobj", " list", " mark", " nmod", " nsubj", " nummod", " obj", " obl", " orphan", " parataxis", " punct", " reparandum", " root", " vocative", " xcomp"]
 
@@ -58,7 +56,6 @@ import math
 from math import log, exp
 from random import random, shuffle
 
-header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
 
 from corpusIterator_PTB import CorpusIterator_PTB
 
@@ -116,7 +113,6 @@ print(itos_word)
 print(stoi_word)
 assert u'the' in stoi_word
 
-itos_deps = [1]
 
 
 
@@ -543,7 +539,7 @@ def computeDevLoss(test=False):
      except StopIteration:
         break
      devCounter += 1
-     printHere = (devCounter % 50 == 0)
+     printHere = (devCounter % 100 == 0)
      _, _, _, newLoss, newWords, devMemoryHere = doForwardPass(input_indices_list, wordStartIndices_list, surprisalTable = surprisalTable, doDropout=False, batchSizeHere=batchSize)
      devMemory += devMemoryHere.data.cpu().numpy()
      devLoss += newLoss

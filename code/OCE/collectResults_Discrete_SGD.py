@@ -6,7 +6,7 @@ path = "/u/scr/mhahn/deps/memory-upper-neural-pos-only-discrete/"
 
 files = os.listdir(path)
 
-with open("/u/scr/mhahn/results-en-upos-discrete-sgd.tsv", "w") as outFile:
+with open("/u/scr/mhahn/results-oce.tsv", "w") as outFile:
   print >> outFile, "\t".join(["Language", "Beta", "Horizon", "CodeNumber", "Dirichlet", "Memory", "Surprisal"])
   for name in files:
      if not (name.startswith("estimates") and "zNgramIB" in name):

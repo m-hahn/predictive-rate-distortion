@@ -4,8 +4,8 @@ library(ggplot2)
 
 
 
-data = read.csv("../../results/results-en-upos-neuralflow.tsv", sep="\t")
-dataD = read.csv("../../results/results-en-upos-discrete-sgd.tsv", sep="\t")
+data = read.csv("../../results/results-nprd.tsv", sep="\t")
+dataD = read.csv("../../results/results-oce.tsv", sep="\t")
 
 data$Horizon = 15
 data = data %>% filter(Memories < UpperBound)
@@ -111,8 +111,8 @@ library(ggplot2)
 
 
 
-data = read.csv("../../results/results-en-upos-neuralflow.tsv", sep="\t")
-dataD = read.csv("../../results/CS_SCR/results-en-upos-discrete-sgd.tsv", sep="\t")
+data = read.csv("../../results/results-nprd.tsv", sep="\t")
+dataD = read.csv("../../results/CS_SCR/results-oce.tsv", sep="\t")
 
 data$Horizon = 15
 

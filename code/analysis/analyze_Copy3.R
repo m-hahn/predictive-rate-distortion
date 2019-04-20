@@ -1,7 +1,7 @@
 # Create plots for the Copy3 Process.
 
 
-data = read.csv("../../results/results-en-upos-neuralflow.tsv", sep="\t")
+data = read.csv("../../results/results-nprd.tsv", sep="\t")
 library(tidyr)
 library(dplyr)
 library(ggplot2)

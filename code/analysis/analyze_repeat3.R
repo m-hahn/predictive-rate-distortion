@@ -5,7 +5,7 @@ library(ggplot2)
 
 
 
-data = read.csv("../../results/results-en-upos-neuralflow.tsv", sep="\t")
+data = read.csv("../../results/results-nprd.tsv", sep="\t")
 data$Horizon = 15
 data = data %>% filter(EE <= Memories)
 dataU = data %>% filter(Language == "repeat") %>% filter(Memories < 20)

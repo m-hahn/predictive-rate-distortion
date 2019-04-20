@@ -6,10 +6,10 @@ path = "../../results/outputs/oce/"
 
 files = os.listdir(path)
 
-with open("../../results/results-en-upos-discrete-sgd.tsv", "w") as outFile:
+with open("../../results/results-oce.tsv", "w") as outFile:
   print >> outFile, "\t".join(["Language", "Beta", "Horizon", "CodeNumber", "Dirichlet", "Memory", "Surprisal"])
   for name in files:
-     if not (name.startswith("estimates") and "zNgramIB" in name):
+     if not (name.startswith("estimates") and "oce" in name):
        continue
      with open(path+name, "r") as inFile:
        data = inFile.read().strip().split("\n")

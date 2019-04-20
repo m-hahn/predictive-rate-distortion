@@ -5,7 +5,7 @@ library(dplyr)
 library(ggplot2)
 
 
-data = read.csv("../../results/results-en-upos-neuralflow-test.tsv", sep="\t")
+data = read.csv("../../results/results-nprd-words.tsv", sep="\t")
 data$Horizon = 15
 
 data$PastSurp = 15*data$FutureSurp+data$EE
