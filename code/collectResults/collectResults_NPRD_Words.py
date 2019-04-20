@@ -2,7 +2,7 @@
 
 import os
 
-path = "../../results/outputs/nprd-words/"
+path = "../../results/outputs-nprd-words/"
 
 files = os.listdir(path)
 
@@ -16,8 +16,10 @@ with open("../../results/results-nprd-words.tsv", "w") as outFile:
        devLosses = [float(x) for x in data[1].split(" ")]
        iterations_number = len(devLosses)
        parameters = data[0].split(" ")[1:]
-       assert len(parameters) == 17, (len(parameters), parameters)
-       language, _, dropout1, emb_dim, rnn_dim, rnn_layers, lr, model, dropout2, batchSize, replaceWordsProbability, horizon, beta, flow_layers, flow_type, flow_hid_dim, in_flow_layers = tuple(parameters)
+#       assert len(parameters) == 17, (len(parameters), parameters)
+       language, _, dropout1, emb_dim, rnn_dim, rnn_layers, lr, model, dropout2, batchSize, replaceWordsProbability, horizon, beta, flow_layers, flow_type = tuple(parameters) # , flow_hid_dim, in_flow_layers
+       flow_hid_dim = 512
+       in_flow_layers = 2
        assert replaceWordsProbability == "0.0", parameters
        surprisalTable = [float(x) for x in data[2].split(" ")]
        memories = [float(x) for x in data[3].split(" ")]

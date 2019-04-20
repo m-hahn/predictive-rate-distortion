@@ -2,7 +2,7 @@
 
 import os
 
-path = "../../results/outputs/"
+path = "../../results/outputs-nprd/"
 
 files = os.listdir(path)
 
@@ -18,6 +18,14 @@ with open("../../results/results-nprd.tsv", "w") as outFile:
        devLosses = [float(x) for x in data[1].split(" ")]
        iterations_number = len(devLosses)
        parameters = data[0].split(" ")[1:]
+       if len(parameters) == 14:
+         parameters.append(512)
+         parameters.append(2)
+       if len(parameters) == 16:
+          parameters.append(0.0)
+          parameters.append("False")
+          parameters.append(0.0)
+       assert len(parameters) == 19
        language, _, dropout1, emb_dim, rnn_dim, rnn_layers, lr, model, dropout2, batchSize, horizon, beta, flow_layers, flow_type, flow_hid_dim, in_flow_layers, weight_decay, klAnnealing, klIncrease  = tuple(parameters)
        surprisalTable = [float(x) for x in data[2].split(" ")]
        memories = [float(x) for x in data[3].split(" ")]

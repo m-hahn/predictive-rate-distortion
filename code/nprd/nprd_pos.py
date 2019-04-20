@@ -17,15 +17,8 @@ dropout_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 0.33
 emb_dim = int(sys.argv[4]) if len(sys.argv) > 4 else 100
 rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
-
-# NOTE lr ends up being ignored
-lr_lm = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
 lr = 0.0001
-
 model = sys.argv[8]
-
-assert model == "REAL"
-
 input_dropoutRate = float(sys.argv[9]) # 0.33
 batchSize = int(sys.argv[10])
 horizon = int(sys.argv[11]) if len(sys.argv) > 11 else 10
