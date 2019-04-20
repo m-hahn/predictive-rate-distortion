@@ -363,13 +363,13 @@ Therefore, we will be concerned with the situation where $\lambda \in (0,1)$.
 
 \subsection{Relation to Statistical Complexity}\label{sec:complexity}
 
-Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989,Grassberger1986}. %\rljf{cite Grassberger 1986}
+Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989,Grassberger1986}. 
 Given a stationary process $X_t$, its \key{causal states} are the equivalence classes of semi-infinite pasts $\past$ that induce the same conditional probability over semi-infinite futures $\future$:
 Two pasts $\past, \past^\prime$ belong to the same causal state if and only if $P(x_{1...M}|\past) = P(x_{1...M}|\past^\prime)$ holds for all finite sequences $x_{0...M}$ ($M \in \mathbb{N}$).
 Note that this definition is not measure-theoretically rigorous; such a treatment is provided by~\citet{lohr-properties-2009}.
 
 The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \key{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
-The \emph{Statistical Complexity} of a process is the state entropy of the $\epsilon$-machine.
+The \key{statistical complexity} of a process is the state entropy of the $\epsilon$-machine.
 Statistical complexity can be computed easily if the $\epsilon$-machine is analytically known, but estimating statistical complexity empirically from time series data is very challenging and seems to at least require additional assumptions about the process~\citep{clarke2003application}.
 
 %There are mor relations between the $\epsilon$-machine and Predictive Rate-Distortion:
@@ -588,7 +588,7 @@ We compute predictions using the softmax rule
 for each element $s_i$ of the state space $S = \{s_1, ..., s_{|S|}\}$, and $W_o \in \mathbb{R}^{|S| \times k}$ is a parameter matrix to be optimized together with the parameters of the LSTM networks.
 
 
-For $q$, we choose the family of \emph{Neural Autoregressive Flows} \citep{huang-neural-2018}. 
+For $q$, we choose the family of \key{Neural Autoregressive Flows} \citep{huang-neural-2018}. 
 This is a parametric family of distributions that allows efficient estimation of the probability density and its gradients.
 This method widely generalizes a family of prior methods \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
 
@@ -598,7 +598,7 @@ We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for
 During optimization, we approximate the gradient by taking a single sample from $Z$ (\ref{eq:z-gauss}) per sample trajectory $X_{-M}, \dots, X_{M-1}$ and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
 
-Following standard practice in machine learning, we split the data set of sample time series into three partitions (\emph{training set}, \emph{validation set}, and \emph{test set}). 
+Following standard practice in machine learning, we split the data set of sample time series into three partitions (\key{training set}, \key{validation set}, and \key{test set}). 
 We use the training set for optimizing the parameters as described above.
 After every pass through the training set, the objective (\ref{eq:bound}) is evaluated on the validation set using a Monte Carlo estimate with one sample $Z$ per trajectory; optimization terminates once the value on the held-out set does not decrease any more.
 %After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
@@ -726,7 +726,7 @@ The \key{Random Insertion Process} \citep{marzen-predictive-2016} consists of se
 
 
 We applied NPRD to these processes by training on 3M random trajectories of length 30, and using 3000 additional trajectories for validation and test data.
-For each process, we ran NPRD 1000 times for randomly choices of $\lambda \in [0,1]$.
+For each process, we ran NPRD 1000 times for random choices of $\lambda \in [0,1]$.
 Due to computational constraints, when running OCE, we limited sample size to 3000 trajectories for estimation and as held-out data.
 Following \citet{marzen-predictive-2016}, we ran OCE for $M=1,...,5$.
 
@@ -965,8 +965,8 @@ Unlike discrete codebooks, the geometric structure makes it possible for neural 
 %\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee.pdf}
-	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \lambda$. As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity. \rljf{It's 1/beta in the figure captions and 1/\lambda in the text}}\label{fig:eng-pos}
-\end{figure*}
+	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \lambda$. As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity. }\label{fig:eng-pos}
+\end{figure*}%\rljf{It's 1/beta in the figure captions and 1/\lambda in the text}
 
 
 
@@ -979,7 +979,7 @@ At greater degrees of predictiveness, rate grows faster and faster, whereas pred
 The asymptote of predictiveness can be identified with the mutual information between past and future observations, $E_0 := \operatorname{I}[\finitepast, \finitefuture]$, which is a lower bound on the excess entropy. The rate should asymptote to the statistical complexity.
 Judging by the curve, natural language---at the time scale we are measuring in this experiment---has a statistical complexity much higher than its excess entropy:
 At the highest rate measured by NPRD in our experiment, rate is about 20 nats, whereas predictiveness is about 1.1 nats.
-If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. \rljf{On precedents for this finding: there's an oblique reference in Grassberger (1989) that excess entropy is ``a very weak [lower bound on SC] in most cases where it was studied'', but following the citations given there I can't find anything.}
+If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. %\rljf{On precedents for this finding: there's an oblique reference in Grassberger (1989) that excess entropy is ``a very weak [lower bound on SC] in most cases where it was studied'', but following the citations given there I can't find anything.}
 Note that this picture agrees qualitatively with the OCE results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
 
 Now turning to the other plots in Figure~\ref{fig:eng-pos}, we observe that rate increases at least linearly with $\log\frac{1}{\lambda}$, whereas predictiveness again asymptotes.
@@ -1081,7 +1081,7 @@ Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Th
 %and thus
 %\begin{equation}
 %I_t \propto T^{1/\beta-1}	\exp\left(-T^{1/\beta} \frac{1}{\alpha^{1/\beta}} (\operatorname{H}[X_0|\past])^{1/\beta}\right)
-%\end{equation}
+%\end{equation}˚ 
 
 
 \subsection{Word-level language modeling}\label{sec:words}
@@ -1100,7 +1100,7 @@ We will examine whether Equation~\ref{eq:derivatives} describes the resulting tr
 For the setup, we followed standard setup for recurrent neural language modeling.
 The hyperparameters are shown in Table~\ref{tab:nprd-hyperparameters}.
 Following standard practice in neural language modeling, we restrict the observation space to the most frequent $10^4$ words; other words are replaced by their part-of-speech tag.
-We do this for simplicity and to stay close to standard practice in natural language processing; NPRD could deal with unbounded state spaces through a range of more sophisticated techniques such as subword modeling and character-level prediction~\citep{kim2016character luong2016achieving}.
+We do this for simplicity and to stay close to standard practice in natural language processing; NPRD could deal with unbounded state spaces through a range of more sophisticated techniques such as subword modeling and character-level prediction~\citep{kim2016character,luong2016achieving}.
 
 
 We used data from five diverse languages.
@@ -1123,6 +1123,14 @@ NPRD reports rates up to $\approx$ 60 nats, more than ten times the largest valu
 On the other hand, the growth of rate with predictiveness is relatively gentle in the low-rate regime.
 %At the level of individual sentences, prediction
 We conclude that predicting words in natural language can be approximated with small memory capacity, but more accurate prediction requires very fine-grained memory representations.
+
+\subsection{General Discussion}
+
+Our analysis of PRD curves for natural language suggests that it is characterized by very high statistical complexity beyond its excess entropy.
+
+\citet{dkebowski2018natural} argues that the excess entropy of connected texts in natural language is unbounded, meaning that the statistical complexity is unbounded. Our result suggests that the statistical complexity within individual sentences is unbounded (though the excess entropy is finite). Together, these results  
+
+
 
 %
 %\begin{table}
