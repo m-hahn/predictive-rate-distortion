@@ -9,7 +9,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--language", type=str, dest="language", default="English")
+parser.add_argument("--language", type=str, dest="language", default="RIP")
 parser.add_argument("--horizon", type=int, dest="horizon", default=1)
 parser.add_argument("--code_number", type=int, dest="code_number", default=100)
 parser.add_argument("--beta", type=float, dest="beta", default=1/0.1)
@@ -28,12 +28,12 @@ import sys
 
 header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
 
-from corpusIterator import CorpusIterator
+from corpusIteratorToy import CorpusIteratorToy
 
 ngrams = {}
 
 lastPosUni = ("EOS",)*(2*args.horizon-1)
-for sentence in CorpusIterator(args.language,"train", storeMorph=True).iterator():
+for sentence in CorpusIteratorToy(args.language,"train", storeMorph=True).iterator():
  for line in sentence:
    nextPosUni = line["posUni"]
    ngram = lastPosUni+(nextPosUni,)
@@ -209,7 +209,7 @@ futureSurprisal_train = -((future_given_past * marginal_past.unsqueeze(1)).unsqu
 ngrams = {}
 
 lastPosUni = ("EOS",)*(2*args.horizon-1)
-for sentence in CorpusIterator(args.language,"dev", storeMorph=True).iterator():
+for sentence in CorpusIteratorToy(args.language,"dev", storeMorph=True).iterator():
  for line in sentence:
    nextPosUni = line["posUni"]
    ngram = lastPosUni+(nextPosUni,)
