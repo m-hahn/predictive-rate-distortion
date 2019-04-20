@@ -5,8 +5,10 @@ import sys
 header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
 
 
+PATH = "/u/scr/corpora/Universal_Dependencies_2.1/ud-treebanks-v2.1/"
+
 def readUDCorpus(language, partition):
-      basePaths = ["/u/scr/corpora/Universal_Dependencies_2.1/ud-treebanks-v2.1/"]
+      basePaths = [PATH]
       files = []
       while len(files) == 0:
         if len(basePaths) == 0:
