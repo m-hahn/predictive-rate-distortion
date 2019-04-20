@@ -22,7 +22,9 @@ while True:
    flowtype = random.choice(["dsf", "ddsf"])
    flow_hid_dim = random.choice([32,64,128,512])
    flow_layers = random.choice([2])
-   subprocess.call(map(str,["./python27", "nprd_toy.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype, flow_hid_dim, flow_layers]))
+   command = map(str,["./python27", "nprd_toy.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype, flow_hid_dim, flow_layers])
+   print(" ".join(command))
+   subprocess.call(command)
   
    
     

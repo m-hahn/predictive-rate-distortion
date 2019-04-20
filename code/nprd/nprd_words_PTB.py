@@ -2,7 +2,7 @@
 
 # Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_WordsLR.py.
 
-from paths import LOG_PATH
+from paths import LOG_PATH_WORDS
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
 import numpy as np
@@ -19,7 +19,6 @@ rnn_dim = int(sys.argv[5]) if len(sys.argv) > 5 else 512
 rnn_layers = int(sys.argv[6]) if len(sys.argv) > 6 else 2
 lr = float(sys.argv[7]) if len(sys.argv) > 7 else 0.1
 model = sys.argv[8]
-assert model == "REAL_REAL"
 input_dropoutRate = float(sys.argv[9]) # 0.33
 batchSize = int(sys.argv[10])
 replaceWordsProbability = float(sys.argv[11])
@@ -96,9 +95,8 @@ logsoftmax = torch.nn.LogSoftmax()
 
 
 
-def orderSentence(sentence, dhLogits, printThings):
-   global model
-   return removeNonWords(sentence.leaves()),  _
+def orderSentence(sentence):
+   return removeNonWords(sentence.leaves())
 
 
 dhLogits, vocab, vocab_deps, depsVocab = initializeOrderTable()
@@ -470,7 +468,7 @@ def createStream(corpus):
     sentCount = 0
     for sentence in corpus:
        sentCount += 1
-       ordered, _ = orderSentence(sentence, dhLogits, printHere)
+       ordered = orderSentence(sentence)
        for line in ordered+["EOS"]:
           wordStartIndices.append(len(input_indices))
           if line == "EOS":
@@ -498,7 +496,7 @@ def createStreamContinuous(corpus):
        sentCount += 1
        if sentCount % 10 == 0:
          print ["DEV SENTENCES", sentCount]
-       ordered, _ = orderSentence(sentence, dhLogits, printHere)
+       ordered = orderSentence(sentence)
        for line in ordered+["EOS"]:
           wordStartIndices.append(len(input_indices))
           if line == "EOS":
@@ -570,7 +568,7 @@ while failedDevRuns == 0:
               devSurprisalTable = devSurprisalTableHere
           print(devSurprisalTable[horizon/2])
           print(devMemories)
-          with open(LOG_PATH+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+          with open(LOG_PATH_WORDS+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
               print >> outFile, " ".join(sys.argv)
               print >> outFile, " ".join(map(str,devLosses))
               print >> outFile, " ".join(map(str,devSurprisalTable))
@@ -635,7 +633,7 @@ devSurprisalTable = devSurprisalTableHere
 
 print(devSurprisalTable[horizon/2])
 print(devMemories)
-with open(LOG_PATH+"/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+with open(LOG_PATH_WORDS+"/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
     print >> outFile, " ".join(sys.argv)
     print >> outFile, " ".join(map(str,devLosses))
     print >> outFile, " ".join(map(str,devSurprisalTable))

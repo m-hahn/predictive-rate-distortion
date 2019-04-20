@@ -7,7 +7,7 @@ import random
 import math
 
 while True:
-   language = sys.argv[1]
+   language = "English"
    languageCode = language
    dropout_rate = random.choice([0.0,0.0,0.0,0.1,0.2])
    emb_dim = random.choice([50,100,200,300])
@@ -23,8 +23,9 @@ while True:
    print(beta)
    flow_length = random.choice([1,2,3,4,5])
    flowtype = random.choice(["dsf", "ddsf"])
-   
-   subprocess.call(map(str,["./python27", "nprd_pos.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype]))
+   command = map(str,["./python27", "nprd_pos.py", language, languageCode, dropout_rate, emb_dim, rnn_dim, rnn_layers, lr_lm, model, input_dropoutRate, batchSize, horizon, beta, flow_length, flowtype])
+   print(" ".join(command))
+   subprocess.call(command)
   
    
     

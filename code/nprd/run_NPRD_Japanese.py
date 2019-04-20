@@ -20,18 +20,7 @@ while True:
    batchSize = 32 #random.choice([16, 32,64])
    input_noising = 0.0
    horizon = 30
-   if True:
-      beta = math.exp(random.uniform(-2, -0.0)) #random.random() * 0.05
-   else:
-      broadRange = random.choice([0.001, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1])
-      if broadRange < 0.09:
-        beta = random.choice(range(1,10)) * broadRange
-      elif broadRange == 0.1:
-        beta = random.choice(range(1,7)) * broadRange + random.choice(range(1,10)) * 0.01
-      else:
-        assert False
-      if beta > 0.7 or beta < 0.005:
-         continue
+   beta = math.exp(random.uniform(-2, -0.0)) #random.random() * 0.05
    print(beta)
    flow_length = 4 #random.choice([4,5]) #,4,5]) #4,5,6])
    flowtype = random.choice(["dsf", "ddsf"])

@@ -2,7 +2,7 @@
 
 import os
 
-path = "../../results/outputs/oce/"
+path = "../../results/outputs-oce/"
 
 files = os.listdir(path)
 

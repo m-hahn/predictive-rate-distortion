@@ -1,7 +1,7 @@
 # Runs NPRD on UD corpus on word level (used for Russian and Arabic)
 
 # Was called yWithMorphologySequentialStreamDropoutDev_BaselineLanguage_Fast_SaveLast_NoFinePOS_POSOnly_Variational_Bottleneck_TwoRNNs_NeuralFlow_Optimizer_DIMENSIONS_SEPARATE_WordsUD.py
-from paths import LOG_PATH
+from paths import LOG_PATH_WORDS
 import torchkit.optim
 import torchkit.nn, torchkit.flows, torchkit.utils
 import numpy as np
@@ -623,7 +623,7 @@ while failedDevRuns == 0:
 
           print(devSurprisalTable[horizon/2])
           print(devMemories)
-          with open(LOG_PATH+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+          with open(LOG_PATH_WORDS+"/estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
               print >> outFile, " ".join(sys.argv)
               print >> outFile, " ".join(map(str,devLosses))
               print >> outFile, " ".join(map(str,devSurprisalTable))
@@ -684,7 +684,7 @@ devSurprisalTable = devSurprisalTableHere
 
 print(devSurprisalTable[horizon/2])
 print(devMemories)
-with open(LOG_PATH+"/valid-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+with open(LOG_PATH_WORDS+"/valid-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
     print >> outFile, " ".join(sys.argv)
     print >> outFile, " ".join(map(str,devLosses))
     print >> outFile, " ".join(map(str,devSurprisalTable))
@@ -709,7 +709,7 @@ devSurprisalTable = devSurprisalTableHere
 
 print(devSurprisalTable[horizon/2])
 print(devMemories)
-with open(LOG_PATH+"/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
+with open(LOG_PATH_WORDS+"/test-estimates-"+language+"_"+__file__+"_model_"+str(myID)+"_"+model+".txt", "w") as outFile:
     print >> outFile, " ".join(sys.argv)
     print >> outFile, " ".join(map(str,devLosses))
     print >> outFile, " ".join(map(str,devSurprisalTable))

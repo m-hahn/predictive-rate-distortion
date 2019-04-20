@@ -2,7 +2,7 @@
 
 import os
 
-path = "../../results/outputs/nprd/"
+path = "../../results/outputs/"
 
 files = os.listdir(path)
 
