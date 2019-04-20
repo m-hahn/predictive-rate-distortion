@@ -4,8 +4,8 @@ import subprocess
 import sys
 import random
 
-language = sys.argv[1] # Can be even (Even Process) or rip (Random Insertaion Process)
-algorithm = sys.argv[2] if len(sys.argv) > 2 else "ba" # Can be ba (Blahut-Arimoto) or sgd (Gradient Descent)
+language = sys.argv[1] # Can be even (Even Process) or rip (Random Insertion Process)
+algorithm = sys.argv[2] if len(sys.argv) > 2 else "ba" # Can be ba (Blahut-Arimoto) or sgd (Gradient Descent). Blahut-Arimoto is in general much faster.
 
 while True:
    args = {}

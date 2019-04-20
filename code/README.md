@@ -26,3 +26,12 @@ See documentation in these directories for details.
 * Japanese Data: LDC95T8 (<https://catalog.ldc.upenn.edu/LDC95T8>). Adapt the path in `nprd/accessLDC95T8.py` accordingly.
 * Chinese Data: LDC2012T05 (<https://catalog.ldc.upenn.edu/LDC2012T05>). Adapt the path in `nprd/accessChineseDependencyTreebank.py` accordingly.
 
+## Applying algorithms to other processes
+
+NPRD is a general-purpose method applicable to any stationary process with finite alphabet.
+If you want to apply NPRD to another process:
+* Edit the function `readUDCorpus()` in `nprd/corpusIteratorToy.py` to add functionality generating samples from this process.
+* You can then pass the name of this processes as the `language` argument to the NPRD script (`nprd/run_NPRD_toy.py`) to generate estimates for the predictive rate-distortion curve.
+* Use `collectResults/collectResults_NPRD.py` to overwrite the TSV files in `../results/` with the results of this estimation.
+* Adapt `analysis/analyze_NPRD_template.R` by replacing `LANGUAGE` with the name given to the new process. Running the script shoud then produce plots of the estimated curve in `figures/`.
+

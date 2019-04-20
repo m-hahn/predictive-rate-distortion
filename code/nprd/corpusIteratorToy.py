@@ -11,6 +11,12 @@ def encode(word):
    return {"posUni" : word}
 
 def readUDCorpus(language, partition):
+      """
+        @language: the name of the process (even, rip, repeat). Note that repeat is called Copy3 in the paper.
+        @partition: train or dev (for the held-out set). Note that since this function creates a fresh sample whenever it is called, no distinction between development and test set is made.
+        
+        In order to add functionality for another (stationary) process, create analogous functionality creating a sample from that process.
+      """
       data = [[]]
       if language == "even":
          state = 0
