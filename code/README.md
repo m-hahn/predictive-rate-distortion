@@ -2,11 +2,11 @@
 
 ## Structure
 
-* `analysis` contains code for plotting results. All data used for the plots reported in the paper are in the TSV files in the `../results/` folder; you can use the scripts in `analysis` to reporoduce all plots reported in the paper.
-* `nprd` contains code for running NPRD.
-* `oce` contains code for running OCE.
-* `figures` contains figures created by various scripts.
-* `collectResults` contains scripts for collecting the results of runs of NPRD/OCE into summary TSV files, overwriting the TSV files in `../results/`.
+* `analysis/` contains code for plotting results. All data used for the plots reported in the paper are in the TSV files in the `../results/` folder; you can use the scripts in `analysis` to reporoduce all plots reported in the paper.
+* `nprd/` contains code for running NPRD.
+* `oce/` contains code for running OCE.
+* `figures/` contains figures created by various scripts.
+* `collectResults/` contains scripts for collecting the results of runs of NPRD/OCE into summary TSV files, overwriting the TSV files in `../results/`.
 
 The scripts in `nprd` and `oce` can be used to recompute predictive rate-distortion curves reported in the paper, or to compute curves for other processes.
 See documentation in these directories for details.
