@@ -116,14 +116,13 @@
 
 \author{Michael Hahn, Richard Futrell}
 
-\date{2018}
 
 % Author Orchid ID: enter ID or remove command
 \newcommand{\orcidauthorA}{0000-0000-000-000X} % Add \orcidA{} behind the author's name
 %\newcommand{\orcidauthorB}{0000-0000-000-000X} % Add \orcidB{} behind the author's name
 
 % Authors, for the paper (add full first names)
-\Author{Michael Hahn $^{1}$, and Richard Futrell $^{2}$}
+\Author{Michael Hahn $^{1}$ and Richard Futrell $^{2}$}
 
 % Authors, for metadata in PDF
 \AuthorNames{Michael Hahn and Richard Futrell}
@@ -162,14 +161,6 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 
 
 \begin{document}
-
-
-\rljf{Small formatting changes I made: \\
-* I prefer bold over italics when introducing terms, because when someone is visually scanning the paper looking for a definition, bold stands out much better. \\
-* Punctuation should be attached to equations as if they were part of the text (so sometimes periods and commas after equations) \\
-* no spaces between m-dashes---like this \\
-* we should make sure not to use ``this'', ``that'', ``which'', etc. as bare NPs. Copyeditors don't like this.
-}
 
 
 
@@ -710,7 +701,7 @@ For all experiments, we used $M=15$.
 Neural networks have hyperparameters, such as the number of units and the step size used in optimization, which affect the quality of approximation depending on properties of the dataset and the function being approximated.
 Given that NPRD provably provides upper bounds on the PRD objective~(\ref{eq:prd-loss}), one can in principle identify the best hyperparameters for a given process by choosing the combination that leads to the lowest estimated upper bounds.
 As a computationally more efficient method, we defined a range of plausible hyperparameters based both on experience reported in the literature, and considerations of computational efficiency.
-These parameters are shown in Table~\ref{tab:nprd-hyperparameters}.
+These parameters are discussed in Appendix~\ref{sec:app-hyperparams}.
 We then randomly sampled, for each of the processes that we experimented on, combinations of $\lambda$ and these hyperparameters to run NPRD on.
 
 
@@ -1029,7 +1020,7 @@ Equation~(\ref{eq:derivatives}) has the solution
 where $\Gamma$ is the incomplete Gamma function.
 Since $\lim_{R \rightarrow \infty} P = C$, the constant $C$ has to equal the maximally possible predictiveness $E_0 := \operatorname{I}[\finitepast, \finitefuture]$.
 
-As $M \rightarrow \infty$, (\ref{eq:sol}) behaves as
+As the window size $M \rightarrow \infty$, (\ref{eq:sol}) behaves as
 \begin{equation}
 	P \approx E_0 - \alpha\beta \cdot (R/\alpha)^{\frac{\beta-1}{\beta}} e^{-(R/\alpha)^{1/\beta}},
 \end{equation}
@@ -1126,11 +1117,9 @@ We conclude that predicting words in natural language can be approximated with s
 
 \subsection{General Discussion}
 
-Our analysis of PRD curves for natural language suggests that it is characterized by very high statistical complexity beyond its excess entropy.
+Our analysis of PRD curves for natural language suggests that it is characterized by very high and perhaps infinite statistical complexity beyond its excess entropy. In a similar vein, \citet{dkebowski2018natural} has argued that the excess entropy of connected texts in natural language is infinite (in contrast, our result is for isolated sentences). If the statistical complexity of natural language is indeed infinite, then statistical complexity is not a good complexity metric for natural language. 
 
-\citet{dkebowski2018natural} argues that the excess entropy of connected texts in natural language is unbounded, meaning that the statistical complexity is unbounded. Our result suggests that the statistical complexity within individual sentences is unbounded (though the excess entropy is finite). Together, these results  
-
-
+We suggest that the PRD curve may form a more natural complexity metric for highly complex processes such as language. Among those processes with infinite statistical complexity, some will have a gentle PRD curve---meaning that they can be well-approximated at low rates---while others will have a steep curve, meaning they cannot be well-approximated at low rates. We conjecture that although natural language may have infinite statistical complexity, it has a gentler PRD curve than other processes with this property, meaning that achieving a reasonable approximation of the predictive distribution does not require inordinate memory resources.
 
 %
 %\begin{table}
@@ -1282,6 +1271,8 @@ On part-of-speech-level modeling of natural language, it agrees with OCE in the 
 Finally, we use NPRD to provide the first estimates of predictive rate-distortion for modeling natural language in five different languages, finding qualitatively very similar curves in all languages.
 %Results suggest that prediction can be approximated with sim, but more accurate prediction requires very fine-grained memory representations.
 
+All code for reproducing the results in this work is available at \url{https://github.com/m-hahn/predictive-rate-distortion}.
+
 
 %\bibliographystyle{apalike}
 %\bibliography{extracted}
@@ -1303,7 +1294,7 @@ Finally, we use NPRD to provide the first estimates of predictive rate-distortio
 % \supplementary{The following are available at \linksupplementary{s1}, Figure S1: title, Table S1: title, Video S1: title. A supporting video article is available at doi: link.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\authorcontributions{For research articles with several authors, a short paragraph specifying their individual contributions must be provided. The following statements should be used “conceptualization, X.X. and Y.Y.; methodology, X.X.; software, X.X.; validation, X.X., Y.Y. and Z.Z.; formal analysis, X.X.; investigation, X.X.; resources, X.X.; data curation, X.X.; writing—original draft preparation, X.X.; writing—review and editing, X.X.; visualization, X.X.; supervision, X.X.; project administration, X.X.; funding acquisition, Y.Y.”, please turn to the  \href{http://img.mdpi.org/data/contributor-role-instruction.pdf}{CRediT taxonomy} for the term explanation. Authorship must be limited to those who have contributed substantially to the work reported.}
+\authorcontributions{M.H. and R.F. conceived of and designed the experiments. M.H. performed the experiments and analysed data. M.H. and R.F. wrote the paper. All authors have read and approved the final manuscript.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \funding{This research received no external funding.} %'' or ``This research was funded by NAME OF FUNDER grant number XXX.'' and  and ``The APC was funded by XXX''. Check carefully that the details given are accurate and use the standard spelling of funding agency names at \url{https://search.crossref.org/funding}, any errors may affect your future funding.}
@@ -1331,7 +1322,7 @@ LSTM & Long Short Term Memory
 \appendixtitles{no} %Leave argument "no" if all appendix headings stay EMPTY (then no dot is printed after "Appendix A"). If the appendix sections contain a heading then change the argument to "yes".
 \appendixsections{multiple} %Leave argument "multiple" if there are multiple sections. Then a counter is printed ("Appendix A"). If there is only one appendix section then change the argument to "one" and no counter is printed ("Appendix").
 \appendix
-\section{Hyperparameters}
+\section{Hyperparameters}\label{sec:app-hyperparams}
 
 The first group of parameters are the dimensions of the input embedings and the recurrent LSTM states.
 The second group of parameters are regularization parameters.
@@ -1347,27 +1338,27 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 \begin{tabular}{l||lll}
 	& Section~\ref{sec:tractable} &   Section~\ref{sec:pos} & Section~\ref{sec:words}\\ \hline\hline
 	Embedding Dimension & 50, 100 &    50, 100, 200, 300   &  150      \\
-	LSTM Dimension & 32           &   64, 128, 256, 512    &    512     \\ \hline
+	LSTM Dimension & 32           &   64, 128, 256, 512    &   256, 512     \\ \hline
 %	LSTM Layers & 1 \\ \hline
-	Dropout rate & 0.0, 0.1, 0.2  &   0.0, 0.1, 0.2    &      0.4     \\
+	Dropout rate & 0.0, 0.1, 0.2  &   0.0, 0.1, 0.2    &   0.1,   0.4     \\
 	Input Dropout & 0  &    0.0, 0.1, 0.2   &        0.2             \\ \hline
 	Adam Learning Rate & $\{1,5\} \cdot 10^{-4}$, $\{1,2,4\} \cdot 10^{-3}$  &   $\{1,5\} \cdot 10^{-4}$, $\{1,2,4\} \cdot 10^{-3}$ &       0.00005, 0.0001, 0.0005, 0.001     \\
-	Batch Size & 16, 32, 64  &    16, 32 64   &       32          \\ \hline
-	Flow Length & 1, 2  &   1,2,3,4,5    &          4              \\
+	Batch Size & 16, 32, 64  &    16, 32 64   & 16, 32, 64  \\ \hline
+	Flow Length & 1, 2  &   1,2,3,4,5    &          1,2,3,4              \\
 	Flow Type & DSF, DDSF  &    DSF, DDSF   &       DSF, DDSF             \\
 	Flow Dimension & 32, 64, 128, 512  &   512    &    512        \\
 	Flow Layers & 2  &    2   &                 2         \\
 \end{tabular}
-	\caption{NPRD Hyperparameters}\label{tab:nprd-hyperparameters}
+	\caption{NPRD Hyperparameters. See Appendix~\ref{sec:app-hyperparams} for description of the parameters.}\label{tab:nprd-hyperparameters}
 \end{table}
 
 
-\unskip
-\subsection{}
-The appendix is an optional section that can contain details and data supplemental to the main text. For example, explanations of experimental details that would disrupt the flow of the main text, but nonetheless remain crucial to understanding and reproducing the research shown; figures of replicates for experiments of which representative data is shown in the main text can be added here if brief, or as Supplementary data. Mathematical proofs of results not central to the paper can be added as an appendix.
+%\unskip
+%\subsection{}
+%The appendix is an optional section that can contain details and data supplemental to the main text. For example, explanations of experimental details that would disrupt the flow of the main text, but nonetheless remain crucial to understanding and reproducing the research shown; figures of replicates for experiments of which representative data is shown in the main text can be added here if brief, or as Supplementary data. Mathematical proofs of results not central to the paper can be added as an appendix.
 
-\section{}
-All appendix sections must be cited in the main text. In the appendixes, Figures, Tables, etc. should be labeled starting with `A', e.g., Figure A1, Figure A2, etc. 
+%\section{}
+%All appendix sections must be cited in the main text. In the appendixes, Figures, Tables, etc. should be labeled starting with `A', e.g., Figure A1, Figure A2, etc. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Citations and References in Supplementary files are permitted provided that they also appear in the reference list here. 
@@ -1388,7 +1379,7 @@ All appendix sections must be cited in the main text. In the appendixes, Figures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% optional
-\sampleavailability{Samples of the compounds ...... are available from the authors.}
+\sampleavailability{Code is available.}
 
 %% for journal Sci
 %\reviewreports{\\
