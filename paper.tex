@@ -101,8 +101,8 @@
 \newcommand{\past}{\overleftarrow{X}}
 \newcommand{\key}{\textbf}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
-\newcommand{\finitefuture}{X_{0\dots M-1}}
-\newcommand{\finitepast}{X_{-M\dots -1}}
+\newcommand{\finitefuture}{\overrightarrow{X}^{M}}
+\newcommand{\finitepast}{^{-M}\overleftarrow{X}}%_{-M\dots -1}}
 
 
 \let\oldequation\equation
@@ -145,14 +145,14 @@ $^{2}$ \quad UC Irvine; rfutrell@uci.edu}
 \abstract{The predictive rate-distortion curve quantifies the tradeoff between compressing information about the past of a stochastic process and predicting its future accurately.
 Existing estimation methods for this curve work by clustering finite sequences of observations or by utilizing analytically known causal states.
 Neither type of approach scales to processes such as natural languages, which have large alphabets and long dependencies, and where the causal states are not known analytically.
-We describe Neural Predictive Rate Distortion (NPRD), an estimation method that scales to such processes, leveraging the universal approximation capabilities of neural networks.
+We describe Neural Predictive Rate-Distortion (NPRD), an estimation method that scales to such processes, leveraging the universal approximation capabilities of neural networks.
 Taking only time series data as input, the method computes a variational bound on the predictive rate-distortion curve.
 We validate the method on processes where predictive rate-distortion is analytically known.
 As an application, we provide bounds on the predictive rate-distortion of natural language, improving on bounds provided by clustering sequences.
 Based on the results, we argue that the predictive rate-distortion curve is more useful than the usual notion of statistical complexity for characterizing highly complex processes such as natural language.}
 
 % Keywords
-\keyword{Predictive rate-distortion; Natural language; Information bottleneck; Neural variational inference (list three to ten pertinent keywords specific to the article, yet reasonably common within the subject discipline.)}
+\keyword{Predictive rate-distortion; Natural language; Information bottleneck; Neural variational inference} % (list three to ten pertinent keywords specific to the article, yet reasonably common within the subject discipline.)
 
 % The fields PACS, MSC, and JEL may be left empty or commented out if not applicable
 %\PACS{J0101}
@@ -184,14 +184,14 @@ In these settings, the main goal will typically be to get good prediction at low
 This motivates the study of models that try to extract those key features of past observations that are most relevant to predicting the future.
 %This results in a tradeoff between the cost of representing past observations and predicting the future well.
 %This tradeoff has been formalized and computationally studied in a range of prior studies.
-A general information-theoretic framework for this problem is provided by Predictive Rate Distortion~~\citep{marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
-The Predictive Rate Distortion tradeoff seeks to find an encoding of past observations that is maximally informative about future observations, while satisfying a bound on the amount of information that has to be stored.
+A general information-theoretic framework for this problem is provided by Predictive Rate-Distortion~~\citep{marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
+The Predictive Rate-Distortion tradeoff seeks to find an encoding of past observations that is maximally informative about future observations, while satisfying a bound on the amount of information that has to be stored.
 More formally, this framework trades off prediction loss in the future, formalized as cross-entropy, with the cost of representing the past, formalized as the mutual information between the past observations and the compressed representations of the past.
 Due to its information-theoretic nature, this framework is extremely general and applies to processes across vastly different domains.
 It has been applied to linear dynamical systems \citep{creutzig-past-future-2009,amir2015past}, but is equally meaningful for discrete dynamical systems~\citep{marzen-predictive-2016}.
 For biological systems that make predictions about their environment, this corresponds to placing an information-theoretic constraint on the computational cost used for conditioning actions on past observations~\citep{genewein2015bounded}.
 
-The problem of determining encodings that optimize the Predictive Rate Distortion tradeoff has been solved for certain specific kinds of dynamics, namely for linear dynamic systems~\citep{creutzig-past-future-2009} and for processes whose predictive dynamic is represented exactly by a known, finite Hidden Markov Model~\citep{marzen-predictive-2016}.
+The problem of determining encodings that optimize the Predictive Rate-Distortion tradeoff has been solved for certain specific kinds of dynamics, namely for linear dynamic systems~\citep{creutzig-past-future-2009} and for processes whose predictive dynamic is represented exactly by a known, finite Hidden Markov Model~\citep{marzen-predictive-2016}.
 However, real-world processes are often more complicated.
 When the dynamics are known, a representing Hidden Markov Model may still be extremely large or even infinite, making general-purpose automated computation difficult.
 Even more importantly, the underlying dynamics are often not known exactly.
@@ -201,7 +201,7 @@ Such processes are typically only available implicitly, through a finite sample 
 
 
 
-Optimal Causal Estimation (OCE, \citet{still-optimal-2010}) addresses the problem of estimating Predictive Rate Distortion from a finite sample of observation trajectories.
+Optimal Causal Filtering (OCF, \citet{still-optimal-2010}) addresses the problem of estimating Predictive Rate-Distortion from a finite sample of observation trajectories.
 It does so by constructing a matrix of observed frequencies of different pairs of past and future observations.
 However, this method faces a series of challenges~\citep{marzen-predictive-2016}.
 One is the curse of dimensionality:
@@ -209,8 +209,8 @@ Modeling long dependencies requires storing an exponential number of observation
 This exponential growth is particularly problematic when dealing with processes with a large state space.
 For instance, the number of distinct words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
 A second challenge is that of overfitting:
-When deploying a predictive model constructed via OCE on new data to predict upcoming observations, such a model can only succeed when the past sequences occurred in the sample that OCE was applied to.
-This is because OCE relies on counts of full past and future observation sequences; it has no means to generalize to unseen past sequences.
+When deploying a predictive model constructed via OCF on new data to predict upcoming observations, such a model can only succeed when the past sequences occurred in the sample that OCF was applied to.
+This is because OCF relies on counts of full past and future observation sequences; it has no means to generalize to unseen past sequences.
 
 Extrapolating to unseen past sequences is possible in traditional time series models representing processes that take continuous values; however, such methods are less easily applied to discrete sequences such as natural language.
 Recent research has seen a flurry of interest in using flexible nonlinear function approximators, and in particular recurrent neural networks, which can handle sequences with discrete observations.
@@ -220,17 +220,17 @@ They also have been successfully applied to modeling many other kinds of time se
 % ,sirignano2018universal,hagge2017solving
 %, such as financial time series~\cite{} and purely theoretical chaotic dynamical systems
 
-We propose Neural Predictive Rate Distortion (NPRD) to estimate predictive rate distortion when only a finite set of sample trajectories is given.
+We propose Neural Predictive Rate-Distortion (NPRD) to estimate predictive rate-distortion when only a finite set of sample trajectories is given.
 We use neural networks both to encode past observations into a summary code, and to predict future observations from it.
-The universal function approximation capabilities of neural networks enable such networks to capture complex dynamics, with computational cost scaling only linearly with the length of observed trajectories, compared to the exponential cost of OCE.
+The universal function approximation capabilities of neural networks enable such networks to capture complex dynamics, with computational cost scaling only linearly with the length of observed trajectories, compared to the exponential cost of OCF.
 When deploying on new data, such a neural model can generalize seamlessly to unseen sequences, and generate appropriate novel summary encodings on the fly.
-Recent advances in neural variational inference~\citep{rezende-variational-2015,huang-neural-2018} allow us to construct predictive models that provide almost optimal predictive performance at a given rate, and to estimate the predictive rate distortion tradeoff from such networks.
+Recent advances in neural variational inference~\citep{rezende-variational-2015,huang-neural-2018} allow us to construct predictive models that provide almost optimal predictive performance at a given rate, and to estimate the predictive rate-distortion tradeoff from such networks.
 Our method can be applied to sample trajectories in an off-the-shelf manner, without prior knowledge of the underlying process.
 
-In Section~\ref{sec:background}, we formally introduce predictive rate distortion, and discuss related notions of predictive complexity.
-In Section~\ref{sec:oce}, we describe the prior method of Optimal Causel Estimation (OCE).
+In Section~\ref{sec:background}, we formally introduce predictive rate-distortion, and discuss related notions of predictive complexity.
+In Section~\ref{sec:oce}, we describe the prior method of Optimal Causel Filtering (OCF).
 In Section~\ref{sec:nprd}, we describe our method NPRD.
-In Section~\ref{sec:experiments}, we validate NPRD on processes whose predictive rate distortion is analytically known, showing that it finds essentially optimal predictive models.
+In Section~\ref{sec:experiments}, we validate NPRD on processes whose predictive rate-distortion is analytically known, showing that it finds essentially optimal predictive models.
 In Section~\ref{sec:language}, we apply NPRD to data from five languages, providing the first estimates of predictive rate-distortion of natural language.
 
 
@@ -356,7 +356,7 @@ Therefore, we will be concerned with the situation where $\lambda \in (0,1)$.
 
 Predictive Rate-Distortion is closely related to Statistical Complexity and the $\epsilon$-machine \citep{crutchfield-inferring-1989,Grassberger1986}. 
 Given a stationary process $X_t$, its \key{causal states} are the equivalence classes of semi-infinite pasts $\past$ that induce the same conditional probability over semi-infinite futures $\future$:
-Two pasts $\past, \past^\prime$ belong to the same causal state if and only if $P(x_{1...M}|\past) = P(x_{1...M}|\past^\prime)$ holds for all finite sequences $x_{0...M}$ ($M \in \mathbb{N}$).
+Two pasts $\past, \past^\prime$ belong to the same causal state if and only if $P(x_{1...k}|\past) = P(x_{1...k}|\past^\prime)$ holds for all finite sequences $x_{0...k}$ ($k \in \mathbb{N}$).
 Note that this definition is not measure-theoretically rigorous; such a treatment is provided by~\citet{lohr-properties-2009}.
 
 The causal states constitute the state set of a a Hidden Markov Model (HMM) for the process, referred to as the \key{$\epsilon$-machine}  \citep{crutchfield-inferring-1989}.
@@ -388,52 +388,52 @@ While statistical complexity cannot be identified from finite data in general, \
 
 
 
-\section{Prior Work: Optimal Causal Estimation}\label{sec:oce}
+\section{Prior Work: Optimal Causal Filtering}\label{sec:OCF}
 
-The main prior method for estimating predictive rate-distortion from data is Optimal Causal Estimation (OCE, \citet{still-optimal-2010}).
+The main prior method for estimating predictive rate-distortion from data is Optimal Causal Filtering (OCF, \citet{still-optimal-2010}).
 This method approximates predictive rate-distortion using two approximations:
-First, it replaces semi-infinite pasts and futures with bounded-length contexts $(X_{-M \dots -1}), (\finitefuture)$:
+First, it replaces semi-infinite pasts and futures with bounded-length contexts, i.e., pairs of finite past contexts $(\finitepast := X_{-M}\dots X_{-1})$ and future contexts $(\finitefuture := X_{0}\dots X_{M-1})$ of some finite length $M$.\footnote{It is not crucial that past and future contexts have the same lengths, and indeed \citet{still-optimal-2010} do not assume this. We do assume equal length throughout this paper for consistency with our experiments, though nothing depends on this.}
+The PRD objective (\ref{eq:ib}) then becomes (\ref{eq:ib-oce}), aiming to predict length-$M$ finite futures from summary codes $Z$ of length-$M$ finite pasts:
 \begin{equation}\label{eq:ib-oce}
-	\max_{Z} \left( \operatorname{I}[\finitepast, Z] - \lambda \cdot \operatorname{I}[Z, \finitefuture] \right).
+	\max_{Z : Z \bot \finitefuture | \finitepast} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
 \end{equation}
-Second, it estimates information measures directly from the observed counts of $(\finitepast), (\finitefuture)$ using the plug-in estimator of mutual information. %\rljf{Should be \dots instead of commas?}
-With such an estimator, the problem in (\ref{eq:ib}) can be solved using a variant of the Blahut-Arimoto algorithm \citep{tishby-information-1999}, obtaining an encoder $P(Z|X_{-M \dots -1})$ that maps each observed past sequence $X_{-M...-1}$ to a distribution over a (finite) set of code words $Z$.
-%From this, one obtains a corresponding decoder $P(X_{0...M}|Z)$ via Bayes' Rule.
+Second, OCF estimates information measures directly from the observed counts of $(\finitepast), (\finitefuture)$ using the plug-in estimator of mutual information. %\rljf{Should be \dots instead of commas?}
+With such an estimator, the problem in (\ref{eq:ib-oce}) can be solved using a variant of the Blahut-Arimoto algorithm \citep{tishby-information-1999}, obtaining an encoder $P(Z|\finitepast)$ that maps each observed past sequence $\finitepast$ to a distribution over a (finite) set of code words $Z$.
 
 Two main challenges have been noted in prior work:
 First, solving the problem for a finite empirical sample leads to overfitting, overestimating the amount of structure in the process.
 \citet{still-optimal-2010} address this by subtracting an asymptotic correction term that becomes valid in the limit of large $M$ and $\lambda \rightarrow 0$, when the codebook $P(Z|\past)$ becomes deterministic, and which allows them to select a deterministic codebook of an appropriate complexity.
 This leaves open how to obtain estimates outside of this regime, when the codebook can be far from deterministic.
 
-The second challenge is that OCE requires the construction of a matrix whose rows and columns are indexed by the observed past and future sequences \citep{marzen-predictive-2016}.
+The second challenge is that OCF requires the construction of a matrix whose rows and columns are indexed by the observed past and future sequences \citep{marzen-predictive-2016}.
 Depending on the topological entropy of the process, the number of such sequences can grow as $|A|^M$, where $A$ is the set of observed symbols, and processes of interest often do show this exponential growth \citep{marzen-predictive-2016}.
 Drastically, in the case of natural language, $A$ contains thousands of words.
-We will see that this makes applying OCE infeasible even with $M=1$.
+We will see that this makes applying OCF infeasible even with $M=1$.
 
-A further challenge is that OCE is infeasible if the number of required codewords is too large, again because OCE requires constructing a matrix whose rows and columns are indexed by the codewords and observed sequences.
-Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $\operatorname{I}[\past, Z] > \log 10^5 \approx 11.5$ cannot be captured with OCE.
+A further challenge is that OCF is infeasible if the number of required codewords is too large, again because OCF requires constructing a matrix whose rows and columns are indexed by the codewords and observed sequences.
+Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $\operatorname{I}[\past, Z] > \log 10^5 \approx 11.5$ cannot be captured with OCF.
 
 \section{Neural Estimation via Variational Upper Bound}\label{sec:nprd}
 
-We now introduce our method, Neural Predictive Rate Distortion (NPRD), to address the limitations of OCE, by using parametric function approximation:
-Whereas OCE constructs a codebook mapping between observed sequences and codes, we use general-purpose function approximation estimation methods to compute the representation $Z$ from the past and to estimate a distribution over future sequences from $Z$.
+We now introduce our method, Neural Predictive Rate-Distortion (NPRD), to address the limitations of OCF, by using parametric function approximation:
+Whereas OCF constructs a codebook mapping between observed sequences and codes, we use general-purpose function approximation estimation methods to compute the representation $Z$ from the past and to estimate a distribution over future sequences from $Z$.
 In particular, we will use recurrent neural networks, which are known to provide good models of sequences from a wide range of domains; our method will be applicable to other types of function approximators also.
 %The parameters of the function approximators are optimized on the observed pairs of pasts and futures.
 %When deploying the resulting mapping on unseen data, the function approximator can be used to generate appropriate representations $Z$ even for sequences that did not occur in the initial data sample.
 
-This will have two main advantages, addressing the limitations of OCE:
-First, unlike OCE, function approximators can discover generalizations across similar sequences, enabling the method to calculate good codes $Z$ even for past sequences that were not seen previously.
+This will have two main advantages, addressing the limitations of OCF:
+First, unlike OCF, function approximators can discover generalizations across similar sequences, enabling the method to calculate good codes $Z$ even for past sequences that were not seen previously.
 This is of paramount importance in settings where the state space is large, such as the set of words of a natural language.
-Second, the cost of storing and evaluating the function approximators will scale \emph{linearly} with the length of observed sequences both in space and in time, as opposed to the exponential memory demand of OCE.
+Second, the cost of storing and evaluating the function approximators will scale \emph{linearly} with the length of observed sequences both in space and in time, as opposed to the exponential memory demand of OCF.
 This is crucial for modeling long dependencies.
 
 \subsection{Variational Bound on Predictive Rate-Distortion}
 We will first describe the general method, without committing to a specific framework for function approximation yet.
 We will construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
 
-As in OCE (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: \rljf{I think it would be a lot clearer to use the notation from other papers where it's like $\past$ except the arrow points to $M$. It's hard visually looking at the equations to distinguish $-M\dots-1$ from $0\dots M-1$, and that makes it harder to read. $^M\overleftarrow{X}$}
+As in OCF (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: %\rljf{I think it would be a lot clearer to use the notation from other papers where it's like $\past$ except the arrow points to $M$. It's hard visually looking at the equations to distinguish $-M\dots-1$ from $0\dots M-1$, and that makes it harder to read. $^M\overleftarrow{X}$}
 \begin{equation}\label{eq:ib-oce-repeat}
-	\max_{Z : Z \bot \finitefuture | X_{-M\dots-1}} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
+	\max_{Z : Z \bot \finitefuture | \finitepast} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
 \end{equation}
 %where $Z$ ranges over all random variables such that the Markovcondition~(\ref{eq:markov}) holds:
 %\begin{equation}
@@ -441,7 +441,7 @@ As in OCE (Section~\ref{sec:oce}), we assume that a set of finite sample traject
 %\end{equation}
 It will be convenient to equivalently rewrite (\ref{eq:ib-oce-repeat}) as
 \begin{equation}\label{eq:prd-loss}
-	\min_{Z : Z \bot \finitefuture | X_{-M\dots-1}}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \cdot\operatorname{I}[ X_{-M\dots-1}, Z]\right],
+	\min_{Z : Z \bot \finitefuture | \finitepast}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \cdot\operatorname{I}[ \finitepast, Z]\right],
 \end{equation}
 where $\operatorname{H}[\finitefuture | Z]$ is the \key{prediction loss}. Note that minimizing prediction loss is equivalent to maximizing predictiveness $\operatorname{I}[\finitefuture | Z]$. % is the reduction in prediction loss when predicting
 
@@ -458,12 +458,12 @@ From this encoding distribution, one can obtain the optimal decoding distributio
 	\label{eq:cond-fut}
 	\begin{split}
 	P(\finitefuture|Z) &= \frac{P(\finitefuture, Z)}{P(Z)} \\
-	&= \frac{\E_{X_{-M \dots -1}} P(\finitefuture, Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
-	&=^{(*)} \frac{\E_{X_{-M \dots -1}}   P(\finitefuture|X_{-M\dots-1})     P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})} \\
-%	&= \frac{\E_{X_{-M \dots M-1}} P_\phi(Z|X_{-M\dots-1})}{\E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})}
+	&= \frac{\E_{\finitepast} P(\finitefuture, Z|\finitepast)}{\E_{\finitepast} P_\phi(Z|\finitepast)} \\
+	&=^{(*)} \frac{\E_{\finitepast}   P(\finitefuture|\finitepast)     P_\phi(Z|\finitepast)}{\E_{\finitepast} P_\phi(Z|\finitepast)} \\
+%	&= \frac{\E_{X_{-M \dots M-1}} P_\phi(Z|\finitepast)}{\E_{\finitepast} P_\phi(Z|\finitepast)}
 	\end{split}
 \end{equation}
-where $(*)$ uses the Markov condition.
+where $(*)$ uses the Markov condition $Z \bot \finitefuture | \finitepast$.
 However, neither of the two expectations in the last line of~(\ref{eq:cond-fut}) is tractable, as they require summation over exponentially many sequences, and algorithms (e.g., dynamic programming) to compute this sum efficiently are not available in general.
 For a similar reason, the rate $\operatorname{I}[\finitepast, Z]$ of the code $Z \sim P_\phi(Z|\finitepast)$ is also generally intractable.
 %If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, 
@@ -473,9 +473,9 @@ For a similar reason, the rate $\operatorname{I}[\finitepast, Z]$ of the code $Z
 
 
 Our method will be to introduce additional functions, also expressed using function approximators, that approximate some of these intractable quantities:
-First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})$:
+First, we will use a parameterized probability distribution $q$ as an approximation to the intractable marginal $P(Z) = \E_{\finitepast} P_\phi(Z|\finitepast)$:
 \begin{equation}
-q(Z) \text{ approximates } P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1}).
+q(Z) \text{ approximates } P(Z) = \E_{\finitepast} P_\phi(Z|\finitepast).
 \end{equation}
 Second, to approximate the decoding distribution $P(\finitefuture|Z)$, we introduce a parameterized decoder $\psi$ that maps points $Z \in \mathbb{R}^N$  into probability distributions $P_\psi(\finitefuture|Z)$ over future observations $\finitefuture$:
 \begin{equation}
@@ -504,21 +504,21 @@ By Gibbs' inequality:
 
 \begin{proposition} 
 \label{prop:kl-bound}
-The KL Divergence between $P_\phi(Z|X_{-M\dots-1})$ and $q(Z)$, averaged over pasts $X_{-M\dots-1}$, upper-bounds the rate of $Z$: % mutual information between $Z$ and the past observations:
+The KL Divergence between $P_\phi(Z|\finitepast)$ and $q(Z)$, averaged over pasts $\finitepast$, upper-bounds the rate of $Z$: % mutual information between $Z$ and the past observations:
 \begin{equation}\label{ineq2}
 \begin{aligned}
-	\mathbb{E}_{X_{-M\dots-1}}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots-1})}{q(Z)}\right] &=   \mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log \frac{P_\phi(Z|\finitepast)}{q(Z)}  \\
-	& \geq  \mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log \frac{P_\phi(Z|\finitepast)}{P(Z)}  \\
+	\mathbb{E}_{\finitepast}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right] &=   \mathbb{E}_{\finitepast} \mathbb{E}_{Z|\finitepast} \log \frac{P_\phi(Z|\finitepast)}{q(Z)}  \\
+	& \geq  \mathbb{E}_{\finitepast} \mathbb{E}_{Z|\finitepast} \log \frac{P_\phi(Z|\finitepast)}{P(Z)}  \\
 	& = \operatorname{I}[\finitepast,Z].
 \end{aligned}
 \end{equation}
-Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) = \E_{X_{-M \dots -1}} P_\phi(Z|X_{-M \dots -1})$.
+Equality is attained if and only if $q(Z)$ is equal to the true marginal $P(Z) = \E_{\finitepast} P_\phi(Z|\finitepast)$.
 \end{proposition}
 
 \begin{proof}
 The two equalities follow from the definition of KL Divergence and Mutual Information. To show the inequality, we again use Gibbs' inequality:
 \begin{align*}
-    -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log q(Z) = - \mathbb{E}_Z \log q(Z) \geq - \mathbb{E}_Z \log P(Z) = -\mathbb{E}_{X_{-M\dots-1}} \mathbb{E}_{Z|X_{-M\dots-1}} \log P(Z).
+    -\mathbb{E}_{\finitepast} \mathbb{E}_{Z|\finitepast} \log q(Z) = - \mathbb{E}_Z \log q(Z) \geq - \mathbb{E}_Z \log P(Z) = -\mathbb{E}_{\finitepast} \mathbb{E}_{Z|\finitepast} \log P(Z).
 \end{align*}
 Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
 \end{proof}
@@ -526,32 +526,32 @@ Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
 We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:prd-loss}) in a way amenable to using function approximators.
 Recall the predictive rate-distortion objective~(\ref{eq:prd-loss})
 \begin{equation}\tag{\ref{eq:prd-loss}}
-	\min_{Z : Z \bot \finitefuture | X_{-M\dots-1}}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \operatorname{I}[ X_{-M\dots-1}, Z]\right]
+	\min_{Z : Z \bot \finitefuture | \finitepast}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \operatorname{I}[ \finitepast, Z]\right]
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 By the two Propositions, this objective is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{P_\phi(\cdot|X_{-M\dots-1})}{q}\right],
+	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right],
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
 From a solution to (\ref{eq:bound}), one obtains a solution to (\ref{eq:prd-loss}) by setting $Z$ to be the code generated by the encoder $\phi$.
 The second proposition guarantees that, for a solution to  (\ref{eq:prd-loss}), the rate of this code is given as follows
 \begin{equation}\label{eq:eq1-new}
- \operatorname{I}[Z, X_{-M\dots-1}] =   \mathbb{E}_{X_{-M\dots-1}}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|X_{-M\dots-1})}{q(Z)}\right]
+ \operatorname{I}[Z, \finitepast] =   \mathbb{E}_{\finitepast}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]
 \end{equation}
 and the prediction loss is given by
 \begin{equation}\label{eq:eq2-new}
-  %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
-  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|X_{-M\dots-1}] % \operatorname{H}[\finitefuture]
+  %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]
+  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|\finitepast] % \operatorname{H}[\finitefuture]
 \end{equation}
-Note that the right-hand-sides of (\ref{eq:eq1-new}-\ref{eq:eq2-new}) can both be estimated efficiently using Monte Carlo samples from $Z \sim P_\phi(X_{-M\dots-1})$.
+Note that the right-hand-sides of (\ref{eq:eq1-new}-\ref{eq:eq2-new}) can both be estimated efficiently using Monte Carlo samples from $Z \sim P_\phi(\finitepast)$.
 
 If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have bounds on rate and prediction loss for the code $Z$ generated by $\phi$:
 \begin{equation}\label{eq:bound1-new}
- \operatorname{I}[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]
+ \operatorname{I}[Z, \finitepast] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]
 \end{equation}
 \begin{equation}\label{eq:bound2-new}
-  %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[\finitefuture|X_{-M\dots-1}]
-  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
+  %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[\finitefuture|\finitepast]
+  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
 \end{equation}
 To carry out the optimization~(\ref{eq:bound}), we will restrict $\phi, \psi, q$ to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
 While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and---if the family of approximators is sufficiently rich---can come close to turning these into the equalities (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
@@ -560,11 +560,11 @@ While the solutions may not be exact solutions to the nonparametric objective~(\
 
 
 \subsection{Choosing Approximating Families}
-For our method of Neural Predictive Rate Distortion (NPRD), we choose the approximating families for the encoder $\phi$, the decoder $\psi$, and the distribution $q$ to be certain types of neural networks that are known to provide strong and general models of sequences and distributions.
+For our method of Neural Predictive Rate-Distortion (NPRD), we choose the approximating families for the encoder $\phi$, the decoder $\psi$, and the distribution $q$ to be certain types of neural networks that are known to provide strong and general models of sequences and distributions.
 
 For $\phi$ and $\psi$, we use recurrent neural networks with Long Short Term Memory (LSTM) cells \citep{hochreiter-long-1997}, widely used for modeling sequential data across different domains.
-We parameterize the distribution $P_\phi(Z|X_{-M\dots-1})$ as a Gaussian whose mean and variance are computed from the past $X_{-M\dots-1}$:
-We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past observations $X_{-M\dots-1}$, and then compute
+We parameterize the distribution $P_\phi(Z|\finitepast)$ as a Gaussian whose mean and variance are computed from the past $\finitepast$:
+We use an LSTM network to compute a vector $h \in \mathbb{R}^k$ from the past observations $\finitepast$, and then compute
 \begin{equation}\label{eq:z-gauss}
 	Z \sim \mathcal{N}(W_\mu h, (W_\sigma h)^2 I_{k\times k}),
 \end{equation}
@@ -574,7 +574,7 @@ While we found Gaussians sufficiently flexible for $\phi$, more powerful encoder
 For the decoder $\psi$, we use a second LSTM network to compute a sequence of vector representations $g_t = \psi(Z, X_{0\dots t-1})$ ($g_t \in \mathbb{R}^k$) for $t = 0, \dots M-1$.
 We compute predictions using the softmax rule 
 \begin{equation}
-	P_\psi(X_t = s_i|X_{1...t-1}, Z) \propto \exp((W_o g_t)_i)
+	P_\psi(X_t = s_i|X_{1\dots t-1}, Z) \propto \exp((W_o g_t)_i)
 \end{equation}
 for each element $s_i$ of the state space $S = \{s_1, ..., s_{|S|}\}$, and $W_o \in \mathbb{R}^{|S| \times k}$ is a parameter matrix to be optimized together with the parameters of the LSTM networks.
 
@@ -597,13 +597,13 @@ After every pass through the training set, the objective (\ref{eq:bound}) is eva
 
 %\paragraph{Evaluation}
 After optimizing the parameters on a set of observed trajectories, we estimate rate and prediction loss on the test set.
-Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and the prediction loss (\ref{eq:bound2-new}) on the test set by taking, for each time series $X_{-M}...X_{M-1}$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
+Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and the prediction loss (\ref{eq:bound2-new}) on the test set by taking, for each time series $X_{-M}...X_{M-1} = \finitepast\finitefuture$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
 \begin{equation}\label{eq:bound-mc-rate}
 \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right] \approx	\frac{1}{N}	\sum_{X_{-M...M} \in TestData}  \log \frac{p_{\mathcal{N}(\mu, \sigma^2)}(z)}{q(z)},
 \end{equation}
 where $p_{\mathcal{N}(\mu, \sigma^2)}(z)$ is the Gaussian density with $\mu, \sigma^2$ computed from $\finitepast$ as in (\ref{eq:z-gauss}), and prediction loss 
 \begin{equation}\label{eq:bound-mc-distortion}
- -	\mathbb{E}_{Z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(\finitefuture | Z)\right] \approx - \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(\finitefuture | Z).
+ -	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] \approx - \frac{1}{N}	\sum_{X_{-M...M} \in TestData}	\log P_\psi(\finitefuture | Z).
 \end{equation}
 %and the PRD objective
 %\begin{equation}\label{eq:bound-mc}
@@ -616,8 +616,8 @@ Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guarant
 %The resulting value of (\ref{eq:bound-mc}) is guaranteed to be an \emph{upper bound} on the true objective (\ref{eq:prd-recall}), up to sampling error introduced by sampling $z$ and the finite size of the test set.
 %When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 
-It is important to note that this sampling error is different from the overfitting issue affecting OCE: 
-(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCE.
+It is important to note that this sampling error is different from the overfitting issue affecting OCF: 
+(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCF.
 Given that NPRD provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
@@ -636,10 +636,10 @@ which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:b
 
 
 %\begin{equation}\label{eq:bound1-new}
-% I[Z, X_{-M\dots-1}] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right]
+% I[Z, \finitepast] \leq   \mathbb{E}_{X}\left[ \operatorname{D_{KL}}\infdivx{P(Z|X)}{q(Z)}\right]
 %\end{equation}
 %\begin{equation}\label{eq:bound2-new}
-%  H[X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(X_{-M\dots-1})}\left[\log P_\psi(X_{0\dots M} | z)\right]
+%  H[X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]
 %\end{equation}
 
 
@@ -662,36 +662,35 @@ In the neural networks literature, the most commonly used method using variation
 \section{Experiments}\label{sec:experiments}
 %In Section~\ref{sec:nprd}, we described our method Neural Predictive Rate Distortion (NPRD) 
 We now test the ability of our new method NPRD to estimate rate-distortion curves.
-Before we apply NPRD to obtain the first estimates of predictive rate-distortion for natural language in Section~\ref{sec:language}, we validate the method on processes whose tradeoff curves are analytically known, and compare with OCE.
+Before we apply NPRD to obtain the first estimates of predictive rate-distortion for natural language in Section~\ref{sec:language}, we validate the method on processes whose tradeoff curves are analytically known, and compare with OCF.
 
 \subsection{Implementation Details}
 
 
-\paragraph{OCE} As discussed in Section~\ref{sec:oce}, OCE is affected by overfitting, %overestimates structure in the process due to overfitting, %resulting in biased estimates of rate and distortion.More specifically, 
-%overfitting will result in an overly optimistic estimate, 
-and will systematically overestimate the predictiveness achieved at a given rate.
+\paragraph{OCF} As discussed in Section~\ref{sec:OCF}, OCF is affected by overfitting, 
+and will systematically overestimate the predictiveness achieved at a given rate~\citep{still-optimal-2010}.
 To address this problem, we follow the evaluation method used for NPRD, evaluating rate and predictiveness on held-out test data.
 We partition the available time series data into a training and test set. We use the training set to create the encoder $P(Z|\finitepast)$ using the Blahut-Arimoto algorithm as described by~\citet{still-optimal-2010}.
 We then use the held-out test set to estimate rate and prediction loss.
-This method not only enables fair comparison between OCE and NPRD, but also provides a more realistic evaluation, by focusing on the performance of the code $Z$ when deployed on new data samples.
+This method not only enables fair comparison between OCF and NPRD, but also provides a more realistic evaluation, by focusing on the performance of the code $Z$ when deployed on new data samples.
 For rate, we use the same variational bound that we use for NPRD, stated in Proposition~\ref{prop:kl-bound}:
-\begin{equation}\label{eq:rate-oce}
+\begin{equation}\label{eq:rate-OCF}
 \frac{1}{N} \sum_{X_{-M}\dots X_{-1} \in \text{Test Data}} \operatorname{D_{KL}}\infdivx{P(Z|X_{-M}\dots X_{-1})}{s(Z)}
 \end{equation}
 where $P(Z|X_{-M}\dots X_{-1})$ is the encoder created by the Blahut-Arimoto algorithm, and $s(Z)$ is the marginal distribution of $Z$ on the training set.
 $N$ is the number of sample time series in the test data.
-In the limit of enough training data, when $s(Z)$ matches the actual population marginal of $Z$, (\ref{eq:rate-oce}) is an unbiased estimate of the rate. %  If the training set is large enough and 
+In the limit of enough training data, when $s(Z)$ matches the actual population marginal of $Z$, (\ref{eq:rate-OCF}) is an unbiased estimate of the rate. %  If the training set is large enough and 
 %\textbf{Is $s$ defined anywhere? same for $r$?}
 We estimate the prediction loss on the future observations as the empirical cross-entropy, i.e., the variational bound stated in Proposition~\ref{prop:mi-bound}:
 \begin{equation}
-\frac{1}{N} \sum_{X_{-M}\dots X_{M-1} \in \text{Test Data}} \E_{Z \sim P(\cdot|X_{-M \dots -1})} \log P(\finitefuture|Z).
+\frac{1}{N} \sum_{X_{-M}\dots X_{M-1} \in \text{Test Data}} \E_{Z \sim P(\cdot|\finitepast)} \log P(\finitefuture|Z).
 \end{equation}
 where $P(\finitefuture|Z)$ is the decoder obtained from the Blahut-Arimoto algorithm on the training set.
 Thanks to Propositions~\ref{prop:mi-bound} and \ref{prop:kl-bound}, these quantities provide upper bounds, up to sampling error introduced by finiteness of the held-out data.
 Again, sampling error does not bias the results in either direction, unlike overfitting, which introduces a systematic bias.
 
 
-Held-out test data may contain sequences that did not occur in the training data. Therefore, we add a pseudo-sequence $\omega$ and add pseudo-observations $(\omega, x_{1...M})$, $(x_{-M...0}, \omega)$, $(\omega, \omega)$ for all observed sequences $x_{-M...0}, x_{1...M}$ to the matrix of observed counts that serves as the input to the Blahut-Arimoto algorithm.
+Held-out test data may contain sequences that did not occur in the training data. Therefore, we add a pseudo-sequence $\omega$ and add pseudo-observations $(\omega, \finitefuture)$, $(\finitepast, \omega)$, $(\omega, \omega)$ for all observed sequences $\finitepast\finitefuture$ to the matrix of observed counts that serves as the input to the Blahut-Arimoto algorithm.
 These pseudo-observations were assigned pseudo-counts $\gamma$ in this matrix of observed counts; we found that a wide range of values ranging from $0.0001$ to $1.0$ yielded essentially the same results.
 When evaluating the codebook on held-out data, previously unseen sequences were mapped to $\omega$.
 
@@ -703,14 +702,15 @@ Given that NPRD provably provides upper bounds on the PRD objective~(\ref{eq:prd
 As a computationally more efficient method, we defined a range of plausible hyperparameters based both on experience reported in the literature, and considerations of computational efficiency.
 These parameters are discussed in Appendix~\ref{sec:app-hyperparams}.
 We then randomly sampled, for each of the processes that we experimented on, combinations of $\lambda$ and these hyperparameters to run NPRD on.
-
+%We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
+We implemented the model using PyTorch \citep{paszke2017automatic}.
 
 \subsection{Analytically Tractable Problems}\label{sec:tractable}
 
 We first test NPRD on two processes where the predictive rate-distortion tradeoff is analytically tractable. % by computing the epsilon machine \citep{marzen-predictive-2016}. %, and where prior work has found the epsilon machine.
 The \key{Even Process} \citep{marzen-predictive-2016} is the process of 0/1 IID coin flips, conditioned on all blocks of consecutive ones having even length.
 Its complexity and excess entropy are both $\approx 0.63$ nats. % (stationary distribution: 1/3 for odd, 2/3 for even)
-It has infinite Markov order, and \citet{marzen-predictive-2016} find that OCE (at $M=5$) performs poorly. %, overestimating  even at $M=5$.
+It has infinite Markov order, and \citet{marzen-predictive-2016} find that OCF (at $M=5$) performs poorly. %, overestimating  even at $M=5$.
 The true predictive rate-distortion curve was computed in \cite{marzen-predictive-2016} using the analytically known epsilon machine.
 The \key{Random Insertion Process} \citep{marzen-predictive-2016} consists of sequences of uniform coin flips $X_t \in \{0,1\}$, subject to the constraint that, if $X_{t-2}$ was a 0, then $X_{t}$ has to be a 1.
 
@@ -718,11 +718,11 @@ The \key{Random Insertion Process} \citep{marzen-predictive-2016} consists of se
 
 We applied NPRD to these processes by training on 3M random trajectories of length 30, and using 3000 additional trajectories for validation and test data.
 For each process, we ran NPRD 1000 times for random choices of $\lambda \in [0,1]$.
-Due to computational constraints, when running OCE, we limited sample size to 3000 trajectories for estimation and as held-out data.
-Following \citet{marzen-predictive-2016}, we ran OCE for $M=1,...,5$.
+Due to computational constraints, when running OCF, we limited sample size to 3000 trajectories for estimation and as held-out data.
+Following \citet{marzen-predictive-2016}, we ran OCF for $M=1,...,5$.
 
 The resulting estimates are shown in Figure~\ref{fig:even}, together with the analytical rate-distortion curves computed by \citet{marzen-predictive-2016}.
-Individual runs of NPRD show variation (red dots), but most runs lead to results close to the analytical curve (gray line), and strongly surpass the curves computed by OCE at $M=5$.
+Individual runs of NPRD show variation (red dots), but most runs lead to results close to the analytical curve (gray line), and strongly surpass the curves computed by OCF at $M=5$.
 Bounding the tradeoff curve using the sets of runs of NPRD results in a close fit (red line) to the analytical tradeoff curves.
 
 \begin{figure*}
@@ -731,7 +731,7 @@ Bounding the tradeoff curve using the sets of runs of NPRD results in a close fi
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Blue: OCE for $M\leq 5$. }\label{fig:even}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Blue: OCF for $M\leq 5$. }\label{fig:even}
 \end{figure*}
 
 \paragraph{Recovering Causal States}
@@ -873,8 +873,8 @@ These results demonstrate that, by using function approximation, NPRD is capable
 
 
 Note that one could easily design an optimal decoder and encoder for \textsc{Copy3} by hand---the point of this experiment is to demonstrate that NPRD is capable of inducing such a codebook purely from data, in a general-purpose, off-the-shelf manner.
-This contrasts with OCE:
-Without optimizations specific to the task at hand, a direct application of OCE would require brute-force storing of all 14 million distinct pasts and futures.
+This contrasts with OCF:
+Without optimizations specific to the task at hand, a direct application of OCF would require brute-force storing of all 14 million distinct pasts and futures.
 
 
 
@@ -898,7 +898,7 @@ Consequently, prediction is a fundamental component across theories of human lan
 Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz, genzel2002entropy, jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
 The relevance of prediction to human language processing makes the \emph{difficulty} of prediction another interesting aspect of language complexity:
-Predictive Rate Distortion describes how much memory of the past humans need to maintain to predict future words accuractely.
+Predictive Rate-Distortion describes how much memory of the past humans need to maintain to predict future words accuractely.
 Beyond the entropy rate, it thus forms another important aspect of linguistic complexity.
 
 
@@ -915,9 +915,9 @@ The idea that predicting future words creates a need to represent the past well 
 %In psycholinguistics, memory known to impact processing.
 
 We study prediction at the range of the words in individual sentences.
-As in the previous experiments, we limit our computations to sequences of length 30, already improving over OCE by an order of magnitude.
+As in the previous experiments, we limit our computations to sequences of length 30, already improving over OCF by an order of magnitude.
 One motivation is that, when directly estimating PRD, computational cost has to increase with the length of sequences considered, making the consideration of sequences of hundreds or thousands of words computationally infeasible.
-Another motivation for this is that we are ultimately interested in predictive rate distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models of how humans proess individual sentences \citep{gibson-linguistic-1998,futrell-noisy-context-2017}, and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
+Another motivation for this is that we are ultimately interested in predictive rate-distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models of how humans proess individual sentences \citep{gibson-linguistic-1998,futrell-noisy-context-2017}, and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
 
 %Fenk-Oczlon, G. Familiarity, information flow, and linguistic form. In Frequency and the Emergence of Linguistic Structure; Bybee, J.L., Hopper, P.J., Eds.; John Benjamins: Amsterdam, The Netherlands, 2001; pp. 431–448.
 
@@ -927,22 +927,22 @@ Another motivation for this is that we are ultimately interested in predictive r
 \subsection{Part-of-speech-level language modeling}\label{sec:pos}
 
 We first consider the problem of predicting English on the level of Part-of-Speech (POS) tags, using the Universal POS tagset \citep{petrov-universal-2012}. 
-This is a simplified setting where the vocabulary is small (20 word types), and one can hope that OCE will produce reasonable results.
+This is a simplified setting where the vocabulary is small (20 word types), and one can hope that OCF will produce reasonable results.
 We use the English portions of the Universal Dependencies Project~\citep{nivre-universal-2017} tagged with Universal POS Tags \citep{petrov-universal-2012}, consisting of approximately 586K words.
-We used the training portions to estimate NPRD and OCE, and the validation portions to estimate rate-distortion.
+We used the training portions to estimate NPRD and OCF, and the validation portions to estimate rate-distortion.
 We used NPRD to generate 350 codebooks for values of $\lambda$ sampled from [0,0.4].
-We were only able to run OCE for $M \leq 3$, as the number of sequences exceeds $10^4$ already at $M=4$.
+We were only able to run OCF for $M \leq 3$, as the number of sequences exceeds $10^4$ already at $M=4$.
 
 
 The information curve is shown in Figure~\ref{fig:eng-pos} (left).
-In the setting of low rate and high distortion, NPRD and OCE (blue, $M=1,2,3$) show essentially identical results.
-This holds true until $\operatorname{I}[Z, \future] \approx 0.7$, at which point the bounds provided by OCE deteriorate, showing the effects of overfitting.
+In the setting of low rate and high distortion, NPRD and OCF (blue, $M=1,2,3$) show essentially identical results.
+This holds true until $\operatorname{I}[Z, \future] \approx 0.7$, at which point the bounds provided by OCF deteriorate, showing the effects of overfitting.
 NPRD continues to provide estimates at greater rates.
 
 Figure~\ref{fig:eng-pos} (center) shows rate as a function of $\log \frac{1}{\lambda}$.
 Recall that $\lambda$ is the tradeoff-parameter from the objective function~(\ref{eq:ib}).
 In Figure~\ref{fig:eng-pos} (right), we show rate and the mutual information with the future, as a function of $\log \frac{1}{\lambda}$.
-As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity.
+As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCF (blue, plotted for $M=1,2,3$) exhausts its capacity.
 
 Note that NPRD reports rates of 15 nats and more when modeling with very low distortion.
 A discrete codebook would need over 3 million distinct codewords for a code of such a rate, exceeding the size of the training corpus (about 500K words), replicating what we found for the \textsc{Copy3} process:
@@ -956,7 +956,7 @@ Unlike discrete codebooks, the geometric structure makes it possible for neural 
 %\includegraphics[width=0.45\textwidth]{code/figures/english-beta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee.pdf}
-	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \lambda$. As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCE (blue, plotted for $M=1,2,3$) exhausts its capacity. }\label{fig:eng-pos}
+	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \lambda$. As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCF (blue, plotted for $M=1,2,3$) exhausts its capacity. }\label{fig:eng-pos}
 \end{figure*}%\rljf{It's 1/beta in the figure captions and 1/\lambda in the text}
 
 
@@ -971,7 +971,7 @@ The asymptote of predictiveness can be identified with the mutual information be
 Judging by the curve, natural language---at the time scale we are measuring in this experiment---has a statistical complexity much higher than its excess entropy:
 At the highest rate measured by NPRD in our experiment, rate is about 20 nats, whereas predictiveness is about 1.1 nats.
 If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. %\rljf{On precedents for this finding: there's an oblique reference in Grassberger (1989) that excess entropy is ``a very weak [lower bound on SC] in most cases where it was studied'', but following the citations given there I can't find anything.}
-Note that this picture agrees qualitatively with the OCE results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
+Note that this picture agrees qualitatively with the OCF results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
 
 Now turning to the other plots in Figure~\ref{fig:eng-pos}, we observe that rate increases at least linearly with $\log\frac{1}{\lambda}$, whereas predictiveness again asymptotes.
 This is in qualitative agreement with the picture gained from the rate-predictiveness curve.
@@ -1079,7 +1079,7 @@ Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Th
 
 
 We applied NPRD to the problem of predicting English on the level of part-of-speech tags in Section~\ref{sec:pos}.
-%We verified that NPRD matches OCE in the low-rate regime where OCE is still applicable, and we fitted 
+%We verified that NPRD matches OCF in the low-rate regime where OCF is still applicable, and we fitted 
 We found that the resulting curves were described well by Equation~\ref{eq:derivatives}.
 %\begin{equation}\label{eq:derivatives}
 %	\partial P/\partial R = \exp\left(-\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right). %&\ \ \ \partial R/\partial P = \exp\left(\frac{1}{\alpha^{1/\beta}} R^{1/\beta}\right)
@@ -1110,14 +1110,14 @@ As a function of $\log \frac{1}{\lambda}$, rate grows at slightly superlinear sp
 
 These results confirm our results from Section~\ref{sec:pos}.
 At the time scale of individual sentences, predictive rate-distortion of natural language appears to quantitatively follow Equation~\ref{eq:derivatives}.
-NPRD reports rates up to $\approx$ 60 nats, more than ten times the largest values of predictiveness.
+NPRD reports rates up to $\approx 60$ nats, more than ten times the largest values of predictiveness.
 On the other hand, the growth of rate with predictiveness is relatively gentle in the low-rate regime.
 %At the level of individual sentences, prediction
 We conclude that predicting words in natural language can be approximated with small memory capacity, but more accurate prediction requires very fine-grained memory representations.
 
 \subsection{General Discussion}
 
-Our analysis of PRD curves for natural language suggests that it is characterized by very high and perhaps infinite statistical complexity beyond its excess entropy. In a similar vein, \citet{dkebowski2018natural} has argued that the excess entropy of connected texts in natural language is infinite (in contrast, our result is for isolated sentences). If the statistical complexity of natural language is indeed infinite, then statistical complexity is not a good complexity metric for natural language. 
+Our analysis of PRD curves for natural language suggests that human language is characterized by very high and perhaps infinite statistical complexity, beyond its excess entropy. In a similar vein, \citet{dkebowski2018natural} has argued that the excess entropy of connected texts in natural language is infinite (in contrast, our result is for isolated sentences). If the statistical complexity of natural language is indeed infinite, then statistical complexity is not a useful complexity metric for characterizing natural language. 
 
 We suggest that the PRD curve may form a more natural complexity metric for highly complex processes such as language. Among those processes with infinite statistical complexity, some will have a gentle PRD curve---meaning that they can be well-approximated at low rates---while others will have a steep curve, meaning they cannot be well-approximated at low rates. We conjecture that although natural language may have infinite statistical complexity, it has a gentler PRD curve than other processes with this property, meaning that achieving a reasonable approximation of the predictive distribution does not require inordinate memory resources.
 
@@ -1264,10 +1264,10 @@ We suggest that the PRD curve may form a more natural complexity metric for high
 
 
 \section{Conclusion}
-We introduce Neural Predictive Rate Distortion (NPRD), a method for estimating predictive rate-distortion when only sample trajectories are given.
-Unlike OCE, the most general prior method, NPRD scales to long sequences and large state spaces.
+We introduce Neural Predictive Rate-Distortion (NPRD), a method for estimating predictive rate-distortion when only sample trajectories are given.
+Unlike OCF, the most general prior method, NPRD scales to long sequences and large state spaces.
 On analytically tractable processes, we show that it closely fits the analytical rate-distortion curve and recovers the causal states of the process.
-On part-of-speech-level modeling of natural language, it agrees with OCE in the setting of low rate and short sequences; outside these settings, OCE fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
+On part-of-speech-level modeling of natural language, it agrees with OCF in the setting of low rate and short sequences; outside these settings, OCF fails due to combinatorial explosion and overfitting, while NPRD continues to provide estimates.
 Finally, we use NPRD to provide the first estimates of predictive rate-distortion for modeling natural language in five different languages, finding qualitatively very similar curves in all languages.
 %Results suggest that prediction can be approximated with sim, but more accurate prediction requires very fine-grained memory representations.
 
@@ -1312,7 +1312,7 @@ All code for reproducing the results in this work is available at \url{https://g
 \noindent 
 \begin{tabular}{@{}ll}
 NPRD & Neural Predictive Rate-Distortion\\
-OCE & Optimal Causal Estimation\\
+OCF & Optimal Causal Filtering\\
 PRD & Predictive Rate-Distortion \\
 LSTM & Long Short Term Memory
 \end{tabular}}
@@ -1324,14 +1324,18 @@ LSTM & Long Short Term Memory
 \appendix
 \section{Hyperparameters}\label{sec:app-hyperparams}
 
+All hyperparameter choices are shown in Table~\ref{tab:nprd-hyperparameters}.
+We defined separate hyperparameter ranges for the three Sections~\ref{sec:tractable}, \ref{sec:pos}, and \ref{sec:words}.
+Guided by the fact that the analytically known processes in Section~\ref{sec:tractable} are arguably less complex than natural language, we allowed larger and more powerful models for modeling of natural language (Sections \ref{sec:pos}, \ref{sec:words}), in particular word-level modeling (Section~\ref{sec:words}).
+
+In Table~\ref{tab:nprd-hyperparameters}, hyperparameters are organized into four groups.
 The first group of parameters are the dimensions of the input embedings and the recurrent LSTM states.
 The second group of parameters are regularization parameters.
 We apply dropout~\citep{srivastava-dropout:-2014} to the input and output layers.
-The third group of parameters are related to the optimization procedure.
-We optimize all parameters using Adam~\citep{kingma-adam:-2014}, a variant of stochastic gradient descent~\citep{robbins1951stochastic} commonly used for optimizing neural networks.
-We implemented the model using PyTorch \citep{paszke2017automatic}.
+The third group of parameters are related to the optimization procedure~\citep{kingma-adam:-2014}.
 Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow (1, 2, ,...), the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow (an integer), and the number of layers in the flow (1,2,...).
 Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally more expensive.
+
 
 
 \begin{table}
@@ -1344,7 +1348,7 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 	Input Dropout & 0  &    0.0, 0.1, 0.2   &        0.2             \\ \hline
 	Adam Learning Rate & $\{1,5\} \cdot 10^{-4}$, $\{1,2,4\} \cdot 10^{-3}$  &   $\{1,5\} \cdot 10^{-4}$, $\{1,2,4\} \cdot 10^{-3}$ &       0.00005, 0.0001, 0.0005, 0.001     \\
 	Batch Size & 16, 32, 64  &    16, 32 64   & 16, 32, 64  \\ \hline
-	Flow Length & 1, 2  &   1,2,3,4,5    &          1,2,3,4              \\
+	Flow Length & 1, 2  &   1,2,3,4,5    &          1,2,3,4,5              \\
 	Flow Type & DSF, DDSF  &    DSF, DDSF   &       DSF, DDSF             \\
 	Flow Dimension & 32, 64, 128, 512  &   512    &    512        \\
 	Flow Layers & 2  &    2   &                 2         \\
