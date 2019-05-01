@@ -934,7 +934,7 @@ We used NPRD to generate 350 codebooks for values of $\lambda$ sampled from [0,0
 We were only able to run OCF for $M \leq 3$, as the number of sequences exceeds $10^4$ already at $M=4$.
 
 
-The information curve is shown in Figure~\ref{fig:eng-pos} (left).
+The PRD curve is shown in Figure~\ref{fig:eng-pos} (left).
 In the setting of low rate and high distortion, NPRD and OCF (blue, $M=1,2,3$) show essentially identical results.
 This holds true until $\operatorname{I}[Z, \future] \approx 0.7$, at which point the bounds provided by OCF deteriorate, showing the effects of overfitting.
 NPRD continues to provide estimates at greater rates.
@@ -1117,7 +1117,7 @@ We conclude that predicting words in natural language can be approximated with s
 
 \subsection{General Discussion}
 
-Our analysis of PRD curves for natural language suggests that human language is characterized by very high and perhaps infinite statistical complexity, beyond its excess entropy. In a similar vein, \citet{dkebowski2018natural} has argued that the excess entropy of connected texts in natural language is infinite (in contrast, our result is for isolated sentences). If the statistical complexity of natural language is indeed infinite, then statistical complexity is not a useful complexity metric for characterizing natural language. 
+Our analysis of PRD curves for natural language suggests that human language is characterized by very high and perhaps infinite statistical complexity, beyond its excess entropy. In a similar vein, \citet{dkebowski2018natural} has argued that the excess entropy of connected texts in natural language is infinite (in contrast, our result is for isolated sentences). If the statistical complexity of natural language is indeed infinite, then statistical complexity is not sufficiently fine-grained as a complexity metric for characterizing natural language. 
 
 We suggest that the PRD curve may form a more natural complexity metric for highly complex processes such as language. Among those processes with infinite statistical complexity, some will have a gentle PRD curve---meaning that they can be well-approximated at low rates---while others will have a steep curve, meaning they cannot be well-approximated at low rates. We conjecture that although natural language may have infinite statistical complexity, it has a gentler PRD curve than other processes with this property, meaning that achieving a reasonable approximation of the predictive distribution does not require inordinate memory resources.
 
