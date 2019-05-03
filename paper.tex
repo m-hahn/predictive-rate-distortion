@@ -101,8 +101,8 @@
 \newcommand{\past}{\overleftarrow{X}}
 \newcommand{\key}{\textbf}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
-\newcommand{\finitefuture}{\overrightarrow{X}^{M}}
-\newcommand{\finitepast}{^{-M}\overleftarrow{X}}%_{-M\dots -1}}
+\newcommand{\finitefuture}{\stackrel{\rightarrow \scriptscriptstyle{M}}{X}}
+\newcommand{\finitepast}{\stackrel{\scriptscriptstyle{M}\leftarrow}{X}}%_{-M\dots -1}}
 
 
 \let\oldequation\equation
@@ -170,6 +170,7 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 
 % potentially cite https://arxiv.org/pdf/1609.05191.pdf
 
+
 \begin{document}
 
 
@@ -194,7 +195,7 @@ In these settings, the main goal will typically be to get good prediction at low
 This motivates the study of models that try to extract those key features of past observations that are most relevant to predicting the future.
 %This results in a tradeoff between the cost of representing past observations and predicting the future well.
 %This tradeoff has been formalized and computationally studied in a range of prior studies.
-A general information-theoretic framework for this problem is provided by Predictive Rate-Distortion~~\citep{still-bottleneck-2014,marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
+A general information-theoretic framework for this problem is provided by Predictive Rate-Distortion~~\citep{still-information-2014,marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
 The Predictive Rate-Distortion tradeoff seeks to find an encoding of past observations that is maximally informative about future observations, while satisfying a bound on the amount of information that has to be stored.
 More formally, this framework trades off prediction loss in the future, formalized as cross-entropy, with the cost of representing the past, formalized as the mutual information between the past observations and the compressed representations of the past.
 Due to its information-theoretic nature, this framework is extremely general and applies to processes across vastly different domains.
