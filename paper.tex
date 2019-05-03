@@ -159,6 +159,16 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 %\MSC{}
 %\JEL{}
 
+% Reviewers:
+% Susanne Still
+% Lukasz Debowski
+% Kumiko Tanaka-Ishii
+% Noga Zaslavsky
+% Alexander Alemi
+
+% TODO mention sam bowman's language VAE
+
+% potentially cite https://arxiv.org/pdf/1609.05191.pdf
 
 \begin{document}
 
@@ -184,7 +194,7 @@ In these settings, the main goal will typically be to get good prediction at low
 This motivates the study of models that try to extract those key features of past observations that are most relevant to predicting the future.
 %This results in a tradeoff between the cost of representing past observations and predicting the future well.
 %This tradeoff has been formalized and computationally studied in a range of prior studies.
-A general information-theoretic framework for this problem is provided by Predictive Rate-Distortion~~\citep{marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
+A general information-theoretic framework for this problem is provided by Predictive Rate-Distortion~~\citep{still-bottleneck-2014,marzen-predictive-2016}, also known as the Past-Future Information Bottleneck~\citep{creutzig-past-future-2009}.
 The Predictive Rate-Distortion tradeoff seeks to find an encoding of past observations that is maximally informative about future observations, while satisfying a bound on the amount of information that has to be stored.
 More formally, this framework trades off prediction loss in the future, formalized as cross-entropy, with the cost of representing the past, formalized as the mutual information between the past observations and the compressed representations of the past.
 Due to its information-theoretic nature, this framework is extremely general and applies to processes across vastly different domains.
@@ -203,14 +213,14 @@ Such processes are typically only available implicitly, through a finite sample 
 
 Optimal Causal Filtering (OCF, \citet{still-optimal-2010}) addresses the problem of estimating Predictive Rate-Distortion from a finite sample of observation trajectories.
 It does so by constructing a matrix of observed frequencies of different pairs of past and future observations.
-However, this method faces a series of challenges~\citep{marzen-predictive-2016}.
+However, such a method faces a series of challenges~\citep{marzen-predictive-2016}.
 One is the curse of dimensionality:
 Modeling long dependencies requires storing an exponential number of observations, which quickly becomes intractable for current computation methods.
 This exponential growth is particularly problematic when dealing with processes with a large state space.
 For instance, the number of distinct words in a human language as found in large-scale text data easily exceeds $10^5$, making storing and manipulating counts of longer word sequences very challenging.
 A second challenge is that of overfitting:
 When deploying a predictive model constructed via OCF on new data to predict upcoming observations, such a model can only succeed when the past sequences occurred in the sample that OCF was applied to.
-This is because OCF relies on counts of full past and future observation sequences; it has no means to generalize to unseen past sequences.
+This is because OCF relies on counts of full past and future observation sequences; it does not generalize to unseen past sequences.
 
 Extrapolating to unseen past sequences is possible in traditional time series models representing processes that take continuous values; however, such methods are less easily applied to discrete sequences such as natural language.
 Recent research has seen a flurry of interest in using flexible nonlinear function approximators, and in particular recurrent neural networks, which can handle sequences with discrete observations.
@@ -228,7 +238,7 @@ Recent advances in neural variational inference~\citep{rezende-variational-2015,
 Our method can be applied to sample trajectories in an off-the-shelf manner, without prior knowledge of the underlying process.
 
 In Section~\ref{sec:background}, we formally introduce predictive rate-distortion, and discuss related notions of predictive complexity.
-In Section~\ref{sec:oce}, we describe the prior method of Optimal Causel Filtering (OCF).
+In Section~\ref{sec:OCF}, we describe the prior method of Optimal Causel Filtering (OCF).
 In Section~\ref{sec:nprd}, we describe our method NPRD.
 In Section~\ref{sec:experiments}, we validate NPRD on processes whose predictive rate-distortion is analytically known, showing that it finds essentially optimal predictive models.
 In Section~\ref{sec:language}, we apply NPRD to data from five languages, providing the first estimates of predictive rate-distortion of natural language.
@@ -392,7 +402,7 @@ While statistical complexity cannot be identified from finite data in general, \
 
 The main prior method for estimating predictive rate-distortion from data is Optimal Causal Filtering (OCF, \citet{still-optimal-2010}).
 This method approximates predictive rate-distortion using two approximations:
-First, it replaces semi-infinite pasts and futures with bounded-length contexts, i.e., pairs of finite past contexts $(\finitepast := X_{-M}\dots X_{-1})$ and future contexts $(\finitefuture := X_{0}\dots X_{M-1})$ of some finite length $M$.\footnote{It is not crucial that past and future contexts have the same lengths, and indeed \citet{still-optimal-2010} do not assume this. We do assume equal length throughout this paper for consistency with our experiments, though nothing depends on this.}
+First, it replaces semi-infinite pasts and futures with bounded-length contexts, i.e., pairs of finite past contexts $(\finitepast := X_{-M}\dots X_{-1})$ and future contexts $(\finitefuture := X_{0}\dots X_{M-1})$ of some finite length $M$.\footnote{It is not crucial that past and future contexts have the same lengths, and indeed \citet{still-optimal-2010} do not assume this. We do assume equal length throughout this paper for simplicity of our experiments, though nothing depends on this.}
 The PRD objective (\ref{eq:ib}) then becomes (\ref{eq:ib-oce}), aiming to predict length-$M$ finite futures from summary codes $Z$ of length-$M$ finite pasts:
 \begin{equation}\label{eq:ib-oce}
 	\max_{Z : Z \bot \finitefuture | \finitepast} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
@@ -408,7 +418,7 @@ This leaves open how to obtain estimates outside of this regime, when the codebo
 The second challenge is that OCF requires the construction of a matrix whose rows and columns are indexed by the observed past and future sequences \citep{marzen-predictive-2016}.
 Depending on the topological entropy of the process, the number of such sequences can grow as $|A|^M$, where $A$ is the set of observed symbols, and processes of interest often do show this exponential growth \citep{marzen-predictive-2016}.
 Drastically, in the case of natural language, $A$ contains thousands of words.
-We will see that this makes applying OCF infeasible even with $M=1$.
+%We will see that this makes applying OCF to language data infeasible even with $M=1$.
 
 A further challenge is that OCF is infeasible if the number of required codewords is too large, again because OCF requires constructing a matrix whose rows and columns are indexed by the codewords and observed sequences.
 Given that storing and manipulating matrices greater than $10^5 \times 10^5$ is currently not feasible, a setting where $\operatorname{I}[\past, Z] > \log 10^5 \approx 11.5$ cannot be captured with OCF.
@@ -427,11 +437,11 @@ This is of paramount importance in settings where the state space is large, such
 Second, the cost of storing and evaluating the function approximators will scale \emph{linearly} with the length of observed sequences both in space and in time, as opposed to the exponential memory demand of OCF.
 This is crucial for modeling long dependencies.
 
-\subsection{Variational Bound on Predictive Rate-Distortion}
+\subsection{Main Result: Variational Bound on Predictive Rate-Distortion}
 We will first describe the general method, without committing to a specific framework for function approximation yet.
 We will construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
 
-As in OCF (Section~\ref{sec:oce}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: %\rljf{I think it would be a lot clearer to use the notation from other papers where it's like $\past$ except the arrow points to $M$. It's hard visually looking at the equations to distinguish $-M\dots-1$ from $0\dots M-1$, and that makes it harder to read. $^M\overleftarrow{X}$}
+As in OCF (Section~\ref{sec:OCF}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: %\rljf{I think it would be a lot clearer to use the notation from other papers where it's like $\past$ except the arrow points to $M$. It's hard visually looking at the equations to distinguish $-M\dots-1$ from $0\dots M-1$, and that makes it harder to read. $^M\overleftarrow{X}$}
 \begin{equation}\label{eq:ib-oce-repeat}
 	\max_{Z : Z \bot \finitefuture | \finitepast} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
 \end{equation}
@@ -523,18 +533,22 @@ The two equalities follow from the definition of KL Divergence and Mutual Inform
 Here, equality holds if and only if $q(Z) = P(Z)$, proving the second assertion.
 \end{proof}
 
-We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:prd-loss}) in a way amenable to using function approximators.
-Recall the predictive rate-distortion objective~(\ref{eq:prd-loss})
+We now use the two propositions to rewrite the predictive rate-distortion objective~(\ref{eq:prd-loss}) in a way amenable to using function approximators:
+
+\begin{corollary}[Main Result]
+The predictive rate-distortion objective~(\ref{eq:prd-loss})
 \begin{equation}\tag{\ref{eq:prd-loss}}
 	\min_{Z : Z \bot \finitefuture | \finitepast}	\left[\operatorname{H}[\finitefuture | Z] + \lambda \operatorname{I}[ \finitepast, Z]\right]
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
-By the two Propositions, this objective is equivalent to
+is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right],
+	\min_{\phi, \psi, q}	\left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} [ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right],
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
+
 From a solution to (\ref{eq:bound}), one obtains a solution to (\ref{eq:prd-loss}) by setting $Z$ to be the code generated by the encoder $\phi$.
-The second proposition guarantees that, for a solution to  (\ref{eq:prd-loss}), the rate of this code is given as follows
+%The second proposition guarantees that, for a solution to  (\ref{eq:prd-loss}), 
+The rate of this code is given as follows
 \begin{equation}\label{eq:eq1-new}
  \operatorname{I}[Z, \finitepast] =   \mathbb{E}_{\finitepast}\left[ \operatorname{D_{KL}}\infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]
 \end{equation}
@@ -543,6 +557,11 @@ and the prediction loss is given by
   %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]
   \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|\finitepast] % \operatorname{H}[\finitefuture]
 \end{equation}
+\end{corollary}
+\begin{proof}
+TODO write
+\end{proof}
+
 Note that the right-hand-sides of (\ref{eq:eq1-new}-\ref{eq:eq2-new}) can both be estimated efficiently using Monte Carlo samples from $Z \sim P_\phi(\finitepast)$.
 
 If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two propositions guarantee that we still have bounds on rate and prediction loss for the code $Z$ generated by $\phi$:
@@ -895,7 +914,7 @@ Much interest has been devoted to estimating the entropy rate of natural languag
 Indeed, the information density of language has been linked to human processing effort and to language structure.
 The word-by-word information content has been shown to impact human processing effort as measured both by per-word reading times~\citep{hale-probabilistic-2001,levy-expectation-based-2008,smith-effect-2013} and by brain signals measured through EEG~\citep{DBLP:conf/acl/FrankOGV13, kuperberg2016we}.
 Consequently, prediction is a fundamental component across theories of human language processing  \citep{kuperberg2016we}.
-Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz, genzel2002entropy, jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
+Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz,genzel2002entropy,jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
 The relevance of prediction to human language processing makes the \emph{difficulty} of prediction another interesting aspect of language complexity:
 Predictive Rate-Distortion describes how much memory of the past humans need to maintain to predict future words accuractely.
