@@ -76,7 +76,7 @@
 %% For proofs, please use the proof environment (the amsthm package is loaded by the MDPI class).
 
 
-\newcounter{theorem}
+%\newcounter{theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{question}[theorem]{Question}
@@ -158,13 +158,6 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 %\PACS{J0101}
 %\MSC{}
 %\JEL{}
-
-% Reviewers:
-% Susanne Still
-% Lukasz Debowski
-% Kumiko Tanaka-Ishii
-% Noga Zaslavsky
-% Alexander Alemi
 
 % TODO mention sam bowman's language VAE
 
@@ -473,7 +466,7 @@ From this encoding distribution, one can obtain the optimal decoding distributio
 	\end{split}
 \end{equation}
 where $(*)$ uses the Markov condition $Z \bot \finitefuture | \finitepast$.
-However, neither of the two expectations in the last line of~(\ref{eq:cond-fut}) is tractable, as they require summation over exponentially many sequences, and algorithms (e.g., dynamic programming) to compute this sum efficiently are not available in general.
+However, neither of the two expectations in the last expression of~(\ref{eq:cond-fut}) is tractable, as they require summation over exponentially many sequences, and algorithms (e.g., dynamic programming) to compute this sum efficiently are not available in general.
 For a similar reason, the rate $\operatorname{I}[\finitepast, Z]$ of the code $Z \sim P_\phi(Z|\finitepast)$ is also generally intractable.
 %If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, 
 
@@ -554,7 +547,7 @@ The rate of this code is given as follows
 and the prediction loss is given by
 \begin{equation}\label{eq:eq2-new}
   %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]
-  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|\finitepast] % \operatorname{H}[\finitefuture]
+  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{\finitepast,\finitefuture}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|\finitepast] % \operatorname{H}[\finitefuture]
 \end{equation}
 \end{corollary}
 
@@ -570,7 +563,7 @@ If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two proposit
 \end{equation}
 \begin{equation}\label{eq:bound2-new}
   %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[\finitefuture|\finitepast]
-  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
+  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{\finitepast, \finitefuture}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
 \end{equation}
 To carry out the optimization~(\ref{eq:bound}), we will restrict $\phi, \psi, q$ to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
 While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and---if the family of approximators is sufficiently rich---can come close to turning these into the equalities (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
@@ -645,7 +638,7 @@ Given the estimate for prediction loss, we estimate predictiveness $\operatornam
 Together with $\psi$, we also create an LSTM network that estimates the marginal probability of future observation sequences $P(\finitefuture)$. Let $P_\eta$ be this estimated distribution; we then estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~(\cite{mcallester2018formal}):
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
-- \mathbb{E}_{X_{-M\dotsM-1}}\left[\log P_\eta(\finitefuture) - P_\psi(\finitefuture | Z)\right]
+- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture) - P_\psi(\finitefuture | Z)\right]
 \end{equation}
 which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}).
 
@@ -1402,7 +1395,7 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% optional
-\sampleavailability{Code is available.}
+%\sampleavailability{Code is available.}
 
 %% for journal Sci
 %\reviewreports{\\
