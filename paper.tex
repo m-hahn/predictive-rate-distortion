@@ -76,7 +76,7 @@
 %% For proofs, please use the proof environment (the amsthm package is loaded by the MDPI class).
 
 
-\newcounter{theorem}
+%\newcounter{theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{question}[theorem]{Question}
@@ -159,16 +159,6 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 %\MSC{}
 %\JEL{}
 
-% Reviewers:
-% Susanne Still
-% Lukasz Debowski
-% Kumiko Tanaka-Ishii
-% Noga Zaslavsky
-% Alexander Alemi
-
-% TODO mention sam bowman's language VAE
-
-% potentially cite https://arxiv.org/pdf/1609.05191.pdf
 
 
 \begin{document}
@@ -296,7 +286,7 @@ The rate of the code $Z$ is the mutual information between $Z$ and the past: $\o
 By the Channel Coding Theorem, this describes the channel capacity that the observer requires in order to transform past observations into the code $Z$.
 
 The distortion is the loss in predictive accuracy when predicting from $Z$, relative to optimal prediction from the full past $\past$.
-In the Information Bottleneck formalization, this is equivalent to the amount of mutual information between past and future that is \emph{not} captured by $Z$ \citep{harremoes2007information}: %\rljf{Cite the paper "how to choose a good distortion measure"}
+In the Information Bottleneck formalization, this is equivalent to the amount of mutual information between past and future that is \emph{not} captured by $Z$ \citep{harremoes2007information}: 
 \begin{equation}
 	\operatorname{I}[\past, \future|Z].
 \end{equation}
@@ -392,7 +382,7 @@ Relatedly, \citet{still-information-2014} introduces a Recursive Past Future Inf
 
 As discussed in Section~\ref{sec:complexity}, estimating predictive rate-distortion is related to the problem of estimating statistical complexity.
 \citet{clarke2003application} and \citet{still-optimal-2010} consider the problem of estimating statistical complexity from finite data.
-While statistical complexity cannot be identified from finite data in general, \citet{clarke2003application} introduce certain restrictions on the underlying process that make this more feasible.
+While statistical complexity is hard to identify from finite data in general, \citet{clarke2003application} introduce certain restrictions on the underlying process that make this more feasible.
 
 
 %%It also turned up in \cite{creutzig-past-future-2009}, \cite{still-information-2014}.
@@ -408,7 +398,7 @@ The PRD objective (\ref{eq:ib}) then becomes (\ref{eq:ib-oce}), aiming to predic
 \begin{equation}\label{eq:ib-oce}
 	\max_{Z : Z \bot \finitefuture | \finitepast} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
 \end{equation}
-Second, OCF estimates information measures directly from the observed counts of $(\finitepast), (\finitefuture)$ using the plug-in estimator of mutual information. %\rljf{Should be \dots instead of commas?}
+Second, OCF estimates information measures directly from the observed counts of $(\finitepast), (\finitefuture)$ using the plug-in estimator of mutual information. 
 With such an estimator, the problem in (\ref{eq:ib-oce}) can be solved using a variant of the Blahut-Arimoto algorithm \citep{tishby-information-1999}, obtaining an encoder $P(Z|\finitepast)$ that maps each observed past sequence $\finitepast$ to a distribution over a (finite) set of code words $Z$.
 
 Two main challenges have been noted in prior work:
@@ -442,7 +432,7 @@ This is crucial for modeling long dependencies.
 We will first describe the general method, without committing to a specific framework for function approximation yet.
 We will construct a bound on predictive rate-distortion and optimize this bound in a parametric family of function approximators to obtain an encoding $Z$ that is close to optimal for the nonparametric objective~(\ref{eq:ib}).
 
-As in OCF (Section~\ref{sec:OCF}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: %\rljf{I think it would be a lot clearer to use the notation from other papers where it's like $\past$ except the arrow points to $M$. It's hard visually looking at the equations to distinguish $-M\dots-1$ from $0\dots M-1$, and that makes it harder to read. $^M\overleftarrow{X}$}
+As in OCF (Section~\ref{sec:OCF}), we assume that a set of finite sample trajectories $x_{-M} \dots x_{M-1}$ is available, and we aim to compress pasts of length $M$ to predict futures of length $M$. To carry this out, we restrict the PRD objective~(\ref{eq:ib}) to such finite-length pasts and futures: 
 \begin{equation}\label{eq:ib-oce-repeat}
 	\max_{Z : Z \bot \finitefuture | \finitepast} \left( \operatorname{I}[Z, \finitefuture] - \lambda \cdot \operatorname{I}[\finitepast, Z] \right).
 \end{equation}
@@ -473,7 +463,7 @@ From this encoding distribution, one can obtain the optimal decoding distributio
 	\end{split}
 \end{equation}
 where $(*)$ uses the Markov condition $Z \bot \finitefuture | \finitepast$.
-However, neither of the two expectations in the last line of~(\ref{eq:cond-fut}) is tractable, as they require summation over exponentially many sequences, and algorithms (e.g., dynamic programming) to compute this sum efficiently are not available in general.
+However, neither of the two expectations in the last expression of~(\ref{eq:cond-fut}) is tractable, as they require summation over exponentially many sequences, and algorithms (e.g., dynamic programming) to compute this sum efficiently are not available in general.
 For a similar reason, the rate $\operatorname{I}[\finitepast, Z]$ of the code $Z \sim P_\phi(Z|\finitepast)$ is also generally intractable.
 %If $\phi$ is given by a powerful function approximating family such as recurrent neural networks, 
 
@@ -554,7 +544,7 @@ The rate of this code is given as follows
 and the prediction loss is given by
 \begin{equation}\label{eq:eq2-new}
   %H[X_{0\dots M} | Z] =  -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]
-  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|\finitepast] % \operatorname{H}[\finitefuture]
+  \operatorname{H}[\finitefuture|Z] =   - \mathbb{E}_{X_{\finitepast,\finitefuture}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. %H[\finitefuture|\finitepast] % \operatorname{H}[\finitefuture]
 \end{equation}
 \end{corollary}
 
@@ -570,7 +560,7 @@ If $\phi, \psi, q$ are not exact solutions to (\ref{eq:bound}), the two proposit
 \end{equation}
 \begin{equation}\label{eq:bound2-new}
   %I[X_{-M\dots 0}, X_{0\dots M} | Z] \leq -	\mathbb{E}_{z \sim \phi(\finitepast)}\left[\log P_\psi(X_{0\dots M} | z)\right]- H[\finitefuture|\finitepast]
-  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{-M\dots M-1}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
+  \operatorname{H}[\finitefuture|Z] \leq   - \mathbb{E}_{X_{\finitepast, \finitefuture}}	\mathbb{E}_{Z \sim P_\phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right]. % \operatorname{H}[\finitefuture]
 \end{equation}
 To carry out the optimization~(\ref{eq:bound}), we will restrict $\phi, \psi, q$ to a powerful family of parametric families of function approximators, within which we will optimize the objective with gradient descent.
 While the solutions may not be exact solutions to the nonparametric objective~(\ref{eq:bound}), they will still satisfy the bounds (\ref{eq:bound1-new}-\ref{eq:bound2-new}), and---if the family of approximators is sufficiently rich---can come close to turning these into the equalities (\ref{eq:eq1-new}-\ref{eq:eq2-new}).
@@ -645,7 +635,7 @@ Given the estimate for prediction loss, we estimate predictiveness $\operatornam
 Together with $\psi$, we also create an LSTM network that estimates the marginal probability of future observation sequences $P(\finitefuture)$. Let $P_\eta$ be this estimated distribution; we then estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~(\cite{mcallester2018formal}):
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
-- \mathbb{E}_{X_{-M\dotsM-1}}\left[\log P_\eta(\finitefuture) - P_\psi(\finitefuture | Z)\right]
+- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture) - \log P_\psi(\finitefuture | Z)\right]
 \end{equation}
 which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}).
 
@@ -936,7 +926,7 @@ The idea that predicting future words creates a need to represent the past well 
 We study prediction at the range of the words in individual sentences.
 As in the previous experiments, we limit our computations to sequences of length 30, already improving over OCF by an order of magnitude.
 One motivation is that, when directly estimating PRD, computational cost has to increase with the length of sequences considered, making the consideration of sequences of hundreds or thousands of words computationally infeasible.
-Another motivation for this is that we are ultimately interested in predictive rate-distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models of how humans proess individual sentences \citep{gibson-linguistic-1998,futrell-noisy-context-2017}, and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
+Another motivation for this is that we are ultimately interested in predictive rate-distortion as a model of memory in human processing of grammatical structure, formalizing psycholinguistic models of how humans process individual sentences \citep{gibson-linguistic-1998,futrell-noisy-context-2017}, and linking to studies of the relation between information theory and grammar \citep{koplenig2017statistical}.
 
 %Fenk-Oczlon, G. Familiarity, information flow, and linguistic form. In Frequency and the Emergence of Linguistic Structure; Bybee, J.L., Hopper, P.J., Eds.; John Benjamins: Amsterdam, The Netherlands, 2001; pp. 431–448.
 
@@ -976,7 +966,7 @@ Unlike discrete codebooks, the geometric structure makes it possible for neural 
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-mem.pdf}
 \includegraphics[width=0.3\textwidth]{code/figures/english-nlogbeta-ee.pdf}
 	\caption{Left: Rate-Predictiveness for English POS modeling. Center and right: Rate (center) and Predictiveness (right) on English POS Modeling, as a function of $-\log \lambda$. As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, while OCF (blue, plotted for $M=1,2,3$) exhausts its capacity. }\label{fig:eng-pos}
-\end{figure*}%\rljf{It's 1/beta in the figure captions and 1/\lambda in the text}
+\end{figure*}
 
 
 
@@ -989,7 +979,7 @@ At greater degrees of predictiveness, rate grows faster and faster, whereas pred
 The asymptote of predictiveness can be identified with the mutual information between past and future observations, $E_0 := \operatorname{I}[\finitepast, \finitefuture]$, which is a lower bound on the excess entropy. The rate should asymptote to the statistical complexity.
 Judging by the curve, natural language---at the time scale we are measuring in this experiment---has a statistical complexity much higher than its excess entropy:
 At the highest rate measured by NPRD in our experiment, rate is about 20 nats, whereas predictiveness is about 1.1 nats.
-If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. %\rljf{On precedents for this finding: there's an oblique reference in Grassberger (1989) that excess entropy is ``a very weak [lower bound on SC] in most cases where it was studied'', but following the citations given there I can't find anything.}
+If these values are correct, then---due to the convexity of the rate-predictivity curve---statistical complexity exceeds the excess entropy by a factor of at least $\frac{20}{1.1}$. 
 Note that this picture agrees qualitatively with the OCF results, which suggest a lower-bound on the ratio of at least $\frac{2.5}{0.6} > 5$.
 
 Now turning to the other plots in Figure~\ref{fig:eng-pos}, we observe that rate increases at least linearly with $\log\frac{1}{\lambda}$, whereas predictiveness again asymptotes.
@@ -998,7 +988,6 @@ This is in qualitative agreement with the picture gained from the rate-predictiv
 
 Let us consider this more quantitatively.
 Based on Figure~\ref{fig:eng-pos} (center), we make the ansatz that the map from $\log\frac{1}{\lambda}$ to the rate $R := \operatorname{I}[\finitepast, Z]$ is superlinear:
-%\rljf{Was there a change of variables between $\beta$ and $\lambda$ here?}
 \begin{equation}\label{eq:r-alpha-beta}
 	R = \alpha \left(\log\frac{1}{\lambda}\right)^\beta,
 \end{equation}
@@ -1039,11 +1028,11 @@ Equation~(\ref{eq:derivatives}) has the solution
 where $\Gamma$ is the incomplete Gamma function.
 Since $\lim_{R \rightarrow \infty} P = C$, the constant $C$ has to equal the maximally possible predictiveness $E_0 := \operatorname{I}[\finitepast, \finitefuture]$.
 
-As the window size $M \rightarrow \infty$, (\ref{eq:sol}) behaves as
-\begin{equation}
-	P \approx E_0 - \alpha\beta \cdot (R/\alpha)^{\frac{\beta-1}{\beta}} e^{-(R/\alpha)^{1/\beta}},
-\end{equation}
-which asymptotes to $E_0$.
+%As the window size $M \rightarrow \infty$, (\ref{eq:sol}) behaves as
+%\begin{equation}
+%	P \approx E_0 - \alpha\beta \cdot (R/\alpha)^{\frac{\beta-1}{\beta}} e^{-(R/\alpha)^{1/\beta}},
+%\end{equation}
+%which asymptotes to $E_0$.
 Given the values fitted above ($\alpha=1$, $\beta=1.7$), we found that $E_0 = 1.13$ yielded a good fit.
 Using~(\ref{eq:r-alpha-beta}), this can be extended without further parameters to the third curve in Figure~\ref{fig:eng-pos}.
 Resulting fits are shown in Figure~\ref{fig:eng-pos-fitted}.
@@ -1052,9 +1041,9 @@ Resulting fits are shown in Figure~\ref{fig:eng-pos-fitted}.
 Note that there are other possible ways of fitting these curves; we have described a simple one that requires only two parameters $\alpha >0$, $\beta > 1$, in addition to a guess for the maximal predictiveness $E_0$.
 In any case, the results show that natural language shows an approximately linear growth of predictiveness with rate at small rates, and exploding rates at diminishing returns in predictiveness later.
 
-Why might language show such behavior?
-One natural idea is that the causal states of natural language are the singletons $\past$; that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
-Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Theta(T)$, but its predictiveness $P_T =	\operatorname{I}[X_{-T...-1}, X_{0,...M-1}]$ asymptotes to $E_0$.
+%Why might language show such behavior?
+%One natural idea is that the causal states of natural language are the singletons $\past$; that is, no two past trajectories induce a fully equivalent distribution over future trajectories.
+%Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Theta(T)$, but its predictiveness $P_T =	\operatorname{I}[X_{-T...-1}, X_{0,...M-1}]$ asymptotes to $E_0$.
 
 %By writing $I_t := \operatorname{I}[X_0, X_t | X_1 ... X_{t-1}]$, and repeatedly applying the chain rule of conditional mutual information, we obtain
 %\begin{equation}
@@ -1068,7 +1057,6 @@ Then the code $Z^{(T)}$ which stores the block $X_{-T...-1}$ has rate $R_T = \Th
 %\end{equation}
 %which is lower bounded by $T$ times the entropy rate: $R \geq T \cdot \operatorname{H}[X_0|\past]$, and thus is unbounded, assuming that the entropy rate is nonzero.
 %As $T$ grows, this code thus shows diminishing returns in predictiveness $P$ at linear growth in rate $R$.
-%TODO \rljf{A few cites on previous work arguing about whether natural language has nonzero entropy rate. A conference paper by Ryosuke Takahira has a lit review}
 
 %Approximating $t$ as a continuous variable, we can write
 %\begin{equation}
@@ -1313,7 +1301,7 @@ All code for reproducing the results in this work is available at \url{https://g
 % \supplementary{The following are available at \linksupplementary{s1}, Figure S1: title, Table S1: title, Video S1: title. A supporting video article is available at doi: link.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\authorcontributions{M.H. and R.F. conceived of and designed the experiments. M.H. performed the experiments and analysed data. M.H. and R.F. wrote the paper. All authors have read and approved the final manuscript.}
+\authorcontributions{Methodology, Michael Hahn; Writing – original draft, Michael Hahn and Richard Futrell.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \funding{This research received no external funding.} %'' or ``This research was funded by NAME OF FUNDER grant number XXX.'' and  and ``The APC was funded by XXX''. Check carefully that the details given are accurate and use the standard spelling of funding agency names at \url{https://search.crossref.org/funding}, any errors may affect your future funding.}
@@ -1402,7 +1390,7 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% optional
-\sampleavailability{Code is available.}
+%\sampleavailability{Code is available.}
 
 %% for journal Sci
 %\reviewreports{\\
@@ -1416,7 +1404,4 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 \end{document}
 
 
-
-%# also consider
-%# https://papers.nips.cc/paper/7210-neural-discrete-representation-learning.pdf
 
