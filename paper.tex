@@ -660,11 +660,13 @@ which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:b
 In (\ref{eq:bound}), we derived a variational formulation of predictive rate-distortion.
 This is formally related to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
 Unlike our approach, they used a fixed diagonal Gaussian instead of a flexible parametrized distribution for $q$.
-As far as we are aware, no previous work has used such a variational formulation in the modeling of sequences.
+%As far as we are aware, no previous work has used such a variational formulation specifically .
+Some recent work has applied similar approaches to the modeling of sequences, employing models corresponding to the objective~(\ref{eq:bound}) with $\lambda=1$~\citep{grathwohl2016disentangling,walker2016uncertain,fraccaro2017disentangled,hernandez2018variational}.
+
+
 
 In the neural networks literature, the most commonly used method using variational bounds similar to (\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014, bowman-generating-2016}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
-
-%More broadly, our method is related to  The idea will be to use Variational Inference~\citep{blei-variational-2016}:
+The $\beta$-VAE \citep{higgins2017beta}, a variant of the Variational Autoencoder, uses $\lambda > 1$ (whereas the Predictive Rate-Distortion objective~(\ref{eq:ib}) uses $\lambda \in (0,1)$), and has been linked to the Information Bottleneck by \cite{burgess2018understanding}.
 
 
 
@@ -1310,7 +1312,7 @@ All code for reproducing the results in this work is available at \url{https://g
 \funding{This research received no external funding.} %'' or ``This research was funded by NAME OF FUNDER grant number XXX.'' and  and ``The APC was funded by XXX''. Check carefully that the details given are accurate and use the standard spelling of funding agency names at \url{https://search.crossref.org/funding}, any errors may affect your future funding.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\acknowledgments{We thank Dan Jurafsky for helpful discussion.}
+\acknowledgments{We thank Dan Jurafsky for helpful discussion, and the anonymous reviewers for helpful comments.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \conflictsofinterest{The authors declare no conflict of interest.} %Declare conflicts of interest or state ``The authors declare no conflict of interest.'' Authors must identify and declare any personal circumstances or interest that may be perceived as inappropriately influencing the representation or interpretation of reported research results. Any role of the funders in the design of the study; in the collection, analyses or interpretation of data; in the writing of the manuscript, or in the decision to publish the results must be declared in this section. If there is no role, please state ``The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript, or in the decision to publish the results''.} 
