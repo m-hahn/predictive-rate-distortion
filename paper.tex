@@ -534,7 +534,7 @@ The predictive rate-distortion objective~(\ref{eq:prd-loss})
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 is equivalent to
 \begin{equation}\label{eq:bound}
-	\min_{\phi, \psi, q} \left[\mathbb{E}_{\finitepast, \finitefuture}	\left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} [ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]\right],
+	\min_{\phi, \psi, q} \left[\mathbb{E}_{\finitepast, \finitefuture}	\left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} \left[ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]\right]\right],
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 where $\phi, \psi, q$ range over all triples of the appropriate types described above.
 
@@ -646,7 +646,7 @@ which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:b
 
 During optimization, we add the cross-entropy term $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$ to the PRD objective~(\ref{eq:bound}), so that the full training objective comes out to:
 \begin{equation}\label{eq:bound-augmented}
-	\min_{\phi, \psi, q,\eta} \left[\mathbb{E}_{\finitepast, \finitefuture}	\log P_\eta(\finitepast) + \left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} [ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]\right].
+	\min_{\phi, \psi, q,\eta} \left[\mathbb{E}_{\finitepast, \finitefuture} \left[ -	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} \left[ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right] - \log P_\eta(\finitepast) \right]\right].
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 Again by Gibbs' inequality and Propositions~\ref{prop:mi-bound} and~\ref{prop:kl-bound}, this is minimized when $P_\eta$ represents the true distribution over length-$M$ blocks $P(\finitepast)$, $P_\phi(Z|\finitepast)$ describes an optimal code for the given $\lambda$, $q$ is its marginal distribution, and $P_\psi(\finitefuture|Z)$ is the Bayes-optimal decoder.
 For approximate solutions to this augmented objective, the inequalities~(\ref{eq:bound1-new}-\ref{eq:bound2-new}) will also remain true due to Propositions~\ref{prop:mi-bound} and~\ref{prop:kl-bound}.
@@ -909,7 +909,7 @@ Without optimizations specific to the task at hand, a direct application of OCF 
 
 
 
-\section{Estimating PRD for Natural Language}\label{sec:language}
+\section{Estimating Predictive Rate-Distortion for Natural Language}\label{sec:language}
 
 We consider the problem of estimating rate-distortion for natural language.
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
