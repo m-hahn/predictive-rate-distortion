@@ -596,7 +596,7 @@ This is a parametric family of distributions that allows efficient estimation of
 This method widely generalizes a family of prior methods \citep{rezende-variational-2015, kingma-improving-2016, papamakarios-masked-2017}, offering efficient estimation while surpassing prior methods in expressivity.
 
 
-\subsection{Parameter Estimation and Evaluation}
+\subsection{Parameter Estimation and Evaluation}\label{sec:parameter-estimation}
 We optimize the parameters of the neural networks expressing $\phi, \psi, q$ for the objective (\ref{eq:bound}) using Backpropagation and Adam \citep{kingma-adam:-2014}, a standard and widely used gradient descent-based method for optimizing neural networks.
 During optimization, we approximate the gradient by taking a single sample from $Z$ (\ref{eq:z-gauss}) per sample trajectory $X_{-M}, \dots, X_{M-1}$ and use the reparametrized gradient estimator introduced by \citet{kingma-auto-encoding-2014}.
 This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t. the parameters of $\phi, \psi, q$.
@@ -635,13 +635,21 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
 %by estimating $\operatorname{H}[\finitefuture]$ 
-Together with $\psi$, we also create an LSTM network that estimates the marginal probability of future observation sequences $P(\finitefuture)$. Let $P_\eta$ be this estimated distribution; we then estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~(\cite{mcallester2018formal}):
+We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. Because we consider stationary processes, we have 
+$- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$.
+Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~\cite{mcallester2018formal}:
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
-- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture) - \log P_\psi(\finitefuture | Z)\right]
+- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture) - \log P_\psi(\finitefuture | Z)\right],
 \end{equation}
 which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}).
 
+During optimization, we add the cross-entropy term $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$ to the PRD objective~(\ref{eq:bound}), so that the full training objective comes out to:
+\begin{equation}\label{eq:bound-augmented}
+	\min_{\phi, \psi, q,\eta} \left[\mathbb{E}_{\finitepast, \finitefuture}	\log P_\eta(\finitepast) + \left[-	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} [ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right]\right].
+\end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
+Again by Gibbs' inequality and Propositions~\ref{prop:mi-bound} and~\ref{prop:kl-bound}, this is minimized when $P_\eta$ represents the true distribution over length-$M$ blocks $P(\finitepast)$, $P_\phi(Z|\finitepast)$ describes an optimal code for the given $\lambda$, $q$ is its marginal distribution, and $P_\psi(\finitefuture|Z)$ is the Bayes-optimal decoder.
+For approximate solutions to this augmented objective, the inequalities~(\ref{eq:bound1-new}-\ref{eq:bound2-new}) will also remain true due to Propositions~\ref{prop:mi-bound} and~\ref{prop:kl-bound}.
 
 %The magnitude of the estimation error could be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$---
 
@@ -1348,6 +1356,8 @@ The third group of parameters are related to the optimization procedure~\citep{k
 Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow (1, 2, ,...), the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow (an integer), and the number of layers in the flow (1,2,...).
 Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally more expensive.
 
+Training used Early Stopping using the development set, as described in Section~\ref{sec:parameter-estimation}.
+Models were trained on a TITAN Xp graphics card.
 
 
 \begin{table}
