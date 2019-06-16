@@ -5,20 +5,16 @@ library(dplyr)
 library(ggplot2)
 
 
-data = read.csv("../../results/results-nprd.tsv", sep="\t") %>% filter(horizon==30, flow_layers>0)
+data = read.csv("../../results/results-nprd.tsv", sep="\t") %>% filter(horizon==30, flow_layers==0)
 data$Horizon = 15
 data = data %>% filter(Memories < UpperBound)
-dataD = read.csv("../../results/results-oce.tsv", sep="\t")
 
 
 
 dataU = data %>% filter(Language == "even")
 dataU$UncondEnt = 0.505
 dataU = dataU %>% mutate(MiWithFut = Horizon*(UncondEnt-FutureSurp))
-dataDU = dataD %>% filter(Language == "even") %>% filter(Horizon <= 5)
-dataDU = dataDU %>% mutate(UncondEnt = case_when(Horizon == 1 ~ 0.636, Horizon == 2 ~ 0.62, Horizon == 3 ~  0.598, Horizon == 4 ~ 0.581, Horizon == 5 ~ 0.568, Horizon == 6 ~ 0.556, Horizon == 7 ~ 0.545, Horizon == 8 ~ 0.536)) 
-dataDU = dataDU %>% mutate(MiWithFut = Horizon*(UncondEnt-Surprisal))
-dataU = rbind(dataDU %>% select(Language, Beta,Surprisal, Memory, Horizon, UncondEnt, MiWithFut) %>% mutate(Type="Ngrams"), dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural"))
+dataU = dataU %>% select(Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural")
 dataU = dataU %>% filter(MiWithFut <= Memory)
 
 d = dataU %>% filter(Type == "Neural") %>% select(MiWithFut, Memory)
@@ -45,10 +41,7 @@ dataU = data %>% filter(Language == "even")
 dataU$UncondEnt = 0.505
 dataU = dataU %>% mutate(MiWithFut = Horizon*(UncondEnt-FutureSurp))
 
-dataDU = dataD %>% filter(Language == "even") %>% filter(Horizon <= 5)
-dataDU = dataDU %>% mutate(UncondEnt = case_when(Horizon == 1 ~ 0.636, Horizon == 2 ~ 0.62, Horizon == 3 ~  0.598, Horizon == 4 ~ 0.581, Horizon == 5 ~ 0.568, Horizon == 6 ~ 0.556, Horizon == 7 ~ 0.545, Horizon == 8 ~ 0.536)) 
-dataDU = dataDU %>% mutate(MiWithFut = Horizon*(UncondEnt-Surprisal))
-dataU = rbind(dataDU %>% select(Language, Beta,Surprisal, Memory, Horizon, UncondEnt, MiWithFut) %>% mutate(Type="Ngrams", EE=NA), dataU %>% select(EE, Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural"))
+dataU = dataU %>% select(EE, Language, Beta,FutureSurp, Memories, Horizon, UncondEnt, MiWithFut) %>% rename(Surprisal=FutureSurp, Memory=Memories) %>% mutate(Type="Neural")
 dataU = dataU %>% filter(MiWithFut <= Memory)
 
 d = dataU %>% filter(Type == "Neural") %>% select(MiWithFut, Memory)
@@ -70,7 +63,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
 			   axis.title.y = element_text(size=25))
 plot = plot + xlab("Predictiveness")
 plot = plot + ylab("Rate")
-ggsave("../figures/even-info.pdf", plot=plot) 
+ggsave("../figures/even-info-noFlow.pdf", plot=plot) 
 
 
 
