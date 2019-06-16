@@ -130,7 +130,7 @@
 % Affiliations / Addresses (Add [1] after \address if there is only one affiliation.)
 \address{%
 $^{1}$ \quad Stanford University; mhahn2@stanford.edu\\
-$^{2}$ \quad UC Irvine; rfutrell@uci.edu}
+$^{2}$ \quad University of California, Irvine; rfutrell@uci.edu}
 
 % Contact information of the corresponding author
 \corres{Correspondence: mhahn2@stanford.edu}
@@ -281,7 +281,7 @@ Formally, $Z$ needs to be independent of the future $\future$ conditional on the
 \begin{equation}\label{eq:markov}
 	Z \bot \future | \past.
 \end{equation}
-This is equivalent to the requirement that $Z \rightarrow \past \rightarrow \future$ be a Markov chain.
+This is equivalent to the requirement that $Z \leftrightarrow \past \leftrightarrow \future$ be a Markov chain.
 This formalizes the idea that the code is computed by an observer from the past, without having access to the future.
 Predictions are then made based only on $Z$, without additional access to the past $\past$.
 
@@ -300,7 +300,7 @@ Due to the Markov condition, the distortion measure satisfies the relation
 i.e., it captures how much less information $Z$ carries about the future $\future$ compared to the full past $\past$.
 For a fixed process $(X_t)_t$, choosing $Z$ to minimize the distortion is equivalent to maximizing the mutual information between the code and the future:
 \begin{equation}\label{eq:predictiveness}
-\operatorname{I}[Z, \future]
+\operatorname{I}[Z, \future].
 \end{equation}
 We will refer to~(\ref{eq:predictiveness}) as the \key{predictiveness} of the code $Z$.
 
@@ -629,13 +629,13 @@ Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guarant
 %When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 
 It is important to note that this sampling error is different from the overfitting issue affecting OCF: 
-(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCF.
+Our Equations (\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCF.
 Given that NPRD provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
 %by estimating $\operatorname{H}[\finitefuture]$ 
-We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. Because we consider stationary processes, we have 
+We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$ \rljf{How?}. Because we consider stationary processes, we have 
 $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$.
 Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~\cite{mcallester2018formal}:
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
@@ -671,10 +671,8 @@ Unlike our approach, they used a fixed diagonal Gaussian instead of a flexible p
 %As far as we are aware, no previous work has used such a variational formulation specifically .
 Some recent work has applied similar approaches to the modeling of sequences, employing models corresponding to the objective~(\ref{eq:bound}) with $\lambda=1$~\citep{grathwohl2016disentangling,walker2016uncertain,fraccaro2017disentangled,hernandez2018variational}.
 
-
-
-In the neural networks literature, the most commonly used method using variational bounds similar to (\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014, bowman-generating-2016}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
-The $\beta$-VAE \citep{higgins2017beta}, a variant of the Variational Autoencoder, uses $\lambda > 1$ (whereas the Predictive Rate-Distortion objective~(\ref{eq:ib}) uses $\lambda \in (0,1)$), and has been linked to the Information Bottleneck by \cite{burgess2018understanding}.
+In the neural networks literature, the most commonly used method using variational bounds similar to Equation~(\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014, bowman-generating-2016}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
+The $\beta$-VAE \citep{higgins2017beta}, a variant of the Variational Autoencoder, uses $\lambda > 1$ (whereas the Predictive Rate-Distortion objective~(\ref{eq:ib}) uses $\lambda \in (0,1)$), and has been linked to the Information Bottleneck by \cite{burgess2018understanding}.\footnote{As discussed in Section~\ref{sec:background}, our model becomes degenerate with $\lambda \ge 1$. Surprisingly, $\beta$-VAE operates in exactly this parameter regime, although }
 
 
 
@@ -909,7 +907,7 @@ Without optimizations specific to the task at hand, a direct application of OCF 
 
 
 
-\section{Estimating Predictive Rate-Distortion for Natural Language}\label{sec:language}
+\section{Estimating Predictive Rate-Distortion   for Natural Language}\label{sec:language}
 
 We consider the problem of estimating rate-distortion for natural language.
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
