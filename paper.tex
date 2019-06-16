@@ -606,8 +606,6 @@ We use the training set for optimizing the parameters as described above.
 After every pass through the training set, the objective (\ref{eq:bound}) is evaluated on the validation set using a Monte Carlo estimate with one sample $Z$ per trajectory; optimization terminates once the value on the validation set does not decrease any more.
 %After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
 
-
-%\paragraph{Evaluation}
 After optimizing the parameters on a set of observed trajectories, we estimate rate and prediction loss on the test set.
 Given parameters for $\phi, \psi, q$, we evaluate the PRD objective~(\ref{eq:bound}), rate (\ref{eq:bound1-new}), and the prediction loss (\ref{eq:bound2-new}) on the test set by taking, for each time series $X_{-M}...X_{M-1} = \finitepast\finitefuture$ from the test set, a single sample $z  \sim \mathcal{N}(\mu, \sigma^2)$ and computing Monte Carlo estimates for rate
 \begin{equation}\label{eq:bound-mc-rate}
@@ -633,10 +631,12 @@ Our Equations (\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emp
 Given that NPRD provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
+\subsubsection{Estimating Predictiveness}
+
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
 %by estimating $\operatorname{H}[\finitefuture]$ 
 We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$ \rljf{How?}. Because we consider stationary processes, we have 
-$- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$.
+that the cross-entropy under $P_\eta$ of $\finitefuture$ is equal to the cross-entropy of $\finitepast$ under the same encoding distribution: $\mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$. \rljf{I see that this is true if $P_\eta$ is the true marginal but what if it is approximate? Could $P_\eta$ end up non-stationary even when it comes from an encoder fit to a stationary distribution? Or is the stationarity of $P_\eta$ guaranteed because the encoder LSTM is autoregressive?}
 Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~\cite{mcallester2018formal}:
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
@@ -644,7 +644,7 @@ Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \fin
 \end{equation}
 which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}).
 
-During optimization, we add the cross-entropy term $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$ to the PRD objective~(\ref{eq:bound}), so that the full training objective comes out to:
+During optimization, we add the cross-entropy term $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$ to the PRD objective~(\ref{eq:bound}) \rljf{Why?}, so that the full training objective comes out to:
 \begin{equation}\label{eq:bound-augmented}
 	\min_{\phi, \psi, q,\eta} \left[\mathbb{E}_{\finitepast, \finitefuture} \left[ -	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} \left[ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right] - \log P_\eta(\finitepast) \right]\right].
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
@@ -1356,6 +1356,7 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 
 Training used Early Stopping using the development set, as described in Section~\ref{sec:parameter-estimation}.
 Models were trained on a TITAN Xp graphics card.
+\mhahn{TODO number of epochs, training time}
 
 
 \begin{table}
@@ -1375,6 +1376,53 @@ Models were trained on a TITAN Xp graphics card.
 \end{tabular}
 	\caption{NPRD Hyperparameters. See Appendix~\ref{sec:app-hyperparams} for description of the parameters.}\label{tab:nprd-hyperparameters}
 \end{table}
+
+
+
+\section{Alternative Modeling Choices}\label{sec:app-choices}
+
+In this section, we investigate alternative modeling choices.
+
+First, we investigated the performance of a simple fixed approximation to the marginal $q$.
+We considered a diagonal unit-variance Gaussian, as is common in the literature on Variational Autoencoders~\citep{kingma-auto-encoding-2014}.
+We show results in Figure~\ref{fig:even-noFlow}.
+Even with this fixed approximation to $q$, NPRD continues to provides estimates not far away from the analytical curve.
+However, comparison with the results obtained from full NPRD (Figure~\ref{fig:even}) shows that a flexible parameterized approximation still provides considerably better fit.
+
+Second, we investigated whether the use of recurrent neural networks is necessary.
+As recurrent models such as LSTMs process input sequentially, they cannot be fully parallelized, posing the question whether they can be replaced by models that can be parallelized.
+Specifically, we considered Quasi-Recurrent Neural Networks, which combine convolutions with a weak form of recurrence, and which have shown strong results on language modeling benchmarks~\citep{bradbury2017quasi}.
+We replaced the LSTM with a Quasi-Recurrent Neural Network.
+We found that NPRD consistently fitted codes with zero rate when applying this method to the Even Process and the Random Insertion Process.
+We also found that the cross-entropies were considerably worse than when using LSTMs.
+We conjecture that, due to the convolutional nature of Quasi-Recurrent Neural Networks, they cannot model such processes effectively.
+
+Third, we varied $M$. TODO
+
+
+
+\begin{figure*}
+\centering
+\includegraphics[width=0.45\textwidth]{code/figures/even-info-noFlow.pdf}
+\includegraphics[width=0.45\textwidth]{code/figures/rip-info-noFlow.pdf}
+
+%\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }\label{fig:even-noFlow}
+\end{figure*}
+
+
+
+\begin{figure*}
+\centering
+\includegraphics[width=0.45\textwidth]{code/figures/even-info-varyM.pdf}
+\includegraphics[width=0.45\textwidth]{code/figures/rip-info-varyM.pdf}
+
+%\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5, 10, 15$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }\label{fig:even-varyM}
+\end{figure*}
+
+
+
 
 
 %\unskip
