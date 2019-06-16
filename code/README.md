@@ -4,9 +4,9 @@
 
 * `analysis/` contains code for plotting results. All data used for the plots reported in the paper are in the TSV files in the `../results/` folder; you can use the scripts in `analysis` to reporoduce all plots reported in the paper.
 * `nprd/` contains code for running NPRD.
-* `oce/` contains code for running OCE.
+* `oce/` contains code for running OCF.
 * `figures/` contains figures created by various scripts.
-* `collectResults/` contains scripts for collecting the results of runs of NPRD/OCE into summary TSV files, overwriting the TSV files in `../results/`.
+* `collectResults/` contains scripts for collecting the results of runs of NPRD/OCF into summary TSV files, overwriting the TSV files in `../results/`.
 
 The scripts in `nprd` and `oce` can be used to recompute predictive rate-distortion curves reported in the paper, or to compute curves for other processes.
 See documentation in these directories for details.
@@ -15,7 +15,7 @@ See documentation in these directories for details.
 
 * All Python code was written for and tested with Python 2.7.
 * All R code was tested in version 3.4.4, but should work across versions.
-* NPRD and OCE implementations require Pytorch (<https://pytorch.org/>). Code was tested with Pytorch 0.4.1, but should work with later versions.
+* NPRD and OCF implementations require Pytorch (<https://pytorch.org/>). Code was tested with Pytorch 0.4.1, but should work with later versions.
 * NPRD is much faster on GPU, in particular the experiments on natural language.
 * For experiments with natural language, you will additionally need datasets (see below).
 
