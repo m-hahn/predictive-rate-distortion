@@ -635,8 +635,15 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
 %by estimating $\operatorname{H}[\finitefuture]$ 
-We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$ \rljf{How?}. Because we consider stationary processes, we have 
-that the cross-entropy under $P_\eta$ of $\finitefuture$ is equal to the cross-entropy of $\finitepast$ under the same encoding distribution: $\mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$. \rljf{I see that this is true if $P_\eta$ is the true marginal but what if it is approximate? Could $P_\eta$ end up non-stationary even when it comes from an encoder fit to a stationary distribution? Or is the stationarity of $P_\eta$ guaranteed because the encoder LSTM is autoregressive?}
+We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. %\rljf{How?}
+Similar to the decoder $\psi$, we use the vector representations $f_t \in \mathbb{R}^k$ computed by the LSTM encoder after processing $X_{-M\dots t}$ for $t = -M, \dots, -1$, and then compute predictions using the softmax rule
+\begin{equation}
+	P_\eta(X_t = s_i|X_{1\dots t-1}, Z) \propto \exp((W_{o'} f_t)_i)
+\end{equation}
+where $W_{o'} \in \mathbb{R}^{|S|\times k}$ is another parameter matrix.
+
+Because we consider stationary processes, we have 
+that the cross-entropy under $P_\eta$ of $\finitefuture$ is equal to the cross-entropy of $\finitepast$ under the same encoding distribution: $\mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$. \rljf{I see that this is true if $P_\eta$ is the true marginal but what if it is approximate? Could $P_\eta$ end up non-stationary even when it comes from an encoder fit to a stationary distribution? Or is the stationarity of $P_\eta$ guaranteed because the encoder LSTM is autoregressive?} \mhahn{If $X_t$ is stationary, then the distributions of $\finitepast$ and $\finitefuture$ are the same, so these expectations are the same. Is there a way to make this more transparent?}
 Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~\cite{mcallester2018formal}:
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
@@ -1381,7 +1388,7 @@ Models were trained on a TITAN Xp graphics card.
 
 \section{Alternative Modeling Choices}\label{sec:app-choices}
 
-In this section, we investigate alternative modeling choices.
+In this section, we investigate the trade-offs involved in alternative modeling choices. It may be possible to use simpler function-approximators for $\phi$, $\psi$, and $q$, or smaller context windows sizes $M$, without harming accuracy too much.
 
 First, we investigated the performance of a simple fixed approximation to the marginal $q$.
 We considered a diagonal unit-variance Gaussian, as is common in the literature on Variational Autoencoders~\citep{kingma-auto-encoding-2014}.
@@ -1391,14 +1398,15 @@ However, comparison with the results obtained from full NPRD (Figure~\ref{fig:ev
 
 Second, we investigated whether the use of recurrent neural networks is necessary.
 As recurrent models such as LSTMs process input sequentially, they cannot be fully parallelized, posing the question whether they can be replaced by models that can be parallelized.
-Specifically, we considered Quasi-Recurrent Neural Networks, which combine convolutions with a weak form of recurrence, and which have shown strong results on language modeling benchmarks~\citep{bradbury2017quasi}.
-We replaced the LSTM with a Quasi-Recurrent Neural Network.
-We found that NPRD consistently fitted codes with zero rate when applying this method to the Even Process and the Random Insertion Process.
+Specifically, we considered \key{Quasi-Recurrent Neural Networks} (QRNNs), which combine convolutions with a weak form of recurrence, and which have shown strong results on language modeling benchmarks~\citep{bradbury2017quasi}.
+We replaced the LSTM encoder and decoder with QRNNs and fit NPRD to the Even Process and the Random Insertion Process.
+We found that when using QRNNs, NPRD consistently fitted codes with zero rate for the Even Process and the Random Insertion Process, indicating that the QRNN was failing to extract useful information from the past of these processes.
 We also found that the cross-entropies were considerably worse than when using LSTMs.
-We conjecture that, due to the convolutional nature of Quasi-Recurrent Neural Networks, they cannot model such processes effectively.
+We conjecture that, due to the convolutional nature of QRNNs, they cannot model such processes effectively. \rljf{We'll want a bit more detail on this: someone might think we just made some mistake in applying the QRNNs.}
 
-Third, we varied $M$. TODO
-
+Third, we varied $M$, comparing $M=5, 10$ to the results obtained with $M=15$. 
+Results are shown in Figure~\ref{fig:even-varyM}.
+\mhahn{TODO}
 
 
 \begin{figure*}
@@ -1407,7 +1415,7 @@ Third, we varied $M$. TODO
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info-noFlow.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }\label{fig:even-noFlow}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.  \mhahn{TODO fix the figures} }\label{fig:even-noFlow}
 \end{figure*}
 
 
@@ -1418,7 +1426,7 @@ Third, we varied $M$. TODO
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info-varyM.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5, 10, 15$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }\label{fig:even-varyM}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5, 10, 15$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. \mhahn{TODO fix the figures}}\label{fig:even-varyM}
 \end{figure*}
 
 
