@@ -1,5 +1,7 @@
 # Was called runMemoryManyConfigs_NeuralFlow_Words_English.py
 
+
+from matplotlib.ticker import MaxNLocator
 import math
 import subprocess
 import random
@@ -97,6 +99,9 @@ for j in range(min(numsOfTexts)): #len(ress[0][2])):
 #   plt.axvline(x=15.5, color="green") 
    
    ax.grid(False)
+#   ax.set_ylabel("Cross-Entropy", fontsize=12)
+
+   ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 #   figure(figsize=(25,10))
    fileName = "sample_"+str(j)
    fig.savefig("figures/"+fileName+".png")
