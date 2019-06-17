@@ -1,6 +1,47 @@
 
 
 findFrontier = function(ees, memories) {
+   ees = pmax(ees, 0)
+   memories = pmax(memories, 0)
+   xs = c(0)
+   ys = c(0)
+#   slopes = c(0)
+   lastIndex = 0
+   while(lastIndex < length(ees)) {
+       lastX = xs[1]
+       lastY = ys[1]
+        
+       bestSlope = 10000000000
+       bestIndex = length(ees)
+       for(i in (1:length(ees))) {
+           x = ees[i]
+           if(x > lastX) {
+              y = memories[i]
+	      cat(y-lastY, "\n")
+              slope = (y-lastY)/(x-lastX)
+              if(slope < bestSlope) {
+                  bestIndex = i
+ 	          bestSlope = slope
+     	      }
+#     	      cat(slope, "\n")
+	   }
+       }
+       xs = c(ees[bestIndex], xs)
+       ys = c(memories[bestIndex], ys)
+ #      slopes = c(bestSlope, slopes)
+       lastIndex = bestIndex
+       cat(bestSlope,"\n")
+   }
+   cat(xs, "\n")
+   return(data.frame(EE=xs, Memories=ys))
+}
+
+
+
+
+findFrontierOld = function(ees, memories) {
+   ees = pmax(ees, 0)
+   memories = pmax(memories, 0)
    xs = c(0)
    ys = c(0)
    slopes = c(0)
