@@ -1401,8 +1401,11 @@ As recurrent models such as LSTMs process input sequentially, they cannot be ful
 Specifically, we considered \key{Quasi-Recurrent Neural Networks} (QRNNs), which combine convolutions with a weak form of recurrence, and which have shown strong results on language modeling benchmarks~\citep{bradbury2017quasi}.
 We replaced the LSTM encoder and decoder with QRNNs and fit NPRD to the Even Process and the Random Insertion Process.
 We found that when using QRNNs, NPRD consistently fitted codes with zero rate for the Even Process and the Random Insertion Process, indicating that the QRNN was failing to extract useful information from the past of these processes.
-We also found that the cross-entropies were considerably worse than when using LSTMs.
-We conjecture that, due to the convolutional nature of QRNNs, they cannot model such processes effectively. \rljf{We'll want a bit more detail on this: someone might think we just made some mistake in applying the QRNNs.}
+We also found that the cross-entropies of the estimated marginal distribution $P_\eta(\finitepast)$ were considerably worse than when using LSTMs or simple RNNs.
+We conjecture that, due to the convolutional nature of QRNNs, they cannot model such processes effectively in principle:
+QRNNs extract representations by pooling embeddings of words or $n$-grams occurring in the past.
+When modeling, e.g., the Even Process, the occurrence of specific $n$-grams is not informative about whether the length of the last block is even or odd; this requires some information about the positions in which these $n$-grams occur, which is not available to the QRNN.
+\rljf{We'll want a bit more detail on this: someone might think we just made some mistake in applying the QRNNs.}
 
 Third, we varied $M$, comparing $M=5, 10$ to the results obtained with $M=15$. 
 Results are shown in Figure~\ref{fig:even-varyM}.
