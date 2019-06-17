@@ -628,7 +628,7 @@ Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guarant
 
 It is important to note that this sampling error is different from the overfitting issue affecting OCF: 
 Our Equations (\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCF.
-Given that NPRD provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
+Given that Neural Predictive Rate-Distortion provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
 \subsubsection{Estimating Predictiveness}
@@ -723,7 +723,7 @@ These pseudo-observations were assigned pseudo-counts $\gamma$ in this matrix of
 When evaluating the codebook on held-out data, previously unseen sequences were mapped to $\omega$.
 
 
-\paragraph{NPRD}
+\paragraph{Neural Predictive Rate-Distortion}
 For all experiments, we used $M=15$.
 Neural networks have hyperparameters, such as the number of units and the step size used in optimization, which affect the quality of approximation depending on properties of the dataset and the function being approximated.
 Given that NPRD provably provides upper bounds on the PRD objective~(\ref{eq:prd-loss}), one can in principle identify the best hyperparameters for a given process by choosing the combination that leads to the lowest estimated upper bounds.
@@ -1408,8 +1408,7 @@ We found that when using QRNNs, NPRD consistently fitted codes with zero rate fo
 We also found that the cross-entropies of the estimated marginal distribution $P_\eta(\finitepast)$ were considerably worse than when using LSTMs or simple RNNs.
 We conjecture that, due to the convolutional nature of QRNNs, they cannot model such processes effectively in principle:
 QRNNs extract representations by pooling embeddings of words or $n$-grams occurring in the past.
-When modeling, e.g., the Even Process, the occurrence of specific $n$-grams is not informative about whether the length of the last block is even or odd; this requires some information about the positions in which these $n$-grams occur, which is not available to the QRNN.
-\rljf{We'll want a bit more detail on this: someone might think we just made some mistake in applying the QRNNs.} \mhahn{I've tried to make it more explicit, is this okay?}
+When modeling e.g., the Even Process, the occurrence of specific $n$-grams is not informative about whether the length of the last block is even or odd; this requires some information about the positions in which these $n$-grams occur, which is not available to the QRNN, but which is generally available in a more general autoregressive model such as an LSTM.
 
 Third, we varied $M$, comparing $M=5, 10$ to the results obtained with $M=15$. 
 Results are shown in Figure~\ref{fig:even-varyM}.
@@ -1452,20 +1451,18 @@ Codes with higher rates are better at encoding such predictive information from 
 
 \begin{figure*}
 \centering
-\textbf{Past:} within minutes after the stock market closed friday , i called sen. bill bradley of new
-\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_0.png}
+\begin{tabular}{cc}
+&\textbf{Past:} within minutes after the stock market closed friday , i called sen. bill bradley of new \\
+&\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_0.png}\\
+&\textbf{Past:} asset you own would be worth more if the government suddenly announced that if you sold \\
+&\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_20.png}\\
+&\textbf{Past:} he thinks , when the white house is forced to ask for higher taxes to meet \\
+&\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_31.png} \\
+&\textbf{Past:} to be dealt with by the oct. 15 deadline , and these senate democrats refused to \\
+&\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_6.png}
+\end{tabular}
 
-
-\textbf{Past:} asset you own would be worth more if the government suddenly announced that if you sold
-\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_20.png}
-
-\textbf{Past:} he thinks , when the white house is forced to ask for higher taxes to meet
-\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_31.png}
-
-\textbf{Past:} to be dealt with by the oct. 15 deadline , and these senate democrats refused to
-\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_6.png}
-
-	\caption{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies on the future words $\finitefuture$ (bottom).
+	\caption{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies (in nats) on the future words $\finitefuture$ (bottom). \rljf{Figure needs y axis label and a legend to explain the meanings of the different colors}
 	}\label{fig:samples-ptb}
 \end{figure*}
 
