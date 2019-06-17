@@ -53,12 +53,15 @@ dataNU = dataNU[order(dataNU$EE),]
 dataU$HorizonF = as.character(dataU$Horizon)
 
 plot = ggplot(dataU, aes(x=MiWithFut, y=Memory, group=HorizonF, color=HorizonF))
-plot = plot + geom_point()+ theme_classic() + xlim(0,NA) + ylim(0, 1.1)
+plot = plot + geom_point()+ theme_classic() + xlim(0,NA) + ylim(0, 1.2)
 # Plot curve as computed from p. 1328-9 in Marzen and Crutchfield (2019).
 plot = plot + geom_line(data=data.frame(x=c(0, 0.6365, 0.8595025), y = c(0, 0.6365, 1.05492)), aes(x=x , y=y, group=NA, color=NA), size=4) 
 plot = plot + theme(legend.position="none") 
-for(horizon in unique(dataNU$Horizon)) {
-   plot = plot + geom_line(data=findFrontier((dataNU %>% filter(Horizon==horizon))$EE, (dataNU %>% filter(Horizon==horizon))$Memory), aes(x=EE, y=Memories, group=NULL, color=NULL), colour="red", size=2.5)
+horizons = c(5, 10, 15)
+colors = c("blue", "red", "green")
+for(i in (1:3)) {
+   horizon = horizons[i]
+   plot = plot + geom_line(data=findFrontier((dataNU %>% filter(Horizon==horizon))$EE, (dataNU %>% filter(Horizon==horizon))$Memory) %>% mutate(HorizonF=as.character(horizon)), aes(x=EE, y=Memories, group=HorizonF, color=HorizonF), size=2.5) # colour=colors[i], 
 }
 plot = plot +    theme(    axis.text.x = element_text(size=20),
 		           axis.text.y = element_text(size=20),
