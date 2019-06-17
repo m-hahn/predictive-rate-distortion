@@ -635,7 +635,7 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
 %by estimating $\operatorname{H}[\finitefuture]$ 
-We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. %\rljf{How?}
+We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. 
 Similar to the decoder $\psi$, we use the vector representations $f_t \in \mathbb{R}^k$ computed by the LSTM encoder after processing $X_{-M\dots t}$ for $t = -M, \dots, -1$, and then compute predictions using the softmax rule
 \begin{equation}
 	P_\eta(X_t = s_i|X_{1\dots t-1}, Z) \propto \exp((W_{o'} f_t)_i)
@@ -651,7 +651,8 @@ Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \fin
 \end{equation}
 which we approximate using Monte-Carlo sampling on the test set as in~(\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}).
 
-During optimization, we add the cross-entropy term $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$ to the PRD objective~(\ref{eq:bound}) \rljf{Why?}, so that the full training objective comes out to:
+In order to optimize parameters for estimation of $P_\eta$, we add the cross-entropy term $- \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$ to the PRD objective~(\ref{eq:bound}) during optimization, %\rljf{Why?},
+so that the full training objective comes out to:
 \begin{equation}\label{eq:bound-augmented}
 	\min_{\phi, \psi, q,\eta} \left[\mathbb{E}_{\finitepast, \finitefuture} \left[ -	\mathbb{E}_{Z \sim \phi(\finitepast)}\left[\log P_\psi(\finitefuture | Z)\right] + \lambda \cdot \operatorname{D_{KL}} \left[ \infdivx{P_\phi(Z|\finitepast)}{q(Z)}\right] - \log P_\eta(\finitepast) \right]\right].
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
@@ -1363,7 +1364,10 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 
 Training used Early Stopping using the development set, as described in Section~\ref{sec:parameter-estimation}.
 Models were trained on a TITAN Xp graphics card.
-\mhahn{TODO number of epochs, training time}
+\mhahn{TODO number of epochs, training time comparable to OCF}
+
+On English word-level modeling, training took a median number of 9 epochs (max 467 epochs) and 5 minutes (max 126 minutes).
+
 
 
 \begin{table}
@@ -1438,12 +1442,31 @@ At $M=10$, the estimates are close to the analytical curve; nonetheless, $M=15$ 
 
 
 
+In Figure~\ref{fig:samples-ptb}, we provide four sample outputs from English word-level modeling with three values of $\log \frac{1}{\lambda}$ ($1.0$, $3.0$, $5.0$), corresponding to low ($1.0$), medium ($3.0$), and high ($5.0$) rates  (compare Figure~\ref{fig:wordlevel-fit-1}).
+We obtained sample sequences by selecting the first 32 sequences $\finitepast\finitefuture$ (at $M=15$) from the Penn Treebank validation set, and selected four examples where the variation in cross-entropy values at $X_0$ was largest between the three models.
+
+Across these samples, models generated at $\log \frac{1}{\lambda} = 5$ show lower cross-entropy on the first future observation $X_0$, as these codes have higher rates.
+For instance, in the first sample, the cross-entropy on the first word \emph{Jersey} is lowest for the code with the higher rate; indeed, this word is presumably strongly predicted by the preceding sequence \emph{...Sen. Billd Bradley of New}.
+Codes with higher rates are better at encoding such predictive information from the past. 
+
+
 \begin{figure*}
 \centering
-\includegraphics[width=0.45\textwidth]{code/figures/even-info-varyM.pdf}
+\textbf{Past:} within minutes after the stock market closed friday , i called sen. bill bradley of new
+\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_0.png}
 
-%\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5$ (blue), $10$ (red), $15$ (green). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.}\label{fig:samples-ptb}
+
+\textbf{Past:} asset you own would be worth more if the government suddenly announced that if you sold
+\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_20.png}
+
+\textbf{Past:} he thinks , when the white house is forced to ask for higher taxes to meet
+\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_31.png}
+
+\textbf{Past:} to be dealt with by the oct. 15 deadline , and these senate democrats refused to
+\includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_6.png}
+
+	\caption{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies on the future words $\finitefuture$ (bottom).
+	}\label{fig:samples-ptb}
 \end{figure*}
 
 
