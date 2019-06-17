@@ -1405,11 +1405,12 @@ We also found that the cross-entropies of the estimated marginal distribution $P
 We conjecture that, due to the convolutional nature of QRNNs, they cannot model such processes effectively in principle:
 QRNNs extract representations by pooling embeddings of words or $n$-grams occurring in the past.
 When modeling, e.g., the Even Process, the occurrence of specific $n$-grams is not informative about whether the length of the last block is even or odd; this requires some information about the positions in which these $n$-grams occur, which is not available to the QRNN.
-\rljf{We'll want a bit more detail on this: someone might think we just made some mistake in applying the QRNNs.}
+\rljf{We'll want a bit more detail on this: someone might think we just made some mistake in applying the QRNNs.} \mhahn{I've tried to make it more explicit, is this okay?}
 
 Third, we varied $M$, comparing $M=5, 10$ to the results obtained with $M=15$. 
 Results are shown in Figure~\ref{fig:even-varyM}.
-\mhahn{TODO}
+At $M=5$, NPRD provides estimates similar to OCF (Figure~\ref{fig:even}).
+At $M=10$, the estimates are close to the analytical curve; nonetheless, $M=15$ yields clearly more accurate results.
 
 
 \begin{figure*}
@@ -1418,7 +1419,7 @@ Results are shown in Figure~\ref{fig:even-varyM}.
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info-noFlow.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD ($> 200$ samples). Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.  \mhahn{TODO fix the figures} }\label{fig:even-noFlow}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD ($> 200$ samples). Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }\label{fig:even-noFlow}
 \end{figure*}
 
 
@@ -1429,11 +1430,21 @@ Results are shown in Figure~\ref{fig:even-varyM}.
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info-varyM.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5, 10, 15$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. \mhahn{TODO fix the figures}}\label{fig:even-varyM}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5$ (blue), $10$ (red), $15$ (green). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.}\label{fig:even-varyM}
 \end{figure*}
 
 
+\section{Sample Runs on English Text}\label{sec:english-samples}
 
+
+
+\begin{figure*}
+\centering
+\includegraphics[width=0.45\textwidth]{code/figures/even-info-varyM.pdf}
+
+%\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
+	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5$ (blue), $10$ (red), $15$ (green). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.}\label{fig:samples-ptb}
+\end{figure*}
 
 
 %\unskip
