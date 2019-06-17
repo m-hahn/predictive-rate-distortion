@@ -20,7 +20,7 @@ def addTrees(sec, trees):
 def getPTB(partition):
    trees = []
    if partition == "train":
-     sections = range(0, 19) #19)
+     sections = range(0, 1) #19) #19)
    elif partition in ["dev", "valid"]: # 19-21
      sections = range(19, 22)
    elif partition == "test": # 22-24
