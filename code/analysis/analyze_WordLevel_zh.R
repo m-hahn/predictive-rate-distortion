@@ -5,7 +5,7 @@ library(dplyr)
 library(ggplot2)
 
 
-data = read.csv("../../results-nprd-words.tsv", sep="\t")
+data = read.csv("../../results/results-nprd-words.tsv", sep="\t")
 data$Horizon = 15
 
 data$PastSurp = 15*data$FutureSurp+data$EE
@@ -35,7 +35,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 ggsave(plot, file="../figures/LDC2012T05-words-nlogbeta-mem-fitted.pdf")
@@ -63,7 +63,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Predictiveness")
 plot = plot + theme(legend.position="none")
 ggsave("../figures/LDC2012T05-words-nlogbeta-ee-fitted.pdf", plot=plot) 

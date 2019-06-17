@@ -41,7 +41,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Predictiveness")
 plot = plot + theme(legend.position="none")
 ggsave("../figures/english-nlogbeta-ee-fitted.pdf", plot=plot) 
@@ -67,7 +67,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 ggsave("../figures/english-logbeta-mem-fitted.pdf", plot=plot) 
@@ -78,7 +78,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Rate")
 plot = plot + theme(legend.position="none")
 
@@ -112,7 +112,7 @@ library(ggplot2)
 
 
 data = read.csv("../../results/results-nprd.tsv", sep="\t")
-dataD = read.csv("../../results/CS_SCR/results-oce.tsv", sep="\t")
+dataD = read.csv("../../results/results-oce.tsv", sep="\t")
 
 data$Horizon = 15
 
@@ -164,7 +164,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Rate")
 ggsave("../figures/english-nlogbeta-mem.pdf", plot=plot)
 
@@ -173,7 +173,7 @@ plot = plot +    theme(    axis.text.x = element_text(size=20),
                            axis.text.y = element_text(size=20),
                            axis.title.x = element_text(size=25),
                            axis.title.y = element_text(size=25))
-plot = plot + xlab("log(1/Lambda)")
+plot = plot + xlab("log(1/\u03BB)")
 plot = plot + ylab("Predictiveness")
 ggsave("../figures/english-nlogbeta-ee.pdf", plot=plot)
 
