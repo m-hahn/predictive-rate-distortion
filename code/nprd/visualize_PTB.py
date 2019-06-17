@@ -71,15 +71,11 @@ for j in range(min(numsOfTexts)): #len(ress[0][2])):
   
    char = [x[1] for x in data]
 
-
-
    ys = []
    for i in range(len(ress)):
        ys.append([float(x[2]) for x in ress[i][2][j]])
        ys[-1] = np.asarray(ys[-1])
        print(ys[-1])
-   
-   
    
    print(ys[0])
    
@@ -99,12 +95,12 @@ for j in range(min(numsOfTexts)): #len(ress[0][2])):
 #   plt.axvline(x=15.5, color="green") 
    
    ax.grid(False)
-#   ax.set_ylabel("Cross-Entropy", fontsize=12)
+   ax.set_ylabel("Cross-Entropy", fontsize=12)
 
    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 #   figure(figsize=(25,10))
    fileName = "sample_"+str(j)
-   fig.savefig("figures/"+fileName+".png")
+   fig.savefig("figures/"+fileName+".png", bbox_inches='tight')
 #   plt.show()
    plt.gcf().clear()
 
