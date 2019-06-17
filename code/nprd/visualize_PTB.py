@@ -13,9 +13,18 @@ print(ids)
 language = "PTB"
 model = "REAL"
 ress = []
+times = []
+epochs_nums = []
 for idn in ids:
    with open("/home/user/CS_SCR/CODE/predictive-rate-distortion/results/outputs-nprd-words/test-estimates-"+language+"_"+"nprd_words_PTB_saveCodebook.py"+"_model_"+idn+"_"+model+".txt", "r") as inFile:
       args = next(inFile).strip().split(" ")
+      epochs = len(next(inFile).strip().split(" "))
+      epochs_nums.append(epochs)
+      next(inFile)
+      next(inFile)
+      next(inFile)
+      time = float(next(inFile).strip())
+      times.append(time)
       print(args)
       beta = args[-3]
       beta = -math.log(float(beta))
@@ -31,6 +40,10 @@ for idn in ids:
            assert data[i][0] == '0', data[i]
  #  print(len(dat))
    ress.append((idn, round(beta), dat))
+
+print(epochs_nums)
+print(times)
+#quit()
 
 ress = sorted(ress, key=lambda x:x[1])
 #print(ress)
@@ -77,7 +90,7 @@ for j in range(min(numsOfTexts)): #len(ress[0][2])):
    variations.append((j, variation))
    
    plt.subplots_adjust(left=0.03, right=0.99, top=0.99, bottom=0.17)
-   fig.set_size_inches(10, 1.7)
+   fig.set_size_inches(9, 1.7)
    #ax.grid(False)
    plt.xticks(pos[16:], [x.decode("utf-8") for x in char][16:])
   
