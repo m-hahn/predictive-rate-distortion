@@ -635,15 +635,15 @@ Among methods that provide upper bounds, the one that provides the lowest such b
 
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
 %by estimating $\operatorname{H}[\finitefuture]$ 
-We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. 
+We use the encoder network that computes the code vector $h$ (\ref{eq:z-gauss}) to also estimate the marginal probability of the past observation sequence, $P_\eta(\finitepast)$. $P_\eta$ has support over sequences of length $M$.
 Similar to the decoder $\psi$, we use the vector representations $f_t \in \mathbb{R}^k$ computed by the LSTM encoder after processing $X_{-M\dots t}$ for $t = -M, \dots, -1$, and then compute predictions using the softmax rule
 \begin{equation}
-	P_\eta(X_t = s_i|X_{1\dots t-1}, Z) \propto \exp((W_{o'} f_t)_i)
+	P_\eta(X_t = s_i|X_{1\dots t-1}, Z) \propto \exp((W_{o'} f_t)_i),
 \end{equation}
 where $W_{o'} \in \mathbb{R}^{|S|\times k}$ is another parameter matrix.
 
 Because we consider stationary processes, we have 
-that the cross-entropy under $P_\eta$ of $\finitefuture$ is equal to the cross-entropy of $\finitepast$ under the same encoding distribution: $\mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$. \rljf{I see that this is true if $P_\eta$ is the true marginal but what if it is approximate? Could $P_\eta$ end up non-stationary even when it comes from an encoder fit to a stationary distribution? Or is the stationarity of $P_\eta$ guaranteed because the encoder LSTM is autoregressive?} \mhahn{If $X_t$ is stationary, then the distributions of $\finitepast$ and $\finitefuture$ are the same, so these expectations are the same. Is there a way to make this more transparent?}
+that the cross-entropy under $P_\eta$ of $\finitefuture$ is equal to the cross-entropy of $\finitepast$ under the same encoding distribution: $\mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitefuture)\right] = - \mathbb{E}_{X_{\finitepast\finitefuture}}\left[\log P_\eta(\finitepast)\right]$. 
 Using this observation, we estimate the predictiveness $\operatorname{I}[Z, \finitefuture] = \operatorname{H}[\finitefuture] - \operatorname{H}[\finitefuture|Z]$ by the difference between the corresponding cross-entropies on the test set~\cite{mcallester2018formal}:
 %$\operatorname{H}[\finitefuture]$ by the cross-entropy of $P_\eta$ on the test data:
 \begin{equation}\label{eq:bound-mc-predictiveness}
@@ -680,7 +680,7 @@ Unlike our approach, they used a fixed diagonal Gaussian instead of a flexible p
 Some recent work has applied similar approaches to the modeling of sequences, employing models corresponding to the objective~(\ref{eq:bound}) with $\lambda=1$~\citep{grathwohl2016disentangling,walker2016uncertain,fraccaro2017disentangled,hernandez2018variational}.
 
 In the neural networks literature, the most commonly used method using variational bounds similar to Equation~(\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014, bowman-generating-2016}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
-The $\beta$-VAE \citep{higgins2017beta}, a variant of the Variational Autoencoder, uses $\lambda > 1$ (whereas the Predictive Rate-Distortion objective~(\ref{eq:ib}) uses $\lambda \in (0,1)$), and has been linked to the Information Bottleneck by \cite{burgess2018understanding}.\footnote{As discussed in Section~\ref{sec:background}, our model becomes degenerate with $\lambda \ge 1$. Surprisingly, $\beta$-VAE operates in exactly this parameter regime, although }
+The $\beta$-VAE \citep{higgins2017beta}, a variant of the Variational Autoencoder, uses $\lambda > 1$ (whereas the Predictive Rate-Distortion objective~(\ref{eq:ib}) uses $\lambda \in (0,1)$), and has been linked to the Information Bottleneck by \cite{burgess2018understanding}.
 
 
 
@@ -703,7 +703,7 @@ We then use the held-out test set to estimate rate and prediction loss.
 This method not only enables fair comparison between OCF and NPRD, but also provides a more realistic evaluation, by focusing on the performance of the code $Z$ when deployed on new data samples.
 For rate, we use the same variational bound that we use for NPRD, stated in Proposition~\ref{prop:kl-bound}:
 \begin{equation}\label{eq:rate-OCF}
-\frac{1}{N} \sum_{\finitepast \in \text{Test Data}} \operatorname{D_{KL}}\infdivx{P(Z|\finitepast)}{s(Z)}
+\frac{1}{N} \sum_{\finitepast \in \text{Test Data}} \operatorname{D_{KL}}\infdivx{P(Z|\finitepast)}{s(Z)},
 \end{equation}
 where $P(Z|\finitepast)$ is the encoder created by the Blahut-Arimoto algorithm, and $s(Z)$ is the marginal distribution of $Z$ on the training set.
 $N$ is the number of sample time series in the test data.
@@ -926,7 +926,7 @@ Consequently, prediction is a fundamental component across theories of human lan
 Relatedly, the Uniform Information Density and Constant Entropy Rate hypotheses~\citep{fenk1980konstanz,genzel2002entropy,jaeger2007speakers} state that languages order information in sentences and discourse so that the entropy rate stays approximately constant. % , ferrer2013constant
 
 The relevance of prediction to human language processing makes the \emph{difficulty} of prediction another interesting aspect of language complexity:
-Predictive Rate-Distortion describes how much memory of the past humans need to maintain to predict future words accuractely.
+Predictive Rate-Distortion describes how much memory of the past humans need to maintain to predict future words accurately.
 Beyond the entropy rate, it thus forms another important aspect of linguistic complexity.
 
 
@@ -1364,11 +1364,8 @@ Larger dimensions, more layers, and longer flows lead to more expressive models;
 
 Training used Early Stopping using the development set, as described in Section~\ref{sec:parameter-estimation}.
 Models were trained on a TITAN Xp graphics card.
-
-
-
-\mhahn{TODO number of epochs, training time comparable to OCF}
-On Even Process and Random Insertion Process, OCF takes at most a few seconds at $M \leq 5$.
+On Even Process and Random Insertion Process, NPRD took a median of 10 minutes (max 48 minutes).
+OCF took less than one minute at $M \leq 5$; however, it does not scale to larger values of $M$.
 On English word-level modeling, training took a median number of 9 epochs (max 467 epochs) and 5 minutes (max 126 minutes).
 
 
@@ -1442,8 +1439,6 @@ At $M=10$, the estimates are close to the analytical curve; nonetheless, $M=15$ 
 
 \section{Sample Runs on English Text}\label{sec:english-samples}
 
-
-
 In Figure~\ref{fig:samples-ptb}, we provide four sample outputs from English word-level modeling with three values of $\log \frac{1}{\lambda}$ ($1.0$, $3.0$, $5.0$), corresponding to low ($1.0$), medium ($3.0$), and high ($5.0$) rates  (compare Figure~\ref{fig:wordlevel-fit-1}).
 We obtained sample sequences by selecting the first 32 sequences $\finitepast\finitefuture$ (at $M=15$) from the Penn Treebank validation set, and selected four examples where the variation in cross-entropy values at $X_0$ was largest between the three models.
 
@@ -1451,6 +1446,7 @@ Across these samples, models generated at $\log \frac{1}{\lambda} = 5$ show lowe
 For instance, in the first sample, the cross-entropy on the first word \emph{Jersey} is lowest for the code with the higher rate; indeed, this word is presumably strongly predicted by the preceding sequence \emph{...Sen. Billd Bradley of New}.
 Codes with higher rates are better at encoding such predictive information from the past. 
 
+\definecolor{darkgreen}{rgb}{0.33, 0.6, 0.18}
 
 \begin{figure*}
 \centering
@@ -1464,11 +1460,11 @@ Codes with higher rates are better at encoding such predictive information from 
 \textbf{Past:} to be dealt with by the oct. 15 deadline , and these senate democrats refused to \\
 \includegraphics[width=0.9\textwidth]{code/nprd/figures/sample_6.png} \\
 \textbf{\textcolor{red}{- - - -}}\ \ Low rate ($\log \frac{1}{\lambda}=1.0$)\ \ \ \ \ \ 
-\textbf{\textcolor{olive}{-- - --}}\ \ Median rate ($\log \frac{1}{\lambda}=3.0$)\ \ \ \ \ \ 
+\textbf{\textcolor{darkgreen}{-- - --}}\ \ Medium rate ($\log \frac{1}{\lambda}=3.0$)\ \ \ \ \ \ 
 \textbf{\textcolor{blue}{------}}\ \ High rate ($\log \frac{1}{\lambda}=5.0$)
 \end{tabular}
 
-	\caption{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies (in nats) on the future words $\finitefuture$ (bottom). %\rljf{Figure needs y axis label and a legend to explain the meanings of the different colors}
+	\caption{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies (in nats) on the future words $\finitefuture$ (bottom).
 	}\label{fig:samples-ptb}
 \end{figure*}
 
