@@ -164,9 +164,6 @@ Based on the results, we argue that the predictive rate-distortion curve is more
 \begin{document}
 
 
-% NOTES
-% - cite this paper https://arxiv.org/pdf/1705.02436.pdf (they have a different IB bound, but also do neural networks)
-
 
 Predicting the future from past observations is a key problem across science.
 Constructing models that predict future observations is a fundamental method of making and testing scientific discoveries.
@@ -232,10 +229,10 @@ Recent advances in neural variational inference~\citep{rezende-variational-2015,
 Our method can be applied to sample trajectories in an off-the-shelf manner, without prior knowledge of the underlying process.
 
 In Section~\ref{sec:background}, we formally introduce predictive rate-distortion, and discuss related notions of predictive complexity.
-In Section~\ref{sec:OCF}, we describe the prior method of Optimal Causal Filtering (OCF).
+In Section~\ref{sec:OCF}, we describe the prior method of Optimal \textcolor{red}{Causal} Filtering (OCF).
 In Section~\ref{sec:nprd}, we describe our method NPRD.
 In Section~\ref{sec:experiments}, we validate NPRD on processes whose predictive rate-distortion is analytically known, showing that it finds essentially optimal predictive models.
-In Section~\ref{sec:language}, we apply NPRD to data from five natural languages, providing the first estimates of predictive rate-distortion of natural language.
+In Section~\ref{sec:language}, we apply NPRD to data from five \textcolor{red}{natural} languages, providing the first estimates of predictive rate-distortion of natural language.
 
 
 %\paragraph{Marginal $q$}
@@ -603,7 +600,7 @@ This results in an unbiased estimator of the gradient of (\ref{eq:bound}) w.r.t.
 
 Following standard practice in machine learning, we split the data set of sample time series into three partitions (\key{training set}, \key{validation set}, and \key{test set}). 
 We use the training set for optimizing the parameters as described above.
-After every pass through the training set, the objective (\ref{eq:bound}) is evaluated on the validation set using a Monte Carlo estimate with one sample $Z$ per trajectory; optimization terminates once the value on the validation set does not decrease any more.
+After every pass through the training set, the objective (\ref{eq:bound}) is evaluated on the validation set using a Monte Carlo estimate with one sample $Z$ per trajectory; optimization terminates once the value on the \textcolor{red}{validation} set does not decrease any more.
 %After this, we use the test set to estimate rate and predictiveness of the fully optimized model (see next paragraph).
 
 After optimizing the parameters on a set of observed trajectories, we estimate rate and prediction loss on the test set.
@@ -627,10 +624,11 @@ Thanks to (\ref{eq:bound1-new}-\ref{eq:bound2-new}), these estimates are guarant
 %When evaluating (\ref{eq:bound}) on unseen data this way, the resulting value is guaranteed to be an \emph{upper} bound on the true predictive rate-distortion due to (\ref{ineq1}-\ref{ineq2}), up to sampling error introduced by sampling $z$ and the finite size of the held-out dataset.
 
 It is important to note that this sampling error is different from the overfitting issue affecting OCF: 
-Our Equations (\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCF.
-Given that Neural Predictive Rate-Distortion provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
+\textcolor{red}{Our Equations} (\ref{eq:bound-mc-rate}-\ref{eq:bound-mc-distortion}) provide \emph{unbiased} estimators of upper bounds, whereas overfitting \emph{biases} the values obtained by OCF.
+Given that \textcolor{red}{Neural Predictive Rate-Distortion} provably provides upper bounds on rate and prediction loss (up to sampling error), one can objectively compare the quality of different estimation methods:
 Among methods that provide upper bounds, the one that provides the lowest such bound for a given problem is the one giving results closest to the true curve.
 
+{\color{red}
 \subsubsection{Estimating Predictiveness}
 
 Given the estimate for prediction loss, we estimate predictiveness $\operatorname{I}[Z, \finitefuture]$ with the following method.
@@ -658,6 +656,7 @@ so that the full training objective comes out to:
 \end{equation} % should be P_\psi (X_{0...M}|z)? % done (mhahn)
 Again by Gibbs' inequality and Propositions~\ref{prop:mi-bound} and~\ref{prop:kl-bound}, this is minimized when $P_\eta$ represents the true distribution over length-$M$ blocks $P(\finitepast)$, $P_\phi(Z|\finitepast)$ describes an optimal code for the given $\lambda$, $q$ is its marginal distribution, and $P_\psi(\finitefuture|Z)$ is the Bayes-optimal decoder.
 For approximate solutions to this augmented objective, the inequalities~(\ref{eq:bound1-new}-\ref{eq:bound2-new}) will also remain true due to Propositions~\ref{prop:mi-bound} and~\ref{prop:kl-bound}.
+}
 
 %The magnitude of the estimation error could be estimated using standard methods such as bootstrapping, cross-validation, and taking more samples of $z$---
 
@@ -676,12 +675,12 @@ For approximate solutions to this augmented objective, the inequalities~(\ref{eq
 In (\ref{eq:bound}), we derived a variational formulation of predictive rate-distortion.
 This is formally related to a variational formulation of the Information Bottleneck that was introduced by \cite{alemi-deep-2016}, who applied it to neural-network based image recognition.
 Unlike our approach, they used a fixed diagonal Gaussian instead of a flexible parametrized distribution for $q$.
-%As far as we are aware, no previous work has used such a variational formulation specifically .
+{\color{red}
 Some recent work has applied similar approaches to the modeling of sequences, employing models corresponding to the objective~(\ref{eq:bound}) with $\lambda=1$~\citep{grathwohl2016disentangling,walker2016uncertain,fraccaro2017disentangled,hernandez2018variational}.
 
 In the neural networks literature, the most commonly used method using variational bounds similar to Equation~(\ref{eq:bound}) is the Variational Autoencoder \citep{kingma-auto-encoding-2014, bowman-generating-2016}, which corresponds to the setting where $\lambda=1$ and the predicted output is equal to the observed input.
 The $\beta$-VAE \citep{higgins2017beta}, a variant of the Variational Autoencoder, uses $\lambda > 1$ (whereas the Predictive Rate-Distortion objective~(\ref{eq:ib}) uses $\lambda \in (0,1)$), and has been linked to the Information Bottleneck by \cite{burgess2018understanding}.
-
+}
 
 
 %\subsection{Discusion}
@@ -723,7 +722,7 @@ These pseudo-observations were assigned pseudo-counts $\gamma$ in this matrix of
 When evaluating the codebook on held-out data, previously unseen sequences were mapped to $\omega$.
 
 
-\paragraph{Neural Predictive Rate-Distortion}
+\paragraph{\textcolor{red}{Neural Predictive Rate-Distortion}}
 For all experiments, we used $M=15$.
 Neural networks have hyperparameters, such as the number of units and the step size used in optimization, which affect the quality of approximation depending on properties of the dataset and the function being approximated.
 Given that NPRD provably provides upper bounds on the PRD objective~(\ref{eq:prd-loss}), one can in principle identify the best hyperparameters for a given process by choosing the combination that leads to the lowest estimated upper bounds.
@@ -739,7 +738,7 @@ We first test NPRD on two processes where the predictive rate-distortion tradeof
 The \key{Even Process} \citep{marzen-predictive-2016} is the process of 0/1 IID coin flips, conditioned on all blocks of consecutive ones having even length.
 Its complexity and excess entropy are both $\approx 0.63$ nats. % (stationary distribution: 1/3 for odd, 2/3 for even)
 It has infinite Markov order, and \citet{marzen-predictive-2016} find that OCF (at $M=5$) performs poorly. %, overestimating  even at $M=5$.
-The true predictive rate-distortion curve was computed in \cite{marzen-predictive-2016} using the analytically known $\epsilon$-machine.
+The true predictive rate-distortion curve was computed in \cite{marzen-predictive-2016} using the analytically known \textcolor{red}{$\epsilon$-machine}.
 The \key{Random Insertion Process} \citep{marzen-predictive-2016} consists of sequences of uniform coin flips $X_t \in \{0,1\}$, subject to the constraint that, if $X_{t-2}$ was a 0, then $X_{t}$ has to be a 1.
 
 
@@ -793,7 +792,7 @@ The three causal states are represented by the three different modes of $Z$, and
 \centering
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_2.png}
 \includegraphics[width=0.45\textwidth]{code/figures/foo_pca_3.png}
-	\caption{Applying Principal Component Analysis to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.6$ (left) and $\lambda = 0.25$ (right). We show the first two principal components. Samples are colored according to the states in the $\epsilon$-machine. There is a small number of samples from sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C); these are indicated in black.}\label{fig:latent}
+	\caption{Applying \textcolor{red}{Principal Component Analysis} to 5000 sampled codes $Z$ for the Random Insertion Process, at $\lambda = 0.6$ (left) and $\lambda = 0.25$ (right). We show the first two principal components. Samples are colored according to the states in the $\epsilon$-machine. There is a small number of samples from sequences that, at $M=15$, cannot be uniquely attributed to any of the states (ambiguous between A and C); these are indicated in black.}\label{fig:latent}
 \end{figure*}
 % colors = [{"A" : "red", "B" : "green", "C" : "blue", "U" : "black"}[x] for x in states]
 
@@ -915,7 +914,7 @@ Without optimizations specific to the task at hand, a direct application of OCF 
 
 
 
-\section{Estimating Predictive Rate-Distortion   for Natural Language}\label{sec:language}
+\section{Estimating \textcolor{red}{Predictive Rate-Distortion}   for Natural Language}\label{sec:language}
 
 We consider the problem of estimating rate-distortion for natural language.
 Natural language has been a testing ground for information-theoretic ideas since Shannon's work.
@@ -974,7 +973,7 @@ As $\lambda \rightarrow 0$, NPRD (red, $M=15$) continues to discover structure, 
 
 Note that NPRD reports rates of 15 nats and more when modeling with very low distortion.
 A discrete codebook would need over 3 million distinct codewords for a code of such a rate, exceeding the size of the training corpus (about 500K words), replicating what we found for the \textsc{Copy3} process:
-Neural encoders and decoders can use the geometric structure of the code space to encode generalizations across different dimensions, supporting a very large effective number of distinct possible codes.
+Neural encoders and decoders can use \textcolor{red}{the geometric} structure of the code space to encode generalizations across different dimensions, supporting a very large effective number of distinct possible codes.
 Unlike discrete codebooks, the geometric structure makes it possible for neural encoders to construct appropriate codes `on the fly' on new input.
 
 
@@ -1362,12 +1361,13 @@ The third group of parameters are related to the optimization procedure~\citep{k
 Neural Autoregressive Flows, used to approximate the marginal $q$, also have a set of hyperparameters \citep{huang-neural-2018}: The length of the flow (1, 2, ,...), the type (DSF / Deep Sigmoid Flow or  DDSF / Deep Dense Sigmoid Flow), the dimension of the flow (an integer), and the number of layers in the flow (1,2,...).
 Larger dimensions, more layers, and longer flows lead to more expressive models; however, they are computationally more expensive.
 
+{\color{red}
 Training used Early Stopping using the development set, as described in Section~\ref{sec:parameter-estimation}.
 Models were trained on a TITAN Xp graphics card.
 On Even Process and Random Insertion Process, NPRD took a median of 10 minutes to process 3M training samples.
 OCF took less than one minute at $M \leq 5$; however, it does not scale to larger values of $M$.
 On English word-level modeling, training took a median number of 9 epochs (max 467 epochs) and 5 minutes (max 126 minutes).
-
+}
 
 
 \begin{table}
@@ -1389,7 +1389,7 @@ On English word-level modeling, training took a median number of 9 epochs (max 4
 \end{table}
 
 
-
+{\color{red}
 \section{Alternative Modeling Choices}\label{sec:app-choices}
 
 In this section, we investigate the trade-offs involved in alternative modeling choices. It may be possible to use simpler function-approximators for $\phi$, $\psi$, and $q$, or smaller context windows sizes $M$, without harming accuracy too much.
@@ -1422,7 +1422,7 @@ At $M=10$, the estimates are close to the analytical curve; nonetheless, $M=15$ 
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info-noFlow.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD ($> 200$ samples). Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }\label{fig:even-noFlow}
+	\caption{\textcolor{red}{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), estimated using a simple diagonal unit Gaussian approximation for $q$. Gray lines: Analytical curves. Red dots: Multiple runs of NPRD ($> 200$ samples). Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD. }}\label{fig:even-noFlow}
 \end{figure*}
 
 
@@ -1433,7 +1433,7 @@ At $M=10$, the estimates are close to the analytical curve; nonetheless, $M=15$ 
 \includegraphics[width=0.45\textwidth]{code/figures/rip-info-varyM.pdf}
 
 %\includegraphics[width=0.45\textwidth]{code/figures/even-beta-mem.pdf}
-	\caption{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5$ (blue), $10$ (red), $15$ (green). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.}\label{fig:even-varyM}
+	\caption{\textcolor{red}{Rate-Distortion for the Even Process (left) and the Random Insertion Process (right), varying $M=5$ (blue), $10$ (red), $15$ (green). Gray lines: Analytical curves. Red dots: Multiple runs of NPRD. Red line: Tradeoff curve computed from NPRD runs. Compare Figure~\ref{fig:even} for results from full NPRD.}}\label{fig:even-varyM}
 \end{figure*}
 
 
@@ -1464,10 +1464,10 @@ Codes with higher rates are better at encoding such predictive information from 
 \textbf{\textcolor{blue}{------}}\ \ High rate ($\log \frac{1}{\lambda}=5.0$)
 \end{tabular}
 
-	\caption{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies (in nats) on the future words $\finitefuture$ (bottom).
+	\caption{\textcolor{red}{Four example outputs from English word-level modeling, with low rate ($\log \frac{1}{\lambda} = 1$; red, dotted), medium rate ($\log \frac{1}{\lambda} = 3$; green, dashed), high rate ($\log \frac{1}{\lambda} = 5$; blue, solid). For each sample, we provide the prior context $\finitepast$ (top), and the per-word cross-entropies (in nats) on the future words $\finitefuture$ (bottom).}
 	}\label{fig:samples-ptb}
 \end{figure*}
-
+}
 
 %\unskip
 %\subsection{}
